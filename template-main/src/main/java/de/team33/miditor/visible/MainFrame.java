@@ -16,12 +16,13 @@ import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
+
+import de.team33.miditor.midi.impl.PlayerImpl;
 import net.team33.messaging.Listener;
 import net.team33.midi.Player;
 import net.team33.midi.Sequence;
 import net.team33.midi.Track;
 import net.team33.midi.Player.State;
-import net.team33.midi.impl.PlayerImpl;
 import net.team33.miditor.controller.UIController;
 import net.team33.miditor.model.PartSelection;
 import net.team33.miditor.ui.sequence.Context;

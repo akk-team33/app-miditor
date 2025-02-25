@@ -9,8 +9,8 @@ import javax.sound.midi.MidiUnavailableException;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
+import de.team33.miditor.midi.impl.SequenceImpl;
 import de.team33.miditor.visible.MainFrame;
-import net.team33.midi.impl.SequenceImpl;
 
 public class MiditorStub implements Runnable {
     private static final Preferences PREFS = Preferences.userRoot().node("net.team33/Miditor");
