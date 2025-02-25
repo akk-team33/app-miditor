@@ -1,0 +1,20 @@
++------------------------------------------------------------------------------
+| ${project.groupId} - ${project.artifactId} - version ${project.version}
++------------------------------------------------------------------------------
+Your request:
+
+    MainTest
+
+Expected request scheme:
+
+    MainTest TASK [arg [, arg [, ...]]]
+
+Available TASKs (case insensitive):
+
+    %s
+
+Type ...
+
+    MainTest TASK
+
+... to get more information about the specified TASK.%n%n

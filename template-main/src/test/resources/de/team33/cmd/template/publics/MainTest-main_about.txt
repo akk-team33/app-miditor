@@ -1,0 +1,10 @@
++------------------------------------------------------------------------------
+| MainTest about
+|
+| Product Group:   ${project.groupId}
+| Product Name:    ${project.artifactId}
+| Product Version: ${project.version}
+| Build Timestamp: N/A
+|
+| Copyright (C) ${copyright.year} by Andreas Kluge-Kaindl, Bremen (de)
++------------------------------------------------------------------------------%n

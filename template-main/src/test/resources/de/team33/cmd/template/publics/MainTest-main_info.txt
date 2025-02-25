@@ -1,0 +1,13 @@
++------------------------------------------------------------------------------
+| ${project.groupId} - ${project.artifactId} - version ${project.version}
++------------------------------------------------------------------------------
+Your request:
+
+    MainTest info
+
+Expected request scheme:
+
+    MainTest info PATH
+
+    to get basic information about the file
+    or directory represented by the given PATH.%n%n

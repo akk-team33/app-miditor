@@ -1,0 +1,10 @@
++------------------------------------------------------------------------------
+| %s
+|
+| Product Group:   ${project.groupId}
+| Product Name:    ${project.artifactId}
+| Product Version: ${project.version}
+| Build Timestamp: ${maven.build.timestamp}
+|
+| Copyright (C) ${copyright.year} by Andreas Kluge-Kaindl, Bremen (de)
++------------------------------------------------------------------------------

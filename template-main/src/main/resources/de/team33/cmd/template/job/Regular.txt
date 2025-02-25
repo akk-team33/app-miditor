@@ -1,0 +1,17 @@
+Your request:
+
+    %1$s
+
+Expected request scheme:
+
+    %2$s TASK [arg [, arg [, ...]]]
+
+Available TASKs (case insensitive):
+
+    %3$s
+
+Type ...
+
+    %2$s TASK
+
+... to get more information about the specified TASK.
