@@ -1,8 +1,9 @@
 package de.team33.miditor.ui.track;
 
-import de.team33.messaging.Listener;
 import de.team33.miditor.controller.UIController;
 import de.team33.miditor.ui.SmallButton;
+
+import java.util.function.Consumer;
 
 public abstract class EventButton extends SmallButton {
     private final int m_Min;
@@ -21,11 +22,11 @@ public abstract class EventButton extends SmallButton {
 
     protected abstract UIController getTrackHandler();
 
-    private class TH_CLIENT implements Listener<UIController.SetTrackSelection> {
+    private class TH_CLIENT implements Consumer<UIController.SetTrackSelection> {
         private TH_CLIENT() {
         }
 
-        public void pass(UIController.SetTrackSelection message) {
+        public void accept(UIController.SetTrackSelection message) {
             int[] sel = message.getSender().getTrackSelection();
             EventButton.this.setEnabled(EventButton.this.m_Min <= sel.length && sel.length <= EventButton.this.m_Max);
         }

@@ -1,6 +1,5 @@
 package de.team33.miditor.ui.player;
 
-import de.team33.messaging.Listener;
 import de.team33.midi.Player;
 import de.team33.midi.Player.State;
 import de.team33.miditor.ui.Rsrc;
@@ -11,6 +10,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.function.Consumer;
 
 public abstract class DriveControl extends JPanel {
     public DriveControl() {
@@ -128,11 +128,11 @@ public abstract class DriveControl extends JPanel {
             }
         }
 
-        private class CLIENT2 implements Listener<Player.SetState> {
+        private class CLIENT2 implements Consumer<Player.SetState> {
             private CLIENT2() {
             }
 
-            public void pass(Player.SetState message) {
+            public void accept(Player.SetState message) {
                 Player.State s = message.getSender().getState();
                 SBUTTON.this._setState(s);
             }

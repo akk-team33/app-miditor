@@ -1,11 +1,11 @@
 package de.team33.miditor.ui.track;
 
-import de.team33.messaging.Listener;
 import de.team33.midi.Track;
 import de.team33.miditor.controller.UIController;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.function.Consumer;
 
 public class Header extends JLabel {
     public Header(UIController uiController) {
@@ -16,7 +16,7 @@ public class Header extends JLabel {
         uiController.getRegister(UIController.SetTrack.class).add(new UICTRL_LSTNR());
     }
 
-    private class TRACK_LSTNR implements Listener<Track.SetName> {
+    private class TRACK_LSTNR implements Consumer<Track.SetName> {
         private TRACK_LSTNR(UIController ctrl) {
             Track track = ctrl.getTrack();
             if (track != null) {
@@ -26,15 +26,15 @@ public class Header extends JLabel {
 
         }
 
-        public void pass(Track.SetName message) {
+        public void accept(Track.SetName message) {
             Header.this.setText(String.format("%s - %s", ((Track) message.getSender()).getPrefix(), ((Track) message.getSender()).getName()));
         }
 
-        private class UNSET_LSTNR implements Listener<UIController.UnsetTrack> {
+        private class UNSET_LSTNR implements Consumer<UIController.UnsetTrack> {
             private UNSET_LSTNR() {
             }
 
-            public void pass(UIController.UnsetTrack message) {
+            public void accept(UIController.UnsetTrack message) {
                 UIController ctrl = (UIController) message.getSender();
                 Track track = ctrl.getTrack();
                 if (track != null) {
@@ -46,11 +46,11 @@ public class Header extends JLabel {
         }
     }
 
-    private class UICTRL_LSTNR implements Listener<UIController.SetTrack> {
+    private class UICTRL_LSTNR implements Consumer<UIController.SetTrack> {
         private UICTRL_LSTNR() {
         }
 
-        public void pass(UIController.SetTrack message) {
+        public void accept(UIController.SetTrack message) {
             Header.this.new TRACK_LSTNR((UIController) message.getSender());
         }
     }

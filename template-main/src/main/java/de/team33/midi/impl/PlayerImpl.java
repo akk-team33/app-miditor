@@ -1,6 +1,5 @@
 package de.team33.midi.impl;
 
-import de.team33.messaging.Listener;
 import de.team33.messaging.Register;
 import de.team33.messaging.sync.Router;
 import de.team33.messaging.util.ClassUtil;
@@ -18,6 +17,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.function.Consumer;
 import java.util.prefs.Preferences;
 
 public class PlayerImpl implements Player {
@@ -306,11 +306,11 @@ public class PlayerImpl implements Player {
         }
     }
 
-    private class SONG_CLIENT implements Listener<Sequence.SetParts> {
+    private class SONG_CLIENT implements Consumer<Sequence.SetParts> {
         private SONG_CLIENT() {
         }
 
-        public void pass(Sequence.SetParts message) {
+        public void accept(Sequence.SetParts message) {
             Set<MESSAGE> messages = new HashSet();
             boolean running = PlayerImpl.this.sequencer.isRunning();
             boolean open = PlayerImpl.this.sequencer.isOpen();
@@ -327,11 +327,11 @@ public class PlayerImpl implements Player {
         }
     }
 
-    private class STARTER implements Listener<Player.SetState> {
+    private class STARTER implements Consumer<SetState> {
         private STARTER() {
         }
 
-        public void pass(Player.SetState message) {
+        public void accept(Player.SetState message) {
             Player.State s = ((Player) message.getSender()).getState();
             if (s == State.RUN) {
                 ((Player) message.getSender()).getRegister(Player.SetState.class).remove(this);

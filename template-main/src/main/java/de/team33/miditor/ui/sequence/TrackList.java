@@ -1,6 +1,5 @@
 package de.team33.miditor.ui.sequence;
 
-import de.team33.messaging.Listener;
 import de.team33.midi.Player;
 import de.team33.midi.Sequence;
 import de.team33.midi.Track;
@@ -15,6 +14,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.Serial;
+import java.util.function.Consumer;
 
 public abstract class TrackList extends JScrollPane {
     public TrackList() {
@@ -57,11 +57,11 @@ public abstract class TrackList extends JScrollPane {
 
         protected abstract void doActionWith(Iterable<Track> var1);
 
-        private class PRT_SEL_CLNT implements Listener<Selection.Message<Track>> {
+        private class PRT_SEL_CLNT implements Consumer<Selection.Message<Track>> {
             private PRT_SEL_CLNT() {
             }
 
-            public void pass(Selection.Message<Track> message) {
+            public void accept(Selection.Message<Track> message) {
                 boolean superMin = ACTN_BUTTON.this.min <= message.getSender().size();
                 boolean subMax = message.getSender().size() <= ACTN_BUTTON.this.max;
                 ACTN_BUTTON.this.setEnabled(superMin && subMax);
@@ -110,11 +110,11 @@ public abstract class TrackList extends JScrollPane {
             }
         }
 
-        private class PRT_SEL_CLNT implements Listener<Selection.Message<Track>> {
+        private class PRT_SEL_CLNT implements Consumer<Selection.Message<Track>> {
             private PRT_SEL_CLNT() {
             }
 
-            public void pass(Selection.Message<Track> message) {
+            public void accept(Selection.Message<Track> message) {
                 int sel = message.getSender().size();
                 SELECTOR.this.setSelected(TrackList.this.getContext().getSequence().getTracks().length - sel < sel);
             }
@@ -155,11 +155,11 @@ public abstract class TrackList extends JScrollPane {
             TrackList.this.getContext().getSequence().getRegister(Sequence.SetParts.class).add(new CLIENT());
         }
 
-        private class CLIENT implements Listener<Sequence.SetParts> {
+        private class CLIENT implements Consumer<Sequence.SetParts> {
             private CLIENT() {
             }
 
-            public void pass(Sequence.SetParts message) {
+            public void accept(Sequence.SetParts message) {
                 Track[] parts = message.getSender().getTracks();
                 TABLE.this.setVisible(false);
                 TABLE.this.removeAll();

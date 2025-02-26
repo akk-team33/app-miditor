@@ -1,6 +1,5 @@
 package de.team33.miditor.ui;
 
-import de.team33.messaging.Listener;
 import de.team33.midi.Sequence;
 import de.team33.midi.Timing;
 import de.team33.midi.Track;
@@ -15,6 +14,7 @@ import de.team33.miditor.ui.track.Header;
 import javax.swing.*;
 import javax.swing.table.TableModel;
 import java.awt.*;
+import java.util.function.Consumer;
 
 public abstract class EventEditor extends UIControllerImpl {
     private static final Insets GBC_INSETS = new Insets(2, 2, 2, 2);
@@ -100,11 +100,11 @@ public abstract class EventEditor extends UIControllerImpl {
         }
     }
 
-    private class SONG_CLIENT implements Listener<Sequence.SetParts> {
+    private class SONG_CLIENT implements Consumer<Sequence.SetParts> {
         private SONG_CLIENT() {
         }
 
-        public void pass(Sequence.SetParts message) {
+        public void accept(Sequence.SetParts message) {
             Track[] parts = ((Sequence) message.getSender()).getTracks();
             Track[] var6 = parts;
             int var5 = parts.length;

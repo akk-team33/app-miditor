@@ -1,7 +1,6 @@
 package de.team33.messaging.sync;
 
 import de.team33.messaging.CollectiveRuntimeException;
-import de.team33.messaging.Listener;
 import de.team33.messaging.Register;
 import de.team33.messaging.Relay;
 
@@ -13,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
+import java.util.function.Consumer;
 
 public class Router<MSG> implements Relay<MSG> {
     private REGISTRY registry = new REGISTRY();
@@ -79,10 +79,10 @@ public class Router<MSG> implements Relay<MSG> {
     }
 
     private final void pass(Distributor distributor, Object message) {
-        distributor.pass(message);
+        distributor.accept(message);
     }
 
-    public final void pass(MSG message) {
+    public final void accept(MSG message) {
         REGISTRY reg = this.getCurrentRegistry();
         if (reg == null) {
             throw new IllegalStateException(this.getClass().getSimpleName() + " is closed");
@@ -123,7 +123,7 @@ public class Router<MSG> implements Relay<MSG> {
         private DUMMY() {
         }
 
-        public final boolean add(Listener<? super T> listener) {
+        public final boolean add(Consumer<? super T> listener) {
             return false;
         }
 

@@ -27,7 +27,7 @@ public abstract class TimeShiftBase implements TimeShift {
     public final void setDividend(int value) {
         if (this.dividend != (long) value) {
             this.dividend = (long) value;
-            this.router.pass(this.msgSetDividend);
+            this.router.accept(this.msgSetDividend);
         }
 
     }
@@ -39,7 +39,7 @@ public abstract class TimeShiftBase implements TimeShift {
     public final void setDivisor(int value) {
         if (this.getDivisors().contains(value)) {
             this.divisor = (long) value;
-            this.router.pass(this.msgSetDivisor);
+            this.router.accept(this.msgSetDivisor);
         }
 
     }

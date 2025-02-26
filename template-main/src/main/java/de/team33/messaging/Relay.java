@@ -1,4 +1,6 @@
 package de.team33.messaging;
 
-public interface Relay<MSG> extends Listener<MSG>, Registry<MSG> {
+import java.util.function.Consumer;
+
+public interface Relay<MSG> extends Consumer<MSG>, Registry<MSG> {
 }

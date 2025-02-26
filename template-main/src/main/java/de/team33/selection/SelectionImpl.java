@@ -32,7 +32,7 @@ public class SelectionImpl<E> extends AbstractSet<E> implements Selection<E> {
     public final boolean add(E element) {
         boolean result;
         if (result = this.core.add(element)) {
-            this.distributor.pass(this.message);
+            this.distributor.accept(this.message);
         }
 
         return result;
@@ -41,7 +41,7 @@ public class SelectionImpl<E> extends AbstractSet<E> implements Selection<E> {
     public final boolean addAll(Collection<? extends E> source) {
         boolean result;
         if (result = this.core.addAll(source)) {
-            this.distributor.pass(this.message);
+            this.distributor.accept(this.message);
         }
 
         return result;
@@ -50,7 +50,7 @@ public class SelectionImpl<E> extends AbstractSet<E> implements Selection<E> {
     public final void clear() {
         if (this.core.size() != 0) {
             super.clear();
-            this.distributor.pass(this.message);
+            this.distributor.accept(this.message);
         }
 
     }
@@ -66,7 +66,7 @@ public class SelectionImpl<E> extends AbstractSet<E> implements Selection<E> {
     public final boolean remove(Object element) {
         boolean result;
         if (result = this.core.remove(element)) {
-            this.distributor.pass(this.message);
+            this.distributor.accept(this.message);
         }
 
         return result;
@@ -75,7 +75,7 @@ public class SelectionImpl<E> extends AbstractSet<E> implements Selection<E> {
     public final boolean removeAll(Collection<?> source) {
         boolean result;
         if (result = this.core.removeAll(source)) {
-            this.distributor.pass(this.message);
+            this.distributor.accept(this.message);
         }
 
         return result;
@@ -84,7 +84,7 @@ public class SelectionImpl<E> extends AbstractSet<E> implements Selection<E> {
     public final boolean retainAll(Collection<?> source) {
         boolean result;
         if (result = this.core.retainAll(source)) {
-            this.distributor.pass(this.message);
+            this.distributor.accept(this.message);
         }
 
         return result;
@@ -111,7 +111,7 @@ public class SelectionImpl<E> extends AbstractSet<E> implements Selection<E> {
 
         public final void remove() {
             this.core.remove();
-            SelectionImpl.this.distributor.pass(SelectionImpl.this.message);
+            SelectionImpl.this.distributor.accept(SelectionImpl.this.message);
         }
     }
 

@@ -27,9 +27,9 @@ public class UIControllerImpl implements UIController {
     }
 
     public void setTrack(Track track) {
-        this.router.pass(this.msgUnsetTrack);
+        this.router.accept(this.msgUnsetTrack);
         this.m_Track = track;
-        this.router.pass(this.msgSetTrack);
+        this.router.accept(this.msgSetTrack);
     }
 
     public int[] getTrackSelection() {
@@ -39,7 +39,7 @@ public class UIControllerImpl implements UIController {
     public void setTrackSelection(int[] newSelection) {
         if (!Arrays.equals(this.m_Selection, newSelection)) {
             this.m_Selection = newSelection;
-            this.router.pass(this.msgSetSelection);
+            this.router.accept(this.msgSetSelection);
         }
 
     }

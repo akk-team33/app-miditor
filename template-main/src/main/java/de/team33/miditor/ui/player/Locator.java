@@ -1,11 +1,11 @@
 package de.team33.miditor.ui.player;
 
-import de.team33.messaging.Listener;
 import de.team33.midi.Player;
 import de.team33.swing.XSpinner;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.function.Consumer;
 
 public abstract class Locator extends JPanel {
     private static final Insets GBC_INSETS = new Insets(0, 0, 0, 0);
@@ -120,11 +120,11 @@ public abstract class Locator extends JPanel {
             Locator.this.getContext().getPlayer().setPosition(Locator.this.getContext().getPlayer().getPosition() + ((long) delta * this.getDelta()));
         }
 
-        private class PLR_CLNT implements Listener<Player.SetPosition> {
+        private class PLR_CLNT implements Consumer<Player.SetPosition> {
             private PLR_CLNT() {
             }
 
-            public void pass(Player.SetPosition message) {
+            public void accept(Player.SetPosition message) {
                 long ticks = ((Player) message.getSender()).getPosition();
                 LOC_PANE.this.setDisplay(ticks);
             }

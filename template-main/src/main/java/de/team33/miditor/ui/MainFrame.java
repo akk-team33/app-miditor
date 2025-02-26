@@ -1,6 +1,5 @@
 package de.team33.miditor.ui;
 
-import de.team33.messaging.Listener;
 import de.team33.midi.Player;
 import de.team33.midi.Player.State;
 import de.team33.midi.Sequence;
@@ -19,6 +18,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
+import java.util.function.Consumer;
 import java.util.prefs.Preferences;
 
 public class MainFrame extends XFrame {
@@ -146,11 +146,11 @@ public class MainFrame extends XFrame {
         }
     }
 
-    private class SONG_CLIENT implements Listener<Sequence.SetFile> {
+    private class SONG_CLIENT implements Consumer<Sequence.SetFile> {
         private SONG_CLIENT() {
         }
 
-        public void pass(Sequence.SetFile message) {
+        public void accept(Sequence.SetFile message) {
             File f = ((Sequence) message.getSender()).getFile();
             MainFrame.this.setTitle(String.format("%s - Miditor 01a/12", f.getPath()));
         }

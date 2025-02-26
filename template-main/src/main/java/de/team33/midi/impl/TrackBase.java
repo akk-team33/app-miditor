@@ -1,6 +1,5 @@
 package de.team33.midi.impl;
 
-import de.team33.messaging.Listener;
 import de.team33.messaging.Message;
 import de.team33.messaging.Register;
 import de.team33.messaging.sync.Router;
@@ -16,6 +15,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.Vector;
+import java.util.function.Consumer;
 
 public abstract class TrackBase implements Track {
     private static final String FMT_PREFIX = "Track %02d";
@@ -53,7 +53,7 @@ public abstract class TrackBase implements Track {
     }
 
     protected void clrRegister() {
-        this.router.pass(this.msgReleased);
+        this.router.accept(this.msgReleased);
         this.router.clear();
         this.router.getRegister(Track.SetEvents.class).add(new SET_EVENTS_LSTNR());
     }
@@ -187,7 +187,7 @@ public abstract class TrackBase implements Track {
 
         while (var3.hasNext()) {
             Message<Track> msg = (Message) var3.next();
-            this.router.pass(msg);
+            this.router.accept(msg);
         }
 
     }
@@ -256,11 +256,11 @@ public abstract class TrackBase implements Track {
         }
     }
 
-    private class SET_EVENTS_LSTNR implements Listener<Track.SetEvents> {
+    private class SET_EVENTS_LSTNR implements Consumer<SetEvents> {
         private SET_EVENTS_LSTNR() {
         }
 
-        public void pass(Track.SetEvents message) {
+        public void accept(Track.SetEvents message) {
             synchronized (TrackBase.this.midiTrack) {
                 Set<Message<Track>> messages = new HashSet();
                 String newName = "- Kein Name -";

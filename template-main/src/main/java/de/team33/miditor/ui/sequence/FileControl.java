@@ -1,6 +1,5 @@
 package de.team33.miditor.ui.sequence;
 
-import de.team33.messaging.Listener;
 import de.team33.midi.Sequence;
 import de.team33.miditor.CMidiFileFilter;
 import de.team33.miditor.ui.Rsrc;
@@ -11,6 +10,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
+import java.util.function.Consumer;
 
 public abstract class FileControl extends JPanel {
     public FileControl() {
@@ -51,11 +51,11 @@ public abstract class FileControl extends JPanel {
             super.finalize();
         }
 
-        private class SONG_CLIENT implements Listener<Sequence.SetModified> {
+        private class SONG_CLIENT implements Consumer<Sequence.SetModified> {
             private SONG_CLIENT() {
             }
 
-            public void pass(Sequence.SetModified message) {
+            public void accept(Sequence.SetModified message) {
                 boolean b = ((Sequence) message.getSender()).isModified();
                 SAVE_BTTN.this.setEnabled(b);
             }

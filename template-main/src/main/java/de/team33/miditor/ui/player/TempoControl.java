@@ -1,11 +1,11 @@
 package de.team33.miditor.ui.player;
 
-import de.team33.messaging.Listener;
 import de.team33.midi.Player;
 import de.team33.swing.XSpinner;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.function.Consumer;
 
 public abstract class TempoControl {
     private Component m_RootComponent;
@@ -56,11 +56,11 @@ public abstract class TempoControl {
             TempoControl.this.getPlayer().setTempo(TempoControl.this.getPlayer().getTempo() + delta);
         }
 
-        private class PLR_CLNT implements Listener<Player.SetTempo> {
+        private class PLR_CLNT implements Consumer<Player.SetTempo> {
             private PLR_CLNT() {
             }
 
-            public void pass(Player.SetTempo message) {
+            public void accept(Player.SetTempo message) {
                 int tempo = message.getSender().getTempo();
                 LABEL.this.setText(String.format("%03d", tempo));
             }

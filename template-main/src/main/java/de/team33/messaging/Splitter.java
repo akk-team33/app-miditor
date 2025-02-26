@@ -5,5 +5,7 @@
 
 package de.team33.messaging;
 
-public interface Splitter<MSG> extends Listener<MSG>, Register<MSG> {
+import java.util.function.Consumer;
+
+public interface Splitter<MSG> extends Consumer<MSG>, Register<MSG> {
 }

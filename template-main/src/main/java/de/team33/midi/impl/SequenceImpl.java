@@ -1,6 +1,5 @@
 package de.team33.midi.impl;
 
-import de.team33.messaging.Listener;
 import de.team33.messaging.Register;
 import de.team33.messaging.sync.Router;
 import de.team33.messaging.util.ListenerUtil;
@@ -27,6 +26,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -459,11 +459,11 @@ public class SequenceImpl implements Sequence {
         }
     }
 
-    private class PART_CLIENT implements Listener<Track.SetModified> {
+    private class PART_CLIENT implements Consumer<Track.SetModified> {
         private PART_CLIENT() {
         }
 
-        public void pass(Track.SetModified message) {
+        public void accept(Track.SetModified message) {
             if (((Track) message.getSender()).isModified()) {
                 Set<Sequence.Message> messages = new HashSet();
                 SequenceImpl.this.core_setModified(true, messages);

@@ -1,10 +1,10 @@
 package de.team33.miditor.ui.track;
 
-import de.team33.messaging.Listener;
 import de.team33.midi.Track;
 import de.team33.miditor.controller.UIController;
 
 import javax.swing.*;
+import java.util.function.Consumer;
 
 public abstract class EventListModel extends AbstractListModel {
     private Track m_Track = null;
@@ -28,11 +28,11 @@ public abstract class EventListModel extends AbstractListModel {
 
     protected abstract UIController getTrackHandler();
 
-    private class EVED_CLIENT implements Listener<UIController.SetTrack> {
+    private class EVED_CLIENT implements Consumer<UIController.SetTrack> {
         private EVED_CLIENT() {
         }
 
-        public void pass(UIController.SetTrack message) {
+        public void accept(UIController.SetTrack message) {
             Track track = ((UIController) message.getSender()).getTrack();
             if (EventListModel.this.m_Track != track) {
                 if (EventListModel.this.m_Track != null) {
@@ -52,11 +52,11 @@ public abstract class EventListModel extends AbstractListModel {
         }
     }
 
-    private class TRCK_CLIENT implements Listener<Track.SetEvents> {
+    private class TRCK_CLIENT implements Consumer<Track.SetEvents> {
         private TRCK_CLIENT() {
         }
 
-        public void pass(Track.SetEvents message) {
+        public void accept(Track.SetEvents message) {
             EventListModel.this._fireContentsChanged();
         }
     }

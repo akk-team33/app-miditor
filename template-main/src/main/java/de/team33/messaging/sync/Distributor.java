@@ -1,7 +1,6 @@
 package de.team33.messaging.sync;
 
 import de.team33.messaging.CollectiveRuntimeException;
-import de.team33.messaging.Listener;
 import de.team33.messaging.Splitter;
 import de.team33.messaging.util.ListenerUtil;
 
@@ -11,6 +10,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.Vector;
+import java.util.function.Consumer;
 
 public class Distributor<MSG> implements Splitter<MSG> {
     private REGISTER<MSG> register = new REGISTER();
@@ -19,7 +19,7 @@ public class Distributor<MSG> implements Splitter<MSG> {
     public Distributor() {
     }
 
-    public final boolean add(Listener<? super MSG> listener) {
+    public final boolean add(Consumer<? super MSG> listener) {
         boolean result;
         synchronized (this) {
             if (this.register == null) {
@@ -63,7 +63,7 @@ public class Distributor<MSG> implements Splitter<MSG> {
         return this.initials;
     }
 
-    public final void pass(MSG message) throws CollectiveRuntimeException, IllegalStateException {
+    public final void accept(MSG message) throws CollectiveRuntimeException, IllegalStateException {
         REGISTER<MSG> reg = this.getCurrentRegister();
         if (reg == null) {
             throw new IllegalStateException(this.getClass().getSimpleName() + " is closed");
@@ -72,10 +72,10 @@ public class Distributor<MSG> implements Splitter<MSG> {
             Iterator var5 = reg.iterator();
 
             while (var5.hasNext()) {
-                Listener<? super MSG> listener = (Listener) var5.next();
+                Consumer<? super MSG> listener = (Consumer) var5.next();
 
                 try {
-                    listener.pass(message);
+                    listener.accept(message);
                 } catch (RuntimeException var7) {
                     causes.add(var7);
                 }
@@ -96,11 +96,11 @@ public class Distributor<MSG> implements Splitter<MSG> {
         return this.getCurrentRegister().size();
     }
 
-    private static class REGISTER<T> extends HashSet<Listener<? super T>> {
+    private static class REGISTER<T> extends HashSet<Consumer<? super T>> {
         private REGISTER() {
         }
 
-        private REGISTER(Collection<? extends Listener<? super T>> c) {
+        private REGISTER(Collection<? extends Consumer<? super T>> c) {
             super(c);
         }
     }

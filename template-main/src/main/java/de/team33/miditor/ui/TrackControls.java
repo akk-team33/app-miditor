@@ -1,6 +1,5 @@
 package de.team33.miditor.ui;
 
-import de.team33.messaging.Listener;
 import de.team33.midi.Player;
 import de.team33.midi.Player.Mode;
 import de.team33.midi.Track;
@@ -12,6 +11,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.function.Consumer;
 
 public abstract class TrackControls {
     public TrackControls() {
@@ -41,11 +41,11 @@ public abstract class TrackControls {
             TrackControls.this.getContext().getTrack().getRegister(Track.SetChannels.class).add(new CLIENT());
         }
 
-        private class CLIENT implements Listener<Track.SetChannels> {
+        private class CLIENT implements Consumer<Track.SetChannels> {
             private CLIENT() {
             }
 
-            public void pass(Track.SetChannels message) {
+            public void accept(Track.SetChannels message) {
                 CHANNEL_PANE.this.setVisible(false);
                 CHANNEL_PANE.this.removeAll();
                 int[] channels = ((Track) message.getSender()).getChannels();
@@ -95,20 +95,20 @@ public abstract class TrackControls {
             }
         }
 
-        private class PRT_CLNT implements Listener<Track.SetModified> {
+        private class PRT_CLNT implements Consumer<Track.SetModified> {
             private PRT_CLNT() {
             }
 
-            public void pass(Track.SetModified message) {
+            public void accept(Track.SetModified message) {
                 INDEX_PANE.this.setForeground(((Track) message.getSender()).isModified() ? Color.BLUE : Color.BLACK);
             }
         }
 
-        private class PRT_SEL_CLNT implements Listener<Selection.Message<Track>> {
+        private class PRT_SEL_CLNT implements Consumer<Selection.Message<Track>> {
             private PRT_SEL_CLNT() {
             }
 
-            public void pass(Selection.Message<Track> message) {
+            public void accept(Selection.Message<Track> message) {
                 INDEX_PANE.this.setSelected(((Selection) message.getSender()).contains(TrackControls.this.getContext().getTrack()));
             }
         }
@@ -137,11 +137,11 @@ public abstract class TrackControls {
 
         }
 
-        private class CLIENT implements Listener<Player.SetModes> {
+        private class CLIENT implements Consumer<Player.SetModes> {
             private CLIENT() {
             }
 
-            public void pass(Player.SetModes message) {
+            public void accept(Player.SetModes message) {
                 int index = TrackControls.this.getContext().getIndex();
                 Player.Mode mode = ((Player) message.getSender()).getMode(index);
                 MUTE_BUTTON.this.setSelected(Mode.MUTE == mode);
@@ -155,11 +155,11 @@ public abstract class TrackControls {
             TrackControls.this.getContext().getTrack().getRegister(Track.SetName.class).add(new CLIENT());
         }
 
-        private class CLIENT implements Listener<Track.SetName> {
+        private class CLIENT implements Consumer<Track.SetName> {
             private CLIENT() {
             }
 
-            public void pass(Track.SetName message) {
+            public void accept(Track.SetName message) {
                 NAME_PANE.this.setText(((Track) message.getSender()).getName());
             }
         }
@@ -180,11 +180,11 @@ public abstract class TrackControls {
 
         }
 
-        private class CLIENT implements Listener<Player.SetModes> {
+        private class CLIENT implements Consumer<Player.SetModes> {
             private CLIENT() {
             }
 
-            public void pass(Player.SetModes message) {
+            public void accept(Player.SetModes message) {
                 int index = TrackControls.this.getContext().getIndex();
                 Player.Mode mode = message.getSender().getMode(index);
                 SOLO_BUTTON.this.setSelected(Mode.SOLO == mode);

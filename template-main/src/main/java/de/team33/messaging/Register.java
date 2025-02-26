@@ -1,7 +1,9 @@
 package de.team33.messaging;
 
+import java.util.function.Consumer;
+
 public interface Register<MSG> {
-    boolean add(Listener<? super MSG> var1);
+    boolean add(Consumer<? super MSG> var1);
 
     boolean remove(Object var1);
 

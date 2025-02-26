@@ -1,6 +1,5 @@
 package de.team33.miditor.ui.sequence;
 
-import de.team33.messaging.Listener;
 import de.team33.midi.Sequence;
 import de.team33.midi.Timing;
 import de.team33.midi.Track;
@@ -14,6 +13,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.Serial;
+import java.util.function.Consumer;
 
 public abstract class TimeShiftControl extends JPanel {
     private final TimeShift m_TimeShift = new TIMESHIFT();
@@ -64,11 +64,11 @@ public abstract class TimeShiftControl extends JPanel {
             TimeShiftControl.this.m_TimeShift.setDividend(newDividend);
         }
 
-        private class TS_CLIENT implements Listener<TimeShift.SetDividend> {
+        private class TS_CLIENT implements Consumer<TimeShift.SetDividend> {
             private TS_CLIENT() {
             }
 
-            public void pass(TimeShift.SetDividend message) {
+            public void accept(TimeShift.SetDividend message) {
                 int value = message.getSender().getDividend();
                 DIVIDEND_INPUT.this.setText(String.valueOf(value));
             }
@@ -96,11 +96,11 @@ public abstract class TimeShiftControl extends JPanel {
             TimeShiftControl.this.m_TimeShift.setDivisor(1);
         }
 
-        private class TS_CLIENT implements Listener<TimeShift.SetDivisor> {
+        private class TS_CLIENT implements Consumer<TimeShift.SetDivisor> {
             private TS_CLIENT() {
             }
 
-            public void pass(TimeShift.SetDivisor message) {
+            public void accept(TimeShift.SetDivisor message) {
                 int value = message.getSender().getDivisor();
                 DIVISOR_INPUT.this.setText(String.valueOf(value));
             }
@@ -144,11 +144,11 @@ public abstract class TimeShiftControl extends JPanel {
             }
         }
 
-        private class PRT_SEL_CLNT implements Listener<Selection.Message<Track>> {
+        private class PRT_SEL_CLNT implements Consumer<Selection.Message<Track>> {
             private PRT_SEL_CLNT() {
             }
 
-            public void pass(Selection.Message<Track> message) {
+            public void accept(Selection.Message<Track> message) {
                 SHIFT_BTTN.this.setEnabled(1 <= message.getSender().size());
             }
         }

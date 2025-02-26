@@ -1,11 +1,11 @@
 package de.team33.miditor.ui.track;
 
-import de.team33.messaging.Listener;
 import de.team33.midi.Track;
 import de.team33.miditor.controller.UIController;
 
 import javax.swing.event.TableModelEvent;
 import javax.swing.table.AbstractTableModel;
+import java.util.function.Consumer;
 
 public abstract class EventTableModel extends AbstractTableModel {
     private static String[] m_ColumnNames = new String[]{"Position", "Kanal", "Typ", "d1", "d2", "Rohdaten"};
@@ -38,11 +38,11 @@ public abstract class EventTableModel extends AbstractTableModel {
         return this.m_Track.get(rowIndex);
     }
 
-    private class EVED_CLIENT implements Listener<UIController.SetTrack> {
+    private class EVED_CLIENT implements Consumer<UIController.SetTrack> {
         private EVED_CLIENT() {
         }
 
-        public void pass(UIController.SetTrack message) {
+        public void accept(UIController.SetTrack message) {
             Track track = ((UIController) message.getSender()).getTrack();
             if (EventTableModel.this.m_Track != track) {
                 if (EventTableModel.this.m_Track != null) {
@@ -62,11 +62,11 @@ public abstract class EventTableModel extends AbstractTableModel {
         }
     }
 
-    private class TRCK_CLIENT implements Listener<Track.SetEvents> {
+    private class TRCK_CLIENT implements Consumer<Track.SetEvents> {
         private TRCK_CLIENT() {
         }
 
-        public void pass(Track.SetEvents message) {
+        public void accept(Track.SetEvents message) {
             EventTableModel.this._fireTableChanged();
         }
     }
