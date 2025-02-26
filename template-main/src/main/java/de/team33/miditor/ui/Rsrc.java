@@ -1,4 +1,4 @@
-package de.team33.miditor.visible;
+package de.team33.miditor.ui;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;

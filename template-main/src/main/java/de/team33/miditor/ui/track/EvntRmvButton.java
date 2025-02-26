@@ -1,4 +1,4 @@
-package de.team33.miditor.visible.track;
+package de.team33.miditor.ui.track;
 
 import java.awt.event.ActionEvent;
 import net.team33.midi.util.TrackUtil;

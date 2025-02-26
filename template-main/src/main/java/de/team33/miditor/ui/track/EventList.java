@@ -1,4 +1,4 @@
-package de.team33.miditor.visible.track;
+package de.team33.miditor.ui.track;
 
 import javax.swing.JList;
 import javax.swing.ListCellRenderer;

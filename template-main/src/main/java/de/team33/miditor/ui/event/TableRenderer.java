@@ -1,4 +1,4 @@
-package de.team33.miditor.visible.event;
+package de.team33.miditor.ui.event;
 
 import java.awt.Component;
 import javax.sound.midi.MidiEvent;

@@ -1,4 +1,4 @@
-package de.team33.miditor.visible;
+package de.team33.miditor.ui;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;

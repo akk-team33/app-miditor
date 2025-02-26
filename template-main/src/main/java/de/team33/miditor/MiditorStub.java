@@ -10,7 +10,7 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 import de.team33.miditor.midi.impl.SequenceImpl;
-import de.team33.miditor.visible.MainFrame;
+import de.team33.miditor.ui.MainFrame;
 
 public class MiditorStub implements Runnable {
     private static final Preferences PREFS = Preferences.userRoot().node("net.team33/Miditor");

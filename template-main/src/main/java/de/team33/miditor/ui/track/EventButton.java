@@ -1,4 +1,4 @@
-package de.team33.miditor.visible.track;
+package de.team33.miditor.ui.track;
 
 import net.team33.messaging.Listener;
 import net.team33.miditor.controller.UIController;
