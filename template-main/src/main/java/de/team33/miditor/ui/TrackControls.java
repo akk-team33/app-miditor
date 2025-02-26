@@ -1,22 +1,17 @@
 package de.team33.miditor.ui;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import javax.swing.BorderFactory;
-import javax.swing.JCheckBox;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import net.team33.messaging.Listener;
 import de.team33.midi.Player;
-import de.team33.midi.Track;
 import de.team33.midi.Player.Mode;
+import de.team33.midi.Track;
 import de.team33.miditor.ui.track.Context;
+import net.team33.messaging.Listener;
 import net.team33.selection.Selection;
 import net.team33.swing.XTextField;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public abstract class TrackControls {
     public TrackControls() {

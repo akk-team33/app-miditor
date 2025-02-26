@@ -1,33 +1,25 @@
 package de.team33.miditor.ui;
 
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.awt.Window;
+import de.team33.midi.Player;
+import de.team33.midi.Player.State;
+import de.team33.midi.Sequence;
+import de.team33.midi.Track;
+import de.team33.midi.impl.PlayerImpl;
+import de.team33.miditor.controller.UIController;
+import de.team33.miditor.model.PartSelection;
+import de.team33.miditor.ui.sequence.Context;
+import net.team33.messaging.Listener;
+import net.team33.selection.Selection;
+import net.team33.swing.XFrame;
+
+import javax.sound.midi.MidiUnavailableException;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
 import java.util.prefs.Preferences;
-import javax.sound.midi.MidiUnavailableException;
-import javax.swing.BorderFactory;
-import javax.swing.Icon;
-import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
-
-import de.team33.midi.impl.PlayerImpl;
-import net.team33.messaging.Listener;
-import de.team33.midi.Player;
-import de.team33.midi.Sequence;
-import de.team33.midi.Track;
-import de.team33.midi.Player.State;
-import de.team33.miditor.controller.UIController;
-import de.team33.miditor.model.PartSelection;
-import de.team33.miditor.ui.sequence.Context;
-import net.team33.selection.Selection;
-import net.team33.swing.XFrame;
 
 public class MainFrame extends XFrame {
     private static final String FRAME_TITLE = "%s - Miditor 01a/12";

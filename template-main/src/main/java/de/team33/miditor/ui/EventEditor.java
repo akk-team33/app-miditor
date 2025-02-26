@@ -1,14 +1,5 @@
 package de.team33.miditor.ui;
 
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import javax.swing.BorderFactory;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.table.TableModel;
-import net.team33.messaging.Listener;
 import de.team33.midi.Sequence;
 import de.team33.midi.Timing;
 import de.team33.midi.Track;
@@ -19,6 +10,11 @@ import de.team33.miditor.ui.track.EventActions;
 import de.team33.miditor.ui.track.EventTable;
 import de.team33.miditor.ui.track.EventTableModel;
 import de.team33.miditor.ui.track.Header;
+import net.team33.messaging.Listener;
+
+import javax.swing.*;
+import javax.swing.table.TableModel;
+import java.awt.*;
 
 public abstract class EventEditor extends UIControllerImpl {
     private static final Insets GBC_INSETS = new Insets(2, 2, 2, 2);

@@ -1,7 +1,6 @@
 package de.team33.miditor.ui;
 
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
+import javax.swing.*;
 
 public class Rsrc {
     public static final ImageIcon MAIN_ICON = new ImageIcon(Rsrc.class.getResource("miditor.ico.gif"));

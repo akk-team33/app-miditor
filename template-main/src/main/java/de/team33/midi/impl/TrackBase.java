@@ -1,5 +1,13 @@
 package de.team33.midi.impl;
 
+import de.team33.midi.Track;
+import net.team33.messaging.Listener;
+import net.team33.messaging.Message;
+import net.team33.messaging.Register;
+import net.team33.messaging.sync.Router;
+
+import javax.sound.midi.MidiEvent;
+import javax.sound.midi.MidiMessage;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -8,13 +16,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.Vector;
-import javax.sound.midi.MidiEvent;
-import javax.sound.midi.MidiMessage;
-import net.team33.messaging.Listener;
-import net.team33.messaging.Message;
-import net.team33.messaging.Register;
-import net.team33.messaging.sync.Router;
-import de.team33.midi.Track;
 
 public abstract class TrackBase implements Track {
     private static final String FMT_PREFIX = "Track %02d";

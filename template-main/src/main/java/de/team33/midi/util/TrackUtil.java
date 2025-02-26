@@ -1,10 +1,11 @@
 package de.team33.midi.util;
 
+import de.team33.midi.Track;
+
+import javax.sound.midi.MidiEvent;
 import java.util.Collection;
 import java.util.List;
 import java.util.Vector;
-import javax.sound.midi.MidiEvent;
-import de.team33.midi.Track;
 
 public class TrackUtil {
     public TrackUtil() {

@@ -1,12 +1,13 @@
 package de.team33.miditor.ui.track;
 
-import javax.swing.JTable;
+import de.team33.miditor.controller.UIController;
+import de.team33.miditor.ui.event.TableRenderer;
+
+import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
-import de.team33.miditor.controller.UIController;
-import de.team33.miditor.ui.event.TableRenderer;
 
 public abstract class EventTable extends JTable {
     public EventTable() {

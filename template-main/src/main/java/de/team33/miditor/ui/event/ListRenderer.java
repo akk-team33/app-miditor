@@ -1,11 +1,11 @@
 package de.team33.miditor.ui.event;
 
-import java.awt.Component;
+import de.team33.midi.Timing;
+
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.MidiMessage;
-import javax.swing.DefaultListCellRenderer;
-import javax.swing.JList;
-import de.team33.midi.Timing;
+import javax.swing.*;
+import java.awt.*;
 
 public abstract class ListRenderer extends DefaultListCellRenderer {
     private static final String[] chnlType = new String[]{"NoteOff", "NoteOn", "PPress", "Control", "Program", "CPress", "PtchBnd"};

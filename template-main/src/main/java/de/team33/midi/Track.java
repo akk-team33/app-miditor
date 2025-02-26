@@ -1,10 +1,11 @@
 package de.team33.midi;
 
-import java.util.List;
-import java.util.Map;
-import javax.sound.midi.MidiEvent;
 import net.team33.messaging.Message;
 import net.team33.messaging.Registry;
+
+import javax.sound.midi.MidiEvent;
+import java.util.List;
+import java.util.Map;
 
 public interface Track extends Registry<Message<Track>> {
     void add(MidiEvent... var1);

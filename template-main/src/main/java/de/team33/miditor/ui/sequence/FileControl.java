@@ -1,19 +1,16 @@
 package de.team33.miditor.ui.sequence;
 
-import java.awt.GridLayout;
-import java.awt.Insets;
+import de.team33.midi.Sequence;
+import de.team33.miditor.ui.Rsrc;
+import net.team33.messaging.Listener;
+import net.team33.miditor.CMidiFileFilter;
+import net.team33.swing.XButton;
+
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
-import javax.swing.Icon;
-import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import net.team33.messaging.Listener;
-import de.team33.midi.Sequence;
-import net.team33.miditor.CMidiFileFilter;
-import de.team33.miditor.ui.Rsrc;
-import net.team33.swing.XButton;
 
 public abstract class FileControl extends JPanel {
     public FileControl() {

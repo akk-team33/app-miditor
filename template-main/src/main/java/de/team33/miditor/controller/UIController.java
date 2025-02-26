@@ -1,7 +1,7 @@
 package de.team33.miditor.controller;
 
-import net.team33.messaging.Registry;
 import de.team33.midi.Track;
+import net.team33.messaging.Registry;
 
 public interface UIController extends Registry<UIController.Message> {
     Track getTrack();

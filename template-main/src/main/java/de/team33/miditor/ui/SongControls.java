@@ -1,10 +1,11 @@
 package de.team33.miditor.ui;
 
-import java.awt.Component;
 import de.team33.miditor.ui.sequence.ActionControl;
 import de.team33.miditor.ui.sequence.Context;
 import de.team33.miditor.ui.sequence.FileControl;
 import de.team33.miditor.ui.sequence.TrackList;
+
+import java.awt.*;
 
 public abstract class SongControls {
     public SongControls() {

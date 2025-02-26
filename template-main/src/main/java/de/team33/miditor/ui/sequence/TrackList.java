@@ -1,27 +1,20 @@
 package de.team33.miditor.ui.sequence;
 
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.GridLayout;
-import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.Serial;
-import javax.swing.BorderFactory;
-import javax.swing.JCheckBox;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import net.team33.messaging.Listener;
 import de.team33.midi.Player;
 import de.team33.midi.Sequence;
 import de.team33.midi.Track;
 import de.team33.miditor.controller.UIController;
 import de.team33.miditor.ui.SmallButton;
 import de.team33.miditor.ui.TrackControls;
+import net.team33.messaging.Listener;
 import net.team33.selection.Selection;
 import net.team33.selection.SelectionUtil;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.Serial;
 
 public abstract class TrackList extends JScrollPane {
     public TrackList() {

@@ -1,14 +1,13 @@
 package de.team33.miditor.ui.sequence;
 
-import java.awt.GridLayout;
-import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import javax.swing.Icon;
-import javax.swing.JPanel;
 import de.team33.midi.Track;
-import net.team33.miditor.IClickParameter;
 import de.team33.miditor.ui.Rsrc;
+import net.team33.miditor.IClickParameter;
 import net.team33.swing.XButton;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
 
 public abstract class ActionControl extends JPanel {
     public ActionControl() {

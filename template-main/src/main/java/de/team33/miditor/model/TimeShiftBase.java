@@ -1,11 +1,12 @@
 package de.team33.miditor.model;
 
-import java.util.Arrays;
-import java.util.List;
-import net.team33.messaging.Register;
-import net.team33.messaging.sync.Router;
 import de.team33.midi.Timing;
 import de.team33.midi.util.TimingUtil;
+import net.team33.messaging.Register;
+import net.team33.messaging.sync.Router;
+
+import java.util.Arrays;
+import java.util.List;
 
 public abstract class TimeShiftBase implements TimeShift {
     private final SET_DIVIDEND msgSetDividend = new SET_DIVIDEND();

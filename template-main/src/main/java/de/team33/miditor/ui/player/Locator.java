@@ -1,15 +1,11 @@
 package de.team33.miditor.ui.player;
 
-import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import javax.swing.BorderFactory;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import net.team33.messaging.Listener;
 import de.team33.midi.Player;
+import net.team33.messaging.Listener;
 import net.team33.swing.XSpinner;
+
+import javax.swing.*;
+import java.awt.*;
 
 public abstract class Locator extends JPanel {
     private static final Insets GBC_INSETS = new Insets(0, 0, 0, 0);

@@ -1,16 +1,15 @@
 package de.team33.miditor;
 
-import java.awt.Component;
+import de.team33.midi.impl.SequenceImpl;
+import de.team33.miditor.ui.MainFrame;
+
+import javax.sound.midi.InvalidMidiDataException;
+import javax.sound.midi.MidiUnavailableException;
+import javax.swing.*;
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.prefs.Preferences;
-import javax.sound.midi.InvalidMidiDataException;
-import javax.sound.midi.MidiUnavailableException;
-import javax.swing.JOptionPane;
-import javax.swing.SwingUtilities;
-
-import de.team33.midi.impl.SequenceImpl;
-import de.team33.miditor.ui.MainFrame;
 
 public class MiditorStub implements Runnable {
     private static final Preferences PREFS = Preferences.userRoot().node("net.team33/Miditor");

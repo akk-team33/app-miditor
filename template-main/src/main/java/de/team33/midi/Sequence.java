@@ -1,11 +1,12 @@
 package de.team33.midi;
 
-import java.io.File;
-import java.io.IOException;
-import javax.sound.midi.InvalidMidiDataException;
-import javax.sound.midi.Sequencer;
 import net.team33.messaging.Registry;
 import net.team33.miditor.IClickParameter;
+
+import javax.sound.midi.InvalidMidiDataException;
+import javax.sound.midi.Sequencer;
+import java.io.File;
+import java.io.IOException;
 
 public interface Sequence extends Registry<Sequence.Message> {
     void associate(Sequencer var1) throws InvalidMidiDataException;

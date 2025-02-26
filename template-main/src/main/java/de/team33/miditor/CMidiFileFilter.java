@@ -1,7 +1,7 @@
 package de.team33.miditor;
 
-import java.io.File;
 import javax.swing.filechooser.FileFilter;
+import java.io.File;
 
 public class CMidiFileFilter extends FileFilter {
     private static final String[] EXTENSION = new String[]{"mid", "midi"};

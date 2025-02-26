@@ -1,10 +1,11 @@
 package de.team33.miditor.ui.track;
 
-import javax.swing.event.TableModelEvent;
-import javax.swing.table.AbstractTableModel;
-import net.team33.messaging.Listener;
 import de.team33.midi.Track;
 import de.team33.miditor.controller.UIController;
+import net.team33.messaging.Listener;
+
+import javax.swing.event.TableModelEvent;
+import javax.swing.table.AbstractTableModel;
 
 public abstract class EventTableModel extends AbstractTableModel {
     private static String[] m_ColumnNames = new String[]{"Position", "Kanal", "Typ", "d1", "d2", "Rohdaten"};

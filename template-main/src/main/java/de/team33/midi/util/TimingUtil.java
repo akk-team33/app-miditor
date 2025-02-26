@@ -1,8 +1,9 @@
 package de.team33.midi.util;
 
+import de.team33.midi.Timing;
+
 import java.util.List;
 import java.util.Vector;
-import de.team33.midi.Timing;
 
 public abstract class TimingUtil {
     public TimingUtil() {

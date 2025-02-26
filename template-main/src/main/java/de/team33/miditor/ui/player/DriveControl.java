@@ -1,19 +1,16 @@
 package de.team33.miditor.ui.player;
 
-import java.awt.GridLayout;
-import java.awt.Insets;
+import de.team33.midi.Player;
+import de.team33.midi.Player.State;
+import de.team33.miditor.ui.Rsrc;
+import net.team33.messaging.Listener;
+
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import javax.swing.Icon;
-import javax.swing.JButton;
-import javax.swing.JPanel;
-import javax.swing.JRootPane;
-import net.team33.messaging.Listener;
-import de.team33.midi.Player;
-import de.team33.midi.Player.State;
-import de.team33.miditor.ui.Rsrc;
 
 public abstract class DriveControl extends JPanel {
     public DriveControl() {

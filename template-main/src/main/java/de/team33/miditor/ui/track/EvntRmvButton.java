@@ -1,7 +1,8 @@
 package de.team33.miditor.ui.track;
 
-import java.awt.event.ActionEvent;
 import de.team33.midi.util.TrackUtil;
+
+import java.awt.event.ActionEvent;
 
 public abstract class EvntRmvButton extends EventButton {
     public EvntRmvButton() {

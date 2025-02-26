@@ -1,7 +1,8 @@
 package de.team33.miditor.ui.player;
 
-import java.awt.Window;
 import de.team33.midi.Player;
+
+import java.awt.*;
 
 public interface Context {
     Player getPlayer();

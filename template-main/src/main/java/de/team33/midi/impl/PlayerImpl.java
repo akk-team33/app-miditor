@@ -1,23 +1,24 @@
 package de.team33.midi.impl;
 
+import de.team33.midi.Player;
+import de.team33.midi.Sequence;
+import de.team33.midi.Timing;
+import net.team33.messaging.Listener;
+import net.team33.messaging.Register;
+import net.team33.messaging.sync.Router;
+import net.team33.messaging.util.ListenerUtil;
+import net.team33.util.ClassUtil;
+
+import javax.sound.midi.MidiDevice;
+import javax.sound.midi.MidiSystem;
+import javax.sound.midi.MidiUnavailableException;
+import javax.sound.midi.Sequencer;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.prefs.Preferences;
-import javax.sound.midi.MidiDevice;
-import javax.sound.midi.MidiSystem;
-import javax.sound.midi.MidiUnavailableException;
-import javax.sound.midi.Sequencer;
-import net.team33.messaging.Listener;
-import net.team33.messaging.Register;
-import net.team33.messaging.sync.Router;
-import net.team33.messaging.util.ListenerUtil;
-import de.team33.midi.Player;
-import de.team33.midi.Sequence;
-import de.team33.midi.Timing;
-import net.team33.util.ClassUtil;
 
 public class PlayerImpl implements Player {
     private static final Preferences PREFS = Preferences.userRoot().node(ClassUtil.getPathString(PlayerImpl.class));

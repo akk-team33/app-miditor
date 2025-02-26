@@ -1,10 +1,8 @@
 package de.team33.miditor.ui;
 
-import java.awt.Font;
-import java.awt.Insets;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionListener;
-import javax.swing.Icon;
-import javax.swing.JToggleButton;
 
 public abstract class SmallButton extends JToggleButton implements ActionListener {
     public SmallButton() {

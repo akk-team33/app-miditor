@@ -1,8 +1,9 @@
 package de.team33.miditor.ui.track;
 
-import java.awt.Component;
-import javax.swing.JPanel;
 import de.team33.miditor.controller.UIController;
+
+import javax.swing.*;
+import java.awt.*;
 
 public abstract class EventActions {
     private Component m_MainPane = null;

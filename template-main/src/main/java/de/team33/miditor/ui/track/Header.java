@@ -1,11 +1,11 @@
 package de.team33.miditor.ui.track;
 
-import java.awt.Color;
-import javax.swing.BorderFactory;
-import javax.swing.JLabel;
-import net.team33.messaging.Listener;
 import de.team33.midi.Track;
 import de.team33.miditor.controller.UIController;
+import net.team33.messaging.Listener;
+
+import javax.swing.*;
+import java.awt.*;
 
 public class Header extends JLabel {
     public Header(UIController uiController) {

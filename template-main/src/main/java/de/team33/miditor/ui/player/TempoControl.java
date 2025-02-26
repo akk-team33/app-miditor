@@ -1,12 +1,11 @@
 package de.team33.miditor.ui.player;
 
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Font;
-import javax.swing.BorderFactory;
-import net.team33.messaging.Listener;
 import de.team33.midi.Player;
+import net.team33.messaging.Listener;
 import net.team33.swing.XSpinner;
+
+import javax.swing.*;
+import java.awt.*;
 
 public abstract class TempoControl {
     private Component m_RootComponent;

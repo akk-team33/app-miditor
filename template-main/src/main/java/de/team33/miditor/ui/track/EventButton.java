@@ -1,8 +1,8 @@
 package de.team33.miditor.ui.track;
 
-import net.team33.messaging.Listener;
 import de.team33.miditor.controller.UIController;
 import de.team33.miditor.ui.SmallButton;
+import net.team33.messaging.Listener;
 
 public abstract class EventButton extends SmallButton {
     private final int m_Min;

@@ -1,11 +1,10 @@
 package de.team33.miditor.ui.track;
 
-import javax.swing.JList;
-import javax.swing.ListCellRenderer;
-import javax.swing.ListModel;
+import de.team33.miditor.controller.UIController;
+
+import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import de.team33.miditor.controller.UIController;
 
 public abstract class EventList extends JList {
     public EventList() {

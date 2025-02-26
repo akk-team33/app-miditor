@@ -1,5 +1,22 @@
 package de.team33.midi.impl;
 
+import de.team33.midi.Sequence;
+import de.team33.midi.Timing;
+import de.team33.midi.Track;
+import de.team33.midi.util.TrackUtil;
+import net.team33.messaging.Listener;
+import net.team33.messaging.Register;
+import net.team33.messaging.sync.Router;
+import net.team33.messaging.util.ListenerUtil;
+import net.team33.miditor.IClickParameter;
+
+import javax.sound.midi.InvalidMidiDataException;
+import javax.sound.midi.MetaMessage;
+import javax.sound.midi.MidiEvent;
+import javax.sound.midi.MidiMessage;
+import javax.sound.midi.MidiSystem;
+import javax.sound.midi.Sequencer;
+import javax.sound.midi.ShortMessage;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -12,22 +29,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.sound.midi.InvalidMidiDataException;
-import javax.sound.midi.MetaMessage;
-import javax.sound.midi.MidiEvent;
-import javax.sound.midi.MidiMessage;
-import javax.sound.midi.MidiSystem;
-import javax.sound.midi.Sequencer;
-import javax.sound.midi.ShortMessage;
-import net.team33.messaging.Listener;
-import net.team33.messaging.Register;
-import net.team33.messaging.sync.Router;
-import net.team33.messaging.util.ListenerUtil;
-import de.team33.midi.Sequence;
-import de.team33.midi.Timing;
-import de.team33.midi.Track;
-import de.team33.midi.util.TrackUtil;
-import net.team33.miditor.IClickParameter;
 
 public class SequenceImpl implements Sequence {
     private static final String ERR_BACKUP = "Die Datei '%1$s' konnte nicht umbenannt werden. Zuletzt wurde versucht, folgenden Namen zu verwenden: '%2$s'";

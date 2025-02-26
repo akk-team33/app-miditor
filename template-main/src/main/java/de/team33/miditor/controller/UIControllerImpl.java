@@ -1,9 +1,10 @@
 package de.team33.miditor.controller;
 
-import java.util.Arrays;
+import de.team33.midi.Track;
 import net.team33.messaging.Register;
 import net.team33.messaging.sync.Router;
-import de.team33.midi.Track;
+
+import java.util.Arrays;
 
 public class UIControllerImpl implements UIController {
     private final MESSAGE msgSetTrack = new SET_TRACK();
