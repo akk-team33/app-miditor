@@ -1,9 +1,9 @@
 package de.team33.messaging.sync;
 
+import de.team33.messaging.CollectiveRuntimeException;
 import de.team33.messaging.Listener;
 import de.team33.messaging.Register;
 import de.team33.messaging.Relay;
-import net.team33.throwable.CollectiveRuntimeException;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -15,7 +15,7 @@ import java.util.Set;
 import java.util.Vector;
 
 public class Router<MSG> implements Relay<MSG> {
-    private REGISTRY registry = new REGISTRY((REGISTRY) null);
+    private REGISTRY registry = new REGISTRY();
     private Set<MSG> initials = new HashSet();
 
     public Router() {

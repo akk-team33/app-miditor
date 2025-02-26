@@ -1,9 +1,9 @@
 package de.team33.messaging.sync;
 
+import de.team33.messaging.CollectiveRuntimeException;
 import de.team33.messaging.Listener;
 import de.team33.messaging.Splitter;
 import de.team33.messaging.util.ListenerUtil;
-import net.team33.throwable.CollectiveRuntimeException;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -13,7 +13,7 @@ import java.util.Set;
 import java.util.Vector;
 
 public class Distributor<MSG> implements Splitter<MSG> {
-    private REGISTER<MSG> register = new REGISTER((REGISTER) null);
+    private REGISTER<MSG> register = new REGISTER();
     private Set<MSG> initials = new HashSet();
 
     public Distributor() {

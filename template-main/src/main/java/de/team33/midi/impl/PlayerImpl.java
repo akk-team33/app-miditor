@@ -3,11 +3,11 @@ package de.team33.midi.impl;
 import de.team33.messaging.Listener;
 import de.team33.messaging.Register;
 import de.team33.messaging.sync.Router;
+import de.team33.messaging.util.ClassUtil;
 import de.team33.messaging.util.ListenerUtil;
 import de.team33.midi.Player;
 import de.team33.midi.Sequence;
 import de.team33.midi.Timing;
-import net.team33.util.ClassUtil;
 
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiSystem;
