@@ -1,7 +1,7 @@
 package de.team33.midi;
 
-import net.team33.messaging.Registry;
 import de.team33.miditor.IClickParameter;
+import net.team33.messaging.Registry;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.Sequencer;

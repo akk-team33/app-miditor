@@ -6,9 +6,9 @@ import de.team33.midi.Track;
 import de.team33.miditor.controller.UIController;
 import de.team33.miditor.ui.SmallButton;
 import de.team33.miditor.ui.TrackControls;
+import de.team33.selection.Selection;
+import de.team33.selection.SelectionUtil;
 import net.team33.messaging.Listener;
-import net.team33.selection.Selection;
-import net.team33.selection.SelectionUtil;
 
 import javax.swing.*;
 import java.awt.*;

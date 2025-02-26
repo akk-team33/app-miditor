@@ -4,7 +4,7 @@ import de.team33.midi.Player;
 import de.team33.midi.Sequence;
 import de.team33.midi.Track;
 import de.team33.miditor.controller.UIController;
-import net.team33.selection.Selection;
+import de.team33.selection.Selection;
 
 public interface Context {
     int getIndex();

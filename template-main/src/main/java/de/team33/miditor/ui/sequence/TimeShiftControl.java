@@ -5,8 +5,8 @@ import de.team33.midi.Timing;
 import de.team33.midi.Track;
 import de.team33.miditor.model.TimeShift;
 import de.team33.miditor.model.TimeShiftBase;
+import de.team33.selection.Selection;
 import net.team33.messaging.Listener;
-import net.team33.selection.Selection;
 import net.team33.swing.XButton;
 import net.team33.swing.XSpinner;
 
