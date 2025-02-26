@@ -9,8 +9,8 @@ import de.team33.miditor.controller.UIController;
 import de.team33.miditor.model.PartSelection;
 import de.team33.miditor.ui.sequence.Context;
 import de.team33.selection.Selection;
+import de.team33.swing.XFrame;
 import net.team33.messaging.Listener;
-import net.team33.swing.XFrame;
 
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.*;

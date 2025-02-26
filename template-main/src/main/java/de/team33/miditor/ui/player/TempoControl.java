@@ -1,8 +1,8 @@
 package de.team33.miditor.ui.player;
 
 import de.team33.midi.Player;
+import de.team33.swing.XSpinner;
 import net.team33.messaging.Listener;
-import net.team33.swing.XSpinner;
 
 import javax.swing.*;
 import java.awt.*;
