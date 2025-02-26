@@ -25,7 +25,7 @@ import net.team33.midi.Track;
 import net.team33.midi.Player.State;
 import net.team33.miditor.controller.UIController;
 import net.team33.miditor.model.PartSelection;
-import net.team33.miditor.ui.sequence.Context;
+import de.team33.miditor.ui.sequence.Context;
 import net.team33.selection.Selection;
 import net.team33.swing.XFrame;
 
