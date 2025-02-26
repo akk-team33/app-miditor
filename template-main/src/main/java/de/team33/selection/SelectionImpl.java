@@ -1,7 +1,7 @@
 package de.team33.selection;
 
-import net.team33.messaging.Register;
-import net.team33.messaging.sync.Distributor;
+import de.team33.messaging.Register;
+import de.team33.messaging.sync.Distributor;
 
 import java.util.AbstractSet;
 import java.util.Arrays;

@@ -1,8 +1,8 @@
 package de.team33.miditor.ui.track;
 
+import de.team33.messaging.Listener;
 import de.team33.midi.Track;
 import de.team33.miditor.controller.UIController;
-import net.team33.messaging.Listener;
 
 import javax.swing.*;
 

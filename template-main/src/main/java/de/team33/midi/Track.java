@@ -1,7 +1,7 @@
 package de.team33.midi;
 
-import net.team33.messaging.Message;
-import net.team33.messaging.Registry;
+import de.team33.messaging.Message;
+import de.team33.messaging.Registry;
 
 import javax.sound.midi.MidiEvent;
 import java.util.List;

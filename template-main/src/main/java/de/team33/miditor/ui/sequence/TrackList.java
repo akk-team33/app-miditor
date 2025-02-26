@@ -1,5 +1,6 @@
 package de.team33.miditor.ui.sequence;
 
+import de.team33.messaging.Listener;
 import de.team33.midi.Player;
 import de.team33.midi.Sequence;
 import de.team33.midi.Track;
@@ -8,7 +9,6 @@ import de.team33.miditor.ui.SmallButton;
 import de.team33.miditor.ui.TrackControls;
 import de.team33.selection.Selection;
 import de.team33.selection.SelectionUtil;
-import net.team33.messaging.Listener;
 
 import javax.swing.*;
 import java.awt.*;

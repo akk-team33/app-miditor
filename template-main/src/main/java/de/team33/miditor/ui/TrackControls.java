@@ -1,12 +1,12 @@
 package de.team33.miditor.ui;
 
+import de.team33.messaging.Listener;
 import de.team33.midi.Player;
 import de.team33.midi.Player.Mode;
 import de.team33.midi.Track;
 import de.team33.miditor.ui.track.Context;
 import de.team33.selection.Selection;
 import de.team33.swing.XTextField;
-import net.team33.messaging.Listener;
 
 import javax.swing.*;
 import java.awt.*;

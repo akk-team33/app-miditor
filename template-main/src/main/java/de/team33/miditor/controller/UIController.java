@@ -1,7 +1,7 @@
 package de.team33.miditor.controller;
 
+import de.team33.messaging.Registry;
 import de.team33.midi.Track;
-import net.team33.messaging.Registry;
 
 public interface UIController extends Registry<UIController.Message> {
     Track getTrack();
@@ -12,7 +12,7 @@ public interface UIController extends Registry<UIController.Message> {
 
     void setTrackSelection(int[] var1);
 
-    public interface Message extends net.team33.messaging.Message<UIController> {
+    public interface Message extends de.team33.messaging.Message<UIController> {
     }
 
     public interface SetTrack extends Message {

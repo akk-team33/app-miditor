@@ -1,5 +1,6 @@
 package de.team33.miditor.ui;
 
+import de.team33.messaging.Listener;
 import de.team33.midi.Player;
 import de.team33.midi.Player.State;
 import de.team33.midi.Sequence;
@@ -10,7 +11,6 @@ import de.team33.miditor.model.PartSelection;
 import de.team33.miditor.ui.sequence.Context;
 import de.team33.selection.Selection;
 import de.team33.swing.XFrame;
-import net.team33.messaging.Listener;
 
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.*;

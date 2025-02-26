@@ -1,6 +1,6 @@
 package de.team33.miditor.model;
 
-import net.team33.messaging.Registry;
+import de.team33.messaging.Registry;
 
 public interface TimeShift extends Registry<TimeShift.Message> {
     int getDividend();
@@ -19,7 +19,7 @@ public interface TimeShift extends Registry<TimeShift.Message> {
 
     void setDivisor(int var1);
 
-    public interface Message extends net.team33.messaging.Message<TimeShift> {
+    public interface Message extends de.team33.messaging.Message<TimeShift> {
     }
 
     public interface SetDividend extends Message {

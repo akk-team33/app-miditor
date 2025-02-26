@@ -1,7 +1,7 @@
 package de.team33.midi;
 
+import de.team33.messaging.Registry;
 import de.team33.miditor.IClickParameter;
-import net.team33.messaging.Registry;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.Sequencer;
@@ -43,7 +43,7 @@ public interface Sequence extends Registry<Sequence.Message> {
 
     void split(Track var1);
 
-    public interface Message extends net.team33.messaging.Message<Sequence> {
+    public interface Message extends de.team33.messaging.Message<Sequence> {
     }
 
     public interface SetFile extends Message {

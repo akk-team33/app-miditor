@@ -1,8 +1,8 @@
 package de.team33.miditor.controller;
 
+import de.team33.messaging.Register;
+import de.team33.messaging.sync.Router;
 import de.team33.midi.Track;
-import net.team33.messaging.Register;
-import net.team33.messaging.sync.Router;
 
 import java.util.Arrays;
 

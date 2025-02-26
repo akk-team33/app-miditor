@@ -1,6 +1,6 @@
 package de.team33.midi;
 
-import net.team33.messaging.Registry;
+import de.team33.messaging.Registry;
 
 public interface Player extends Registry<Player.Message> {
     Mode getMode(int var1);
@@ -23,7 +23,7 @@ public interface Player extends Registry<Player.Message> {
 
     void setTempo(int var1);
 
-    public interface Message extends net.team33.messaging.Message<Player> {
+    public interface Message extends de.team33.messaging.Message<Player> {
     }
 
     public static enum Mode {

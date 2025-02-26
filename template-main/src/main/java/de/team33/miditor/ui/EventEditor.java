@@ -1,5 +1,6 @@
 package de.team33.miditor.ui;
 
+import de.team33.messaging.Listener;
 import de.team33.midi.Sequence;
 import de.team33.midi.Timing;
 import de.team33.midi.Track;
@@ -10,7 +11,6 @@ import de.team33.miditor.ui.track.EventActions;
 import de.team33.miditor.ui.track.EventTable;
 import de.team33.miditor.ui.track.EventTableModel;
 import de.team33.miditor.ui.track.Header;
-import net.team33.messaging.Listener;
 
 import javax.swing.*;
 import javax.swing.table.TableModel;

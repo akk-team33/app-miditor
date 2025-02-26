@@ -1,10 +1,10 @@
 package de.team33.midi.impl;
 
+import de.team33.messaging.Listener;
+import de.team33.messaging.Message;
+import de.team33.messaging.Register;
+import de.team33.messaging.sync.Router;
 import de.team33.midi.Track;
-import net.team33.messaging.Listener;
-import net.team33.messaging.Message;
-import net.team33.messaging.Register;
-import net.team33.messaging.sync.Router;
 
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.MidiMessage;
