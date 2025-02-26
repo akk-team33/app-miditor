@@ -12,7 +12,7 @@ public class TrackUtil {
     }
 
     public static void add(Track track, Collection<MidiEvent> events) {
-        MidiEvent[] array = (MidiEvent[])events.toArray(new MidiEvent[events.size()]);
+        MidiEvent[] array = (MidiEvent[]) events.toArray(new MidiEvent[events.size()]);
         track.add(array);
     }
 
@@ -22,7 +22,7 @@ public class TrackUtil {
         int[] var7 = selection;
         int var6 = selection.length;
 
-        for(int var5 = 0; var5 < var6; ++var5) {
+        for (int var5 = 0; var5 < var6; ++var5) {
             int index = var7[var5];
             if (index >= 0 && index < size) {
                 ret.add(track.get(index));
@@ -33,11 +33,11 @@ public class TrackUtil {
     }
 
     public static void remove(Track track, Collection<MidiEvent> events) {
-        MidiEvent[] array = (MidiEvent[])events.toArray(new MidiEvent[events.size()]);
+        MidiEvent[] array = (MidiEvent[]) events.toArray(new MidiEvent[events.size()]);
         track.remove(array);
     }
 
     public static void remove(Track track, int[] selection) {
-        remove(track, (Collection)getEvents(track, selection));
+        remove(track, (Collection) getEvents(track, selection));
     }
 }

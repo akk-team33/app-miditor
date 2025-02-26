@@ -55,8 +55,8 @@ class MainTest {
         final String result = Redirected.outputOf(() -> Main.main(SHELL_CMD_NAME, "about"))
                                         .lines()
                                         .map(line -> line.startsWith("| Build Timestamp:")
-                                                     ? "| Build Timestamp: N/A"
-                                                     : line)
+                                                ? "| Build Timestamp: N/A"
+                                                : line)
                                         .collect(Collectors.joining(NEWLINE));
         // System.out.println(result);
 

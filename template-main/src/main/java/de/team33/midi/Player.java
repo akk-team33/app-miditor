@@ -9,22 +9,19 @@ public interface Player extends Registry<Player.Message> {
 
     long getPosition();
 
+    void setPosition(long var1);
+
     State getState();
 
+    void setState(State var1);
+
     int getTempo();
+
+    void setTempo(int var1);
 
     Timing getTiming();
 
     void setMode(int var1, Mode var2);
-
-    void setPosition(long var1);
-
-    void setState(State var1);
-
-    void setTempo(int var1);
-
-    public interface Message extends de.team33.messaging.Message<Player> {
-    }
 
     public static enum Mode {
         NORMAL,
@@ -33,6 +30,19 @@ public interface Player extends Registry<Player.Message> {
 
         private Mode() {
         }
+    }
+
+    public static enum State {
+        IDLE,
+        STOP,
+        PAUSE,
+        RUN;
+
+        private State() {
+        }
+    }
+
+    public interface Message extends de.team33.messaging.Message<Player> {
     }
 
     public interface SetModes extends Message {
@@ -45,15 +55,5 @@ public interface Player extends Registry<Player.Message> {
     }
 
     public interface SetTempo extends Message {
-    }
-
-    public static enum State {
-        IDLE,
-        STOP,
-        PAUSE,
-        RUN;
-
-        private State() {
-        }
     }
 }

@@ -13,7 +13,7 @@ public abstract class TimingUtil {
         List<Integer> ret = new Vector();
         int i = start < 1 ? 1 : start;
 
-        for(int n = timing.getTickUnit(); i <= n; ++i) {
+        for (int n = timing.getTickUnit(); i <= n; ++i) {
             if (n % i == 0) {
                 ret.add(i);
             }

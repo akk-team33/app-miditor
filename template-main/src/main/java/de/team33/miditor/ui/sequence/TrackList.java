@@ -25,6 +25,16 @@ public abstract class TrackList extends JScrollPane {
 
     protected abstract Context getContext();
 
+    private static class GBC extends GridBagConstraints {
+        public GBC(int x, int y) {
+            this(x, y, 1);
+        }
+
+        public GBC(int x, int y, int w) {
+            super(x, y, w, 1, 0.0, 0.0, 10, 2, new Insets(1, 1, 1, 1), 0, 0);
+        }
+    }
+
     private abstract class ACTN_BUTTON extends SmallButton {
         private final int min;
         private final int max;
@@ -66,16 +76,6 @@ public abstract class TrackList extends JScrollPane {
 
         protected void doActionWith(Iterable<Track> trcks) {
             TrackList.this.getContext().getSequence().delete(trcks);
-        }
-    }
-
-    private static class GBC extends GridBagConstraints {
-        public GBC(int x, int y) {
-            this(x, y, 1);
-        }
-
-        public GBC(int x, int y, int w) {
-            super(x, y, w, 1, 0.0, 0.0, 10, 2, new Insets(1, 1, 1, 1), 0, 0);
         }
     }
 
@@ -165,7 +165,7 @@ public abstract class TrackList extends JScrollPane {
                 TABLE.this.removeAll();
                 int k = parts.length;
 
-                for(int i = 0; i < k; ++i) {
+                for (int i = 0; i < k; ++i) {
                     TRCK_CTRL details = TrackList.this.new TRCK_CTRL(parts[i], i);
                     TABLE.this.add(details.getIndexPane(), new GBC(0, i));
                     TABLE.this.add(details.getNamePane(), new GBC(1, i));

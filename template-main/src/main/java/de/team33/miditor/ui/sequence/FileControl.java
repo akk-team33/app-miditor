@@ -56,7 +56,7 @@ public abstract class FileControl extends JPanel {
             }
 
             public void pass(Sequence.SetModified message) {
-                boolean b = ((Sequence)message.getSender()).isModified();
+                boolean b = ((Sequence) message.getSender()).isModified();
                 SAVE_BTTN.this.setEnabled(b);
             }
         }

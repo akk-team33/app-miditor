@@ -52,7 +52,7 @@ public abstract class TimeShiftControl extends JPanel {
         }
 
         private void updateDividend(int delta, int exponent) {
-            while(exponent-- > 0) {
+            while (exponent-- > 0) {
                 delta *= 10;
             }
 

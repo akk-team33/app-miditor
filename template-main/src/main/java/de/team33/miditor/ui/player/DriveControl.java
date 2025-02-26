@@ -24,6 +24,13 @@ public abstract class DriveControl extends JPanel {
 
     protected abstract Context getContext();
 
+    private static class ICOBUTTON extends JButton {
+        public ICOBUTTON(Icon ico) {
+            this.setIcon(ico);
+            this.setMargin(new Insets(1, 1, 1, 1));
+        }
+    }
+
     private class FWD_BUTTON extends LOC_BUTTON {
         public FWD_BUTTON() {
             super(Rsrc.DC_FWDICON);
@@ -40,13 +47,6 @@ public abstract class DriveControl extends JPanel {
             ++ticks;
             ticks *= ticksPerMeasure;
             DriveControl.this.getContext().getPlayer().setPosition(ticks);
-        }
-    }
-
-    private static class ICOBUTTON extends JButton {
-        public ICOBUTTON(Icon ico) {
-            this.setIcon(ico);
-            this.setMargin(new Insets(1, 1, 1, 1));
         }
     }
 

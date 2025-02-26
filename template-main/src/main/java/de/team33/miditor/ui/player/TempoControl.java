@@ -49,7 +49,7 @@ public abstract class TempoControl {
         }
 
         private void updateTempo(int delta, int exponent) {
-            while(exponent-- > 0) {
+            while (exponent-- > 0) {
                 delta *= 10;
             }
 

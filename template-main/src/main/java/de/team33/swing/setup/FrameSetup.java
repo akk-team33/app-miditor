@@ -34,7 +34,7 @@ public abstract class FrameSetup {
         }
 
         public void componentResized(ComponentEvent e) {
-            Frame frame = (Frame)e.getComponent();
+            Frame frame = (Frame) e.getComponent();
             int xState = frame.getExtendedState();
             if (xState != FrameSetup.this.getExtendedState()) {
                 FrameSetup.this.setExtendedState(xState);

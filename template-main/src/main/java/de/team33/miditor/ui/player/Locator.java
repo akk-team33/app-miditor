@@ -31,30 +31,6 @@ public abstract class Locator extends JPanel {
 
     protected abstract Context getContext();
 
-    private class BEAT_PANE extends LOC_PANE {
-        private long m_last;
-
-        private BEAT_PANE() {
-            super();
-            this.m_last = 0L;
-        }
-
-        protected int getDelta() {
-            return Locator.this.getContext().getPlayer().getTiming().getBeatTicks();
-        }
-
-        protected void setDisplay(long ticks) {
-            ticks /= (long)this.getDelta();
-            ticks %= (long)Locator.this.getContext().getPlayer().getTiming().getBarBeats();
-            ++ticks;
-            if (this.m_last != ticks) {
-                this.setText(String.format("%d", ticks));
-                this.m_last = ticks;
-            }
-
-        }
-    }
-
     private static class GBC extends GridBagConstraints {
         public GBC(int x, int y) {
             this(x, y, 1);
@@ -82,6 +58,30 @@ public abstract class Locator extends JPanel {
             super(txt);
             this.setFont(new Font(this.getFont().getName(), 0, 9));
             this.setHorizontalAlignment(0);
+        }
+    }
+
+    private class BEAT_PANE extends LOC_PANE {
+        private long m_last;
+
+        private BEAT_PANE() {
+            super();
+            this.m_last = 0L;
+        }
+
+        protected int getDelta() {
+            return Locator.this.getContext().getPlayer().getTiming().getBeatTicks();
+        }
+
+        protected void setDisplay(long ticks) {
+            ticks /= (long) this.getDelta();
+            ticks %= (long) Locator.this.getContext().getPlayer().getTiming().getBarBeats();
+            ++ticks;
+            if (this.m_last != ticks) {
+                this.setText(String.format("%d", ticks));
+                this.m_last = ticks;
+            }
+
         }
     }
 
@@ -113,11 +113,11 @@ public abstract class Locator extends JPanel {
         protected abstract void setDisplay(long var1);
 
         private void updatePosition(int delta, int exponent) {
-            while(exponent-- > 0) {
+            while (exponent-- > 0) {
                 delta *= 10;
             }
 
-            Locator.this.getContext().getPlayer().setPosition(Locator.this.getContext().getPlayer().getPosition() + ((long)delta * this.getDelta()));
+            Locator.this.getContext().getPlayer().setPosition(Locator.this.getContext().getPlayer().getPosition() + ((long) delta * this.getDelta()));
         }
 
         private class PLR_CLNT implements Listener<Player.SetPosition> {
@@ -125,7 +125,7 @@ public abstract class Locator extends JPanel {
             }
 
             public void pass(Player.SetPosition message) {
-                long ticks = ((Player)message.getSender()).getPosition();
+                long ticks = ((Player) message.getSender()).getPosition();
                 LOC_PANE.this.setDisplay(ticks);
             }
         }
@@ -144,7 +144,7 @@ public abstract class Locator extends JPanel {
         }
 
         protected void setDisplay(long ticks) {
-            ticks /= (long)this.getDelta();
+            ticks /= (long) this.getDelta();
             ++ticks;
             if (this.m_last != ticks) {
                 this.setText(String.format("%04d", ticks));
@@ -168,8 +168,8 @@ public abstract class Locator extends JPanel {
 
         protected void setDisplay(long ticks) {
             int beatQuantization = Locator.this.getContext().getPlayer().getTiming().getSubBeatUnit() / Locator.this.getContext().getPlayer().getTiming().getBeatUnit();
-            ticks /= (long)this.getDelta();
-            ticks %= (long)beatQuantization;
+            ticks /= (long) this.getDelta();
+            ticks %= (long) beatQuantization;
             ++ticks;
             if (this.m_last != ticks) {
                 this.setText(String.format("%d", ticks));
@@ -197,7 +197,7 @@ public abstract class Locator extends JPanel {
                 this.m_Format = String.format("%%0%dd", sQTicks.length());
             }
 
-            this.setText(String.format(this.m_Format, ticks % (long)Locator.this.getContext().getPlayer().getTiming().getSubBeatTicks()));
+            this.setText(String.format(this.m_Format, ticks % (long) Locator.this.getContext().getPlayer().getTiming().getSubBeatTicks()));
         }
     }
 }

@@ -34,15 +34,6 @@ public class MainFrame extends XFrame {
     private static final GridBagConstraints GBC_LCTR_PANE;
     private static final GridBagConstraints GBC_TRCK_LIST;
     private static final GridBagConstraints GBC_TRCK_EDIT;
-    private final Selection<Track> selection;
-    private final Sequence sequence;
-    private final Player player;
-    private final EventEditor m_EventEditor;
-    private final WindowListener m_WindowListener = new WINDOW_ADAPTER();
-    private final CONTEXT context = new CONTEXT();
-    private final PLAY_CTRLS playCtrls = new PLAY_CTRLS();
-    private final SONG_CTRLS songCtrls = new SONG_CTRLS();
-    private final SONG_CLIENT m_SongClient = new SONG_CLIENT();
 
     static {
         GBC_FILE_CTRL = new GridBagConstraints(0, 0, 1, 1, 0.0, 0.0, 10, 1, GBC_INSETS, 0, 0);
@@ -54,6 +45,16 @@ public class MainFrame extends XFrame {
         GBC_TRCK_LIST = new GridBagConstraints(0, 1, 4, 2, 1.0, 1.0, 10, 1, GBC_INSETS, 0, 0);
         GBC_TRCK_EDIT = new GridBagConstraints(4, 1, 2, 1, 0.0, 1.0, 10, 1, GBC_INSETS, 0, 0);
     }
+
+    private final Selection<Track> selection;
+    private final Sequence sequence;
+    private final Player player;
+    private final EventEditor m_EventEditor;
+    private final WindowListener m_WindowListener = new WINDOW_ADAPTER();
+    private final CONTEXT context = new CONTEXT();
+    private final PLAY_CTRLS playCtrls = new PLAY_CTRLS();
+    private final SONG_CTRLS songCtrls = new SONG_CTRLS();
+    private final SONG_CLIENT m_SongClient = new SONG_CLIENT();
 
     public MainFrame(Sequence sequence, Preferences prefs) throws MidiUnavailableException {
         super("?", prefs);
@@ -77,8 +78,8 @@ public class MainFrame extends XFrame {
     private class CENTER_PANE extends JTabbedPane {
         public CENTER_PANE() {
             super(1);
-            this.addTab("Track-Übersicht", (Icon)null, MainFrame.this.songCtrls.getTrackList(), "Übersicht über die im aktuellen Song enthaltenen 'Tonspuren' (Tracks)");
-            this.addTab("Event-Editor", (Icon)null, MainFrame.this.m_EventEditor.getComponent(), "Event-Editor");
+            this.addTab("Track-Übersicht", (Icon) null, MainFrame.this.songCtrls.getTrackList(), "Übersicht über die im aktuellen Song enthaltenen 'Tonspuren' (Tracks)");
+            this.addTab("Event-Editor", (Icon) null, MainFrame.this.m_EventEditor.getComponent(), "Event-Editor");
         }
     }
 
@@ -150,7 +151,7 @@ public class MainFrame extends XFrame {
         }
 
         public void pass(Sequence.SetFile message) {
-            File f = ((Sequence)message.getSender()).getFile();
+            File f = ((Sequence) message.getSender()).getFile();
             MainFrame.this.setTitle(String.format("%s - Miditor 01a/12", f.getPath()));
         }
     }

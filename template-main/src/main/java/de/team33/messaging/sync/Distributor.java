@@ -13,7 +13,7 @@ import java.util.Set;
 import java.util.Vector;
 
 public class Distributor<MSG> implements Splitter<MSG> {
-    private REGISTER<MSG> register = new REGISTER((REGISTER)null);
+    private REGISTER<MSG> register = new REGISTER((REGISTER) null);
     private Set<MSG> initials = new HashSet();
 
     public Distributor() {
@@ -21,7 +21,7 @@ public class Distributor<MSG> implements Splitter<MSG> {
 
     public final boolean add(Listener<? super MSG> listener) {
         boolean result;
-        synchronized(this) {
+        synchronized (this) {
             if (this.register == null) {
                 result = false;
             } else {
@@ -71,8 +71,8 @@ public class Distributor<MSG> implements Splitter<MSG> {
             List<Throwable> causes = new Vector();
             Iterator var5 = reg.iterator();
 
-            while(var5.hasNext()) {
-                Listener<? super MSG> listener = (Listener)var5.next();
+            while (var5.hasNext()) {
+                Listener<? super MSG> listener = (Listener) var5.next();
 
                 try {
                     listener.pass(message);

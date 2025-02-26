@@ -43,7 +43,7 @@ public abstract class EventTableModel extends AbstractTableModel {
         }
 
         public void pass(UIController.SetTrack message) {
-            Track track = ((UIController)message.getSender()).getTrack();
+            Track track = ((UIController) message.getSender()).getTrack();
             if (EventTableModel.this.m_Track != track) {
                 if (EventTableModel.this.m_Track != null) {
                     EventTableModel.this.m_Track.getRegister(Track.SetEvents.class).remove(EventTableModel.this.m_TrckClient);

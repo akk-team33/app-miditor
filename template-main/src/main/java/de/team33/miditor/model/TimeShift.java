@@ -5,7 +5,11 @@ import de.team33.messaging.Registry;
 public interface TimeShift extends Registry<TimeShift.Message> {
     int getDividend();
 
+    void setDividend(int var1);
+
     int getDivisor();
+
+    void setDivisor(int var1);
 
     int getNextDivisor();
 
@@ -14,10 +18,6 @@ public interface TimeShift extends Registry<TimeShift.Message> {
     int getTicks();
 
     int getTickUnit();
-
-    void setDividend(int var1);
-
-    void setDivisor(int var1);
 
     public interface Message extends de.team33.messaging.Message<TimeShift> {
     }

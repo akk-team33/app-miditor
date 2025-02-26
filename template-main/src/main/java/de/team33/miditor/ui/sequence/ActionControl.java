@@ -60,7 +60,7 @@ public abstract class ActionControl extends JPanel {
         }
 
         public int getNoteNo(long pos) {
-            return pos % (long)ActionControl.this.getContext().getSequence().getTiming().getBarTicks() == 0L ? 76 : 77;
+            return pos % (long) ActionControl.this.getContext().getSequence().getTiming().getBarTicks() == 0L ? 76 : 77;
         }
 
         public int getRes() {
@@ -124,7 +124,7 @@ public abstract class ActionControl extends JPanel {
             Track[] var5;
             int var4 = (var5 = ActionControl.this.getContext().getSequence().getTracks()).length;
 
-            for(int var3 = 0; var3 < var4; ++var3) {
+            for (int var3 = 0; var3 < var4; ++var3) {
                 Track t = var5[var3];
                 t.shift(this.getDelta());
             }

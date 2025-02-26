@@ -18,7 +18,7 @@ public class CMidiFileFilter extends FileFilter {
             String[] var6;
             int var5 = (var6 = EXTENSION).length;
 
-            for(int var4 = 0; var4 < var5; ++var4) {
+            for (int var4 = 0; var4 < var5; ++var4) {
                 String mExt = var6[var4];
                 if (fExt.equalsIgnoreCase(mExt)) {
                     return true;

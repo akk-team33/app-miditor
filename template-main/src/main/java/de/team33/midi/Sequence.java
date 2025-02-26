@@ -25,6 +25,8 @@ public interface Sequence extends Registry<Sequence.Message> {
 
     int getTempo();
 
+    void setTempo(int var1);
+
     long getTickLength();
 
     Timing getTiming();
@@ -38,8 +40,6 @@ public interface Sequence extends Registry<Sequence.Message> {
     void save() throws IOException;
 
     void save_as(File var1) throws IOException;
-
-    void setTempo(int var1);
 
     void split(Track var1);
 

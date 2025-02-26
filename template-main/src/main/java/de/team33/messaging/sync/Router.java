@@ -15,7 +15,7 @@ import java.util.Set;
 import java.util.Vector;
 
 public class Router<MSG> implements Relay<MSG> {
-    private REGISTRY registry = new REGISTRY((REGISTRY)null);
+    private REGISTRY registry = new REGISTRY((REGISTRY) null);
     private Set<MSG> initials = new HashSet();
 
     public Router() {
@@ -25,8 +25,8 @@ public class Router<MSG> implements Relay<MSG> {
         Set<MSX> result = new HashSet();
         Iterator var4 = messages.iterator();
 
-        while(var4.hasNext()) {
-            MSG message = (MSG)var4.next();
+        while (var4.hasNext()) {
+            MSG message = (MSG) var4.next();
             if (msgClass.isAssignableFrom(message.getClass())) {
                 result.add(msgClass.cast(message));
             }
@@ -44,8 +44,8 @@ public class Router<MSG> implements Relay<MSG> {
         if (this.registry != null) {
             Iterator var2 = this.registry.values().iterator();
 
-            while(var2.hasNext()) {
-                Distributor<?> next = (Distributor)var2.next();
+            while (var2.hasNext()) {
+                Distributor<?> next = (Distributor) var2.next();
                 next.close();
             }
 
@@ -74,7 +74,7 @@ public class Router<MSG> implements Relay<MSG> {
                 this.registry.put(msgClass, distributor);
             }
 
-            return (Register)this.registry.get(msgClass);
+            return (Register) this.registry.get(msgClass);
         }
     }
 
@@ -90,11 +90,11 @@ public class Router<MSG> implements Relay<MSG> {
             List<Throwable> causes = new Vector();
             Iterator var5 = reg.entrySet().iterator();
 
-            while(var5.hasNext()) {
-                Map.Entry<Class<?>, Distributor<?>> entry = (Map.Entry)var5.next();
-                if (((Class)entry.getKey()).isAssignableFrom(message.getClass())) {
+            while (var5.hasNext()) {
+                Map.Entry<Class<?>, Distributor<?>> entry = (Map.Entry) var5.next();
+                if (((Class) entry.getKey()).isAssignableFrom(message.getClass())) {
                     try {
-                        this.pass((Distributor)entry.getValue(), message);
+                        this.pass((Distributor) entry.getValue(), message);
                     } catch (CollectiveRuntimeException var7) {
                         causes.addAll(var7.getCauses());
                     }
@@ -112,8 +112,8 @@ public class Router<MSG> implements Relay<MSG> {
         REGISTRY reg = this.getCurrentRegistry();
 
         Distributor supplier;
-        for(Iterator var4 = reg.values().iterator(); var4.hasNext(); ret += supplier.size()) {
-            supplier = (Distributor)var4.next();
+        for (Iterator var4 = reg.values().iterator(); var4.hasNext(); ret += supplier.size()) {
+            supplier = (Distributor) var4.next();
         }
 
         return ret;

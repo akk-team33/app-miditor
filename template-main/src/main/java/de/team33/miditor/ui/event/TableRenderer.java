@@ -18,7 +18,7 @@ public abstract class TableRenderer extends DefaultTableCellRenderer {
 
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
         if (value instanceof MidiEvent) {
-            value = this.getValue((MidiEvent)value, table.convertColumnIndexToModel(column));
+            value = this.getValue((MidiEvent) value, table.convertColumnIndexToModel(column));
         }
 
         return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
@@ -226,7 +226,7 @@ public abstract class TableRenderer extends DefaultTableCellRenderer {
         byte[] var6 = data;
         int var5 = data.length;
 
-        for(int var4 = 0; var4 < var5; ++var4) {
+        for (int var4 = 0; var4 < var5; ++var4) {
             byte b = var6[var4];
             ret = ret + String.format(" %02X", b);
         }

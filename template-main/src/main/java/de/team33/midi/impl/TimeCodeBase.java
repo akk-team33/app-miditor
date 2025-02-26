@@ -12,30 +12,30 @@ public abstract class TimeCodeBase implements TimeCode {
 
     public int getBar() {
         long ret = this.m_Ticks;
-        ret /= (long)this.getTiming().getBarTicks();
+        ret /= (long) this.getTiming().getBarTicks();
         ++ret;
-        return (int)ret;
+        return (int) ret;
     }
 
     public int getBeat() {
         long ret = this.m_Ticks;
-        ret /= (long)this.getTiming().getBeatTicks();
-        ret %= (long)this.getTiming().getBarBeats();
+        ret /= (long) this.getTiming().getBeatTicks();
+        ret %= (long) this.getTiming().getBarBeats();
         ++ret;
-        return (int)ret;
+        return (int) ret;
     }
 
     public int getSubBeat() {
         long ret = this.m_Ticks;
         int beatQuantization = this.getTiming().getSubBeatUnit() / this.getTiming().getBeatUnit();
-        ret /= (long)this.getTiming().getSubBeatTicks();
-        ret %= (long)beatQuantization;
+        ret /= (long) this.getTiming().getSubBeatTicks();
+        ret %= (long) beatQuantization;
         ++ret;
-        return (int)ret;
+        return (int) ret;
     }
 
     public int getTicks() {
-        return (int)(this.m_Ticks % (long)this.getTiming().getSubBeatTicks());
+        return (int) (this.m_Ticks % (long) this.getTiming().getSubBeatTicks());
     }
 
     protected abstract Timing getTiming();

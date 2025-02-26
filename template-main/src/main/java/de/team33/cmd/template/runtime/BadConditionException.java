@@ -16,7 +16,7 @@ public class BadConditionException extends Exception {
         return new BadConditionException(message(referringClass));
     }
 
-    public static BadConditionException format(final Class<?> referringClass, final Object ... args) {
+    public static BadConditionException format(final Class<?> referringClass, final Object... args) {
         return new BadConditionException(message(referringClass).formatted(args));
     }
 }

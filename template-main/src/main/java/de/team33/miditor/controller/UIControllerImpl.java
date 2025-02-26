@@ -26,14 +26,14 @@ public class UIControllerImpl implements UIController {
         return this.m_Track;
     }
 
-    public int[] getTrackSelection() {
-        return this.m_Selection;
-    }
-
     public void setTrack(Track track) {
         this.router.pass(this.msgUnsetTrack);
         this.m_Track = track;
         this.router.pass(this.msgSetTrack);
+    }
+
+    public int[] getTrackSelection() {
+        return this.m_Selection;
     }
 
     public void setTrackSelection(int[] newSelection) {
@@ -44,17 +44,17 @@ public class UIControllerImpl implements UIController {
 
     }
 
+    private static class ROUTER extends Router<UIController.Message> {
+        private ROUTER() {
+        }
+    }
+
     private class MESSAGE implements UIController.Message {
         private MESSAGE() {
         }
 
         public UIController getSender() {
             return UIControllerImpl.this;
-        }
-    }
-
-    private static class ROUTER extends Router<UIController.Message> {
-        private ROUTER() {
         }
     }
 

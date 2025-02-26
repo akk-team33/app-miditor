@@ -17,7 +17,7 @@ public abstract class ListRenderer extends DefaultListCellRenderer {
 
     public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
         if (value instanceof MidiEvent) {
-            value = this.getValue((MidiEvent)value);
+            value = this.getValue((MidiEvent) value);
         }
 
         return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
@@ -147,7 +147,7 @@ public abstract class ListRenderer extends DefaultListCellRenderer {
         byte[] var6 = data;
         int var5 = data.length;
 
-        for(int var4 = 0; var4 < var5; ++var4) {
+        for (int var4 = 0; var4 < var5; ++var4) {
             byte b = var6[var4];
             ret = ret + String.format(" %02X", b);
         }

@@ -27,7 +27,7 @@ public class Header extends JLabel {
         }
 
         public void pass(Track.SetName message) {
-            Header.this.setText(String.format("%s - %s", ((Track)message.getSender()).getPrefix(), ((Track)message.getSender()).getName()));
+            Header.this.setText(String.format("%s - %s", ((Track) message.getSender()).getPrefix(), ((Track) message.getSender()).getName()));
         }
 
         private class UNSET_LSTNR implements Listener<UIController.UnsetTrack> {
@@ -35,7 +35,7 @@ public class Header extends JLabel {
             }
 
             public void pass(UIController.UnsetTrack message) {
-                UIController ctrl = (UIController)message.getSender();
+                UIController ctrl = (UIController) message.getSender();
                 Track track = ctrl.getTrack();
                 if (track != null) {
                     track.getRegister(Track.SetName.class).remove(TRACK_LSTNR.this);
@@ -51,7 +51,7 @@ public class Header extends JLabel {
         }
 
         public void pass(UIController.SetTrack message) {
-            Header.this.new TRACK_LSTNR((UIController)message.getSender());
+            Header.this.new TRACK_LSTNR((UIController) message.getSender());
         }
     }
 }

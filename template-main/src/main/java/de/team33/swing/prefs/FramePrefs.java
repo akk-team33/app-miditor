@@ -19,12 +19,12 @@ public abstract class FramePrefs extends FrameSetup {
         return this.getPreferences().getInt("xstate", 0);
     }
 
-    protected Dimension getSize(int width, int height) {
-        return new Dimension(this.getPreferences().getInt("width", width), this.getPreferences().getInt("height", height));
-    }
-
     protected void setExtendedState(int value) {
         this.getPreferences().putInt("xstate", value);
+    }
+
+    protected Dimension getSize(int width, int height) {
+        return new Dimension(this.getPreferences().getInt("width", width), this.getPreferences().getInt("height", height));
     }
 
     protected void setSize(Dimension size) {

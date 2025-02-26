@@ -48,7 +48,7 @@ public abstract class TrackControls {
             public void pass(Track.SetChannels message) {
                 CHANNEL_PANE.this.setVisible(false);
                 CHANNEL_PANE.this.removeAll();
-                int[] channels = ((Track)message.getSender()).getChannels();
+                int[] channels = ((Track) message.getSender()).getChannels();
                 if (channels.length == 0) {
                     CHANNEL_PANE.this.add(TrackControls.this.new LABEL("--"), "Center");
                 } else if (channels.length == 1) {
@@ -100,7 +100,7 @@ public abstract class TrackControls {
             }
 
             public void pass(Track.SetModified message) {
-                INDEX_PANE.this.setForeground(((Track)message.getSender()).isModified() ? Color.BLUE : Color.BLACK);
+                INDEX_PANE.this.setForeground(((Track) message.getSender()).isModified() ? Color.BLUE : Color.BLACK);
             }
         }
 
@@ -109,7 +109,7 @@ public abstract class TrackControls {
             }
 
             public void pass(Selection.Message<Track> message) {
-                INDEX_PANE.this.setSelected(((Selection)message.getSender()).contains(TrackControls.this.getContext().getTrack()));
+                INDEX_PANE.this.setSelected(((Selection) message.getSender()).contains(TrackControls.this.getContext().getTrack()));
             }
         }
     }
@@ -143,7 +143,7 @@ public abstract class TrackControls {
 
             public void pass(Player.SetModes message) {
                 int index = TrackControls.this.getContext().getIndex();
-                Player.Mode mode = ((Player)message.getSender()).getMode(index);
+                Player.Mode mode = ((Player) message.getSender()).getMode(index);
                 MUTE_BUTTON.this.setSelected(Mode.MUTE == mode);
             }
         }
@@ -160,7 +160,7 @@ public abstract class TrackControls {
             }
 
             public void pass(Track.SetName message) {
-                NAME_PANE.this.setText(((Track)message.getSender()).getName());
+                NAME_PANE.this.setText(((Track) message.getSender()).getName());
             }
         }
     }

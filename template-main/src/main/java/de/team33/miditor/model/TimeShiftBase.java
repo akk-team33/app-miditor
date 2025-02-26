@@ -12,8 +12,8 @@ public abstract class TimeShiftBase implements TimeShift {
     private final SET_DIVIDEND msgSetDividend = new SET_DIVIDEND();
     private final SET_DIVISOR msgSetDivisor = new SET_DIVISOR();
     private final Router<TimeShift.Message> router = new Router();
-    private long dividend = (long)this.getTiming().getBarBeats();
-    private long divisor = (long)this.getTiming().getBeatUnit();
+    private long dividend = (long) this.getTiming().getBarBeats();
+    private long divisor = (long) this.getTiming().getBeatUnit();
     private List<Integer> divisors = null;
 
     public TimeShiftBase() {
@@ -21,11 +21,27 @@ public abstract class TimeShiftBase implements TimeShift {
     }
 
     public int getDividend() {
-        return (int)this.dividend;
+        return (int) this.dividend;
+    }
+
+    public final void setDividend(int value) {
+        if (this.dividend != (long) value) {
+            this.dividend = (long) value;
+            this.router.pass(this.msgSetDividend);
+        }
+
     }
 
     public int getDivisor() {
-        return (int)this.divisor;
+        return (int) this.divisor;
+    }
+
+    public final void setDivisor(int value) {
+        if (this.getDivisors().contains(value)) {
+            this.divisor = (long) value;
+            this.router.pass(this.msgSetDivisor);
+        }
+
     }
 
     private List<Integer> getDivisors() {
@@ -37,7 +53,7 @@ public abstract class TimeShiftBase implements TimeShift {
     }
 
     public int getNextDivisor() {
-        return (Integer)this.getDivisors().get(this.getNextDivisorIndex());
+        return (Integer) this.getDivisors().get(this.getNextDivisorIndex());
     }
 
     private int getNextDivisorIndex() {
@@ -46,7 +62,7 @@ public abstract class TimeShiftBase implements TimeShift {
     }
 
     public final int getPrevDivisor() {
-        return (Integer)this.getDivisors().get(this.getPrevDivisorIndex());
+        return (Integer) this.getDivisors().get(this.getPrevDivisorIndex());
     }
 
     private final int getPrevDivisorIndex() {
@@ -59,7 +75,7 @@ public abstract class TimeShiftBase implements TimeShift {
     }
 
     public final int getTicks() {
-        return (int)(this.dividend * (long)this.getTickUnit() / this.divisor);
+        return (int) (this.dividend * (long) this.getTickUnit() / this.divisor);
     }
 
     public final int getTickUnit() {
@@ -67,22 +83,6 @@ public abstract class TimeShiftBase implements TimeShift {
     }
 
     protected abstract Timing getTiming();
-
-    public final void setDividend(int value) {
-        if (this.dividend != (long)value) {
-            this.dividend = (long)value;
-            this.router.pass(this.msgSetDividend);
-        }
-
-    }
-
-    public final void setDivisor(int value) {
-        if (this.getDivisors().contains(value)) {
-            this.divisor = (long)value;
-            this.router.pass(this.msgSetDivisor);
-        }
-
-    }
 
     private class MESSAGE implements TimeShift.Message {
         private MESSAGE() {

@@ -23,14 +23,15 @@ public abstract class EventEditor extends UIControllerImpl {
     private static final GridBagConstraints GBC_HEADER;
     private static final GridBagConstraints GBC_BODY;
     private static final GridBagConstraints GBC_FOOTER;
-    private JComponent m_RootComponent = null;
-    private final EVNT_RENDERER m_EventRenderer = new EVNT_RENDERER();
 
     static {
         GBC_HEADER = new GridBagConstraints(0, 0, 1, 1, 1.0, 0.0, 10, 1, GBC_INSETS, 0, 0);
         GBC_BODY = new GridBagConstraints(0, 1, 1, 1, 1.0, 1.0, 10, 1, GBC_INSETS, 0, 0);
         GBC_FOOTER = new GridBagConstraints(0, 2, 1, 1, 1.0, 0.0, 10, 1, GBC_INSETS, 0, 0);
     }
+
+    private final EVNT_RENDERER m_EventRenderer = new EVNT_RENDERER();
+    private JComponent m_RootComponent = null;
 
     public EventEditor() {
         this.getSequence().getRegister(Sequence.SetParts.class).add(new SONG_CLIENT());
@@ -104,11 +105,11 @@ public abstract class EventEditor extends UIControllerImpl {
         }
 
         public void pass(Sequence.SetParts message) {
-            Track[] parts = ((Sequence)message.getSender()).getTracks();
+            Track[] parts = ((Sequence) message.getSender()).getTracks();
             Track[] var6 = parts;
             int var5 = parts.length;
 
-            for(int var4 = 0; var4 < var5; ++var4) {
+            for (int var4 = 0; var4 < var5; ++var4) {
                 Track track = var6[var4];
                 if (track == EventEditor.this.getTrack()) {
                     return;
@@ -116,7 +117,7 @@ public abstract class EventEditor extends UIControllerImpl {
             }
 
             if (parts.length == 0) {
-                EventEditor.this.setTrack((Track)null);
+                EventEditor.this.setTrack((Track) null);
             } else {
                 EventEditor.this.setTrack(parts[0]);
             }

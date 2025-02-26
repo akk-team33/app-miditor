@@ -6,9 +6,9 @@ import de.team33.midi.Track;
 public interface UIController extends Registry<UIController.Message> {
     Track getTrack();
 
-    int[] getTrackSelection();
-
     void setTrack(Track var1);
+
+    int[] getTrackSelection();
 
     void setTrackSelection(int[] var1);
 

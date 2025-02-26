@@ -38,12 +38,12 @@ public abstract class TrackBase implements Track {
     }
 
     public final void add(MidiEvent... events) {
-        synchronized(this.midiTrack) {
+        synchronized (this.midiTrack) {
             Set<Message<Track>> messages = new HashSet();
             MidiEvent[] var7 = events;
             int var6 = events.length;
 
-            for(int var5 = 0; var5 < var6; ++var5) {
+            for (int var5 = 0; var5 < var6; ++var5) {
                 MidiEvent evnt = var7[var5];
                 this.core_add(evnt, messages);
             }
@@ -105,14 +105,14 @@ public abstract class TrackBase implements Track {
     }
 
     public final Map<Integer, List<MidiEvent>> extractChannels() {
-        synchronized(this.midiTrack) {
+        synchronized (this.midiTrack) {
             Set<Message<Track>> messages = new HashSet();
             Map<Integer, List<MidiEvent>> ret = new TreeMap();
             MidiEvent[] allEvents = this.getAll();
             MidiEvent[] var8 = allEvents;
             int var7 = allEvents.length;
 
-            for(int var6 = 0; var6 < var7; ++var6) {
+            for (int var6 = 0; var6 < var7; ++var6) {
                 MidiEvent evnt = var8[var6];
                 MidiMessage mssg = evnt.getMessage();
                 int status = mssg.getStatus();
@@ -122,7 +122,7 @@ public abstract class TrackBase implements Track {
                         ret.put(channel, new Vector());
                     }
 
-                    ((List)ret.get(channel)).add(evnt);
+                    ((List) ret.get(channel)).add(evnt);
                     this.core_remove(evnt, messages);
                 }
             }
@@ -133,16 +133,16 @@ public abstract class TrackBase implements Track {
     }
 
     public final MidiEvent get(int index) {
-        synchronized(this.midiTrack) {
+        synchronized (this.midiTrack) {
             return this.midiTrack.get(index);
         }
     }
 
     public final MidiEvent[] getAll() {
-        synchronized(this.midiTrack) {
+        synchronized (this.midiTrack) {
             MidiEvent[] ret = new MidiEvent[this.size()];
 
-            for(int i = 0; i < ret.length; ++i) {
+            for (int i = 0; i < ret.length; ++i) {
                 ret[i] = this.midiTrack.get(i);
             }
 
@@ -176,23 +176,29 @@ public abstract class TrackBase implements Track {
         return this.modified;
     }
 
+    protected void setModified(boolean isModified) {
+        Set<Message<Track>> messages = new HashSet();
+        this.core_modify(isModified, messages);
+        this.relay(messages);
+    }
+
     private final void relay(Set<Message<Track>> messages) {
         Iterator var3 = messages.iterator();
 
-        while(var3.hasNext()) {
-            Message<Track> msg = (Message)var3.next();
+        while (var3.hasNext()) {
+            Message<Track> msg = (Message) var3.next();
             this.router.pass(msg);
         }
 
     }
 
     public final void remove(MidiEvent... events) {
-        synchronized(this.midiTrack) {
+        synchronized (this.midiTrack) {
             Set<Message<Track>> messages = new HashSet();
             MidiEvent[] var7 = events;
             int var6 = events.length;
 
-            for(int var5 = 0; var5 < var6; ++var5) {
+            for (int var5 = 0; var5 < var6; ++var5) {
                 MidiEvent event = var7[var5];
                 this.core_remove(event, messages);
             }
@@ -201,20 +207,14 @@ public abstract class TrackBase implements Track {
         }
     }
 
-    protected void setModified(boolean isModified) {
-        Set<Message<Track>> messages = new HashSet();
-        this.core_modify(isModified, messages);
-        this.relay(messages);
-    }
-
     public final void shift(long delta) {
-        synchronized(this.midiTrack) {
+        synchronized (this.midiTrack) {
             Set<Message<Track>> messages = new HashSet();
             MidiEvent[] events = this.getAll();
             MidiEvent[] var9 = events;
             int var8 = events.length;
 
-            for(int var7 = 0; var7 < var8; ++var7) {
+            for (int var7 = 0; var7 < var8; ++var7) {
                 MidiEvent event = var9[var7];
                 this.core_shift(event, delta, messages);
             }
@@ -224,7 +224,7 @@ public abstract class TrackBase implements Track {
     }
 
     public final int size() {
-        synchronized(this.midiTrack) {
+        synchronized (this.midiTrack) {
             return this.midiTrack.size();
         }
     }
@@ -261,7 +261,7 @@ public abstract class TrackBase implements Track {
         }
 
         public void pass(Track.SetEvents message) {
-            synchronized(TrackBase.this.midiTrack) {
+            synchronized (TrackBase.this.midiTrack) {
                 Set<Message<Track>> messages = new HashSet();
                 String newName = "- Kein Name -";
                 int nChannels = 0;
@@ -269,7 +269,7 @@ public abstract class TrackBase implements Track {
                 int i = 0;
 
                 int ix;
-                for(ix = TrackBase.this.midiTrack.size(); i < ix; ++i) {
+                for (ix = TrackBase.this.midiTrack.size(); i < ix; ++i) {
                     MidiEvent evnt = TrackBase.this.midiTrack.get(i);
                     MidiMessage mssg = evnt.getMessage();
                     int status = mssg.getStatus();
@@ -289,7 +289,7 @@ public abstract class TrackBase implements Track {
                 int[] newChannels = new int[nChannels];
                 ix = 0;
 
-                for(int k = 0; ix < nPerChannel.length; ++ix) {
+                for (int k = 0; ix < nPerChannel.length; ++ix) {
                     if (nPerChannel[ix] > 0) {
                         newChannels[k++] = ix;
                     }

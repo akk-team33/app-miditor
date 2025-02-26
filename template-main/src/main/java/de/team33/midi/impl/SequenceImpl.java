@@ -36,14 +36,34 @@ public class SequenceImpl implements Sequence {
     private final Sequence.SetModified msgSetModified = new SET_MODIFIED();
     private final Sequence.SetParts msgSetParts = new SET_PARTS();
     private final Router<Sequence.Message> router = new Router();
-    private boolean m_isSessionFile = false;
-    private boolean m_Modified = false;
     private final PART_MAP m_PartMap = new PART_MAP();
-    private PART[] m_Parts = null;
-    private File m_File;
     private final javax.sound.midi.Sequence m_Sequence;
     protected int m_nSelectedTracks;
+    private boolean m_isSessionFile = false;
+    private boolean m_Modified = false;
+    private PART[] m_Parts = null;
+    private File m_File;
     private Timing m_Timing;
+
+    public SequenceImpl(File file) throws InvalidMidiDataException, IOException {
+        this.router.addInitials(Arrays.asList(this.msgSetFile, this.msgSetModified, this.msgSetParts));
+        this.m_File = initialFile(file);
+        this.m_Sequence = initialSequence(this.m_File);
+        javax.sound.midi.Track[] var5;
+        int var4 = (var5 = this.m_Sequence.getTracks()).length;
+
+        for (int var3 = 0; var3 < var4; ++var3) {
+            javax.sound.midi.Track tRaw = var5[var3];
+            this.m_PartMap.put(tRaw, new PART(tRaw));
+        }
+
+        if (this.getTracks().length > 0) {
+            this.m_Timing = new TIMING(getTimingEvent(this.getTracks()[0], 0L));
+        } else {
+            this.m_Timing = new TIMING((MidiEvent) null);
+        }
+
+    }
 
     private static void _save(javax.sound.midi.Sequence s, File file, boolean doBackup) throws IOException {
         if (doBackup && file.exists()) {
@@ -59,7 +79,7 @@ public class SequenceImpl implements Sequence {
         int i = 0;
 
         File fBak;
-        for(fBak = new File(String.format(fmt, i)); fBak.exists(); fBak = new File(String.format(fmt, i))) {
+        for (fBak = new File(String.format(fmt, i)); fBak.exists(); fBak = new File(String.format(fmt, i))) {
             ++i;
             if (999 < i) {
                 throw new BACKUP_OVERFLOW();
@@ -76,7 +96,7 @@ public class SequenceImpl implements Sequence {
         MidiEvent ret = null;
         int i = 0;
 
-        for(int n = p.size(); i < n; ++i) {
+        for (int n = p.size(); i < n; ++i) {
             MidiEvent evnt = p.get(i);
             if (evnt.getTick() > latestTick) {
                 break;
@@ -114,26 +134,6 @@ public class SequenceImpl implements Sequence {
         return MidiSystem.getSequence(file);
     }
 
-    public SequenceImpl(File file) throws InvalidMidiDataException, IOException {
-        this.router.addInitials(Arrays.asList(this.msgSetFile, this.msgSetModified, this.msgSetParts));
-        this.m_File = initialFile(file);
-        this.m_Sequence = initialSequence(this.m_File);
-        javax.sound.midi.Track[] var5;
-        int var4 = (var5 = this.m_Sequence.getTracks()).length;
-
-        for(int var3 = 0; var3 < var4; ++var3) {
-            javax.sound.midi.Track tRaw = var5[var3];
-            this.m_PartMap.put(tRaw, new PART(tRaw));
-        }
-
-        if (this.getTracks().length > 0) {
-            this.m_Timing = new TIMING(getTimingEvent(this.getTracks()[0], 0L));
-        } else {
-            this.m_Timing = new TIMING((MidiEvent)null);
-        }
-
-    }
-
     private void _save_and_relay(Set<Sequence.Message> messages) throws IOException {
         _save(this.m_Sequence, this.m_File, !this.m_isSessionFile);
         this.m_isSessionFile = true;
@@ -150,7 +150,7 @@ public class SequenceImpl implements Sequence {
             PART[] var5;
             int var4 = (var5 = this.m_Parts).length;
 
-            for(int var3 = 0; var3 < var4; ++var3) {
+            for (int var3 = 0; var3 < var4; ++var3) {
                 PART p = var5[var3];
                 p.clrRegister();
             }
@@ -169,13 +169,13 @@ public class SequenceImpl implements Sequence {
             this.m_PartMap.put(rawTrack, new PART(rawTrack));
         }
 
-        return (Track)this.m_PartMap.get(rawTrack);
+        return (Track) this.m_PartMap.get(rawTrack);
     }
 
     private boolean core_delete(Track p, Set<Sequence.Message> messages) {
         boolean ret = false;
         if (p instanceof PART) {
-            javax.sound.midi.Track tRaw = ((PART)p).getTrack();
+            javax.sound.midi.Track tRaw = ((PART) p).getTrack();
             if (this.m_PartMap.containsKey(tRaw)) {
                 ret = this.m_Sequence.deleteTrack(tRaw);
                 if (ret) {
@@ -202,9 +202,9 @@ public class SequenceImpl implements Sequence {
             if (!(this.m_Modified = b)) {
                 Iterator var4 = this.m_PartMap.keySet().iterator();
 
-                while(var4.hasNext()) {
-                    javax.sound.midi.Track tRaw = (javax.sound.midi.Track)var4.next();
-                    ((PART)this.m_PartMap.get(tRaw)).setModified(false);
+                while (var4.hasNext()) {
+                    javax.sound.midi.Track tRaw = (javax.sound.midi.Track) var4.next();
+                    ((PART) this.m_PartMap.get(tRaw)).setModified(false);
                 }
             }
 
@@ -233,7 +233,7 @@ public class SequenceImpl implements Sequence {
             Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), var14);
         }
 
-        for(long pos = cp.getMin(); pos <= cp.getMax(); pos += (long)cp.getRes()) {
+        for (long pos = cp.getMin(); pos <= cp.getMax(); pos += (long) cp.getRes()) {
             ShortMessage msg1 = new ShortMessage();
             ShortMessage msg2 = new ShortMessage();
             int data1 = cp.getNoteNo(pos);
@@ -243,7 +243,7 @@ public class SequenceImpl implements Sequence {
                 msg1.setMessage(144, cp.getChannel(), data1, data2);
                 msg2.setMessage(144, cp.getChannel(), data1, 0);
                 ret.add(new MidiEvent[]{new MidiEvent(msg1, pos)});
-                ret.add(new MidiEvent[]{new MidiEvent(msg2, pos + (long)(cp.getRes() / 4))});
+                ret.add(new MidiEvent[]{new MidiEvent(msg2, pos + (long) (cp.getRes() / 4))});
             } catch (InvalidMidiDataException var13) {
                 Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), var13);
             }
@@ -257,8 +257,8 @@ public class SequenceImpl implements Sequence {
         Set<Sequence.Message> messages = new HashSet();
         Iterator var4 = tracks.iterator();
 
-        while(var4.hasNext()) {
-            Track p = (Track)var4.next();
+        while (var4.hasNext()) {
+            Track p = (Track) var4.next();
             this.core_delete(p, messages);
         }
 
@@ -281,8 +281,8 @@ public class SequenceImpl implements Sequence {
             javax.sound.midi.Track[] rawTracks = this.m_Sequence.getTracks();
             this.m_Parts = new PART[rawTracks.length];
 
-            for(int i = 0; i < rawTracks.length; ++i) {
-                this.m_Parts[i] = (PART)this.m_PartMap.get(rawTracks[i]);
+            for (int i = 0; i < rawTracks.length; ++i) {
+                this.m_Parts[i] = (PART) this.m_PartMap.get(rawTracks[i]);
                 this.m_Parts[i].getRegister(Track.SetModified.class).add(new PART_CLIENT());
             }
         }
@@ -301,16 +301,51 @@ public class SequenceImpl implements Sequence {
                 byte[] b = evnt.getMessage().getMessage();
                 int mpqn = 0;
 
-                for(int i = 3; i < 6; ++i) {
+                for (int i = 3; i < 6; ++i) {
                     mpqn *= 256;
                     mpqn += b[i] & 255;
                 }
 
-                return (int)Math.round(6.0E7 / (double)mpqn);
+                return (int) Math.round(6.0E7 / (double) mpqn);
             }
         }
 
         return 0;
+    }
+
+    public void setTempo(int tempo) {
+        Track p0;
+        if (this.getTracks().length > 0) {
+            p0 = this.getTracks()[0];
+        } else {
+            p0 = this.create();
+        }
+
+        for (MidiEvent oldEvnt = getTempoEvent(p0, 0L); oldEvnt != null; oldEvnt = getTempoEvent(p0, 0L)) {
+            p0.remove(new MidiEvent[]{oldEvnt});
+        }
+
+        if (tempo > 0) {
+            long mpqn = Math.round(6.0E7 / (double) tempo);
+            byte[] data = new byte[3];
+
+            for (int i = 0; i < data.length; ++i) {
+                data[2 - i] = (byte) ((int) mpqn);
+                mpqn /= 256L;
+            }
+
+            MetaMessage mssg = new MetaMessage();
+
+            try {
+                mssg.setMessage(81, data, data.length);
+            } catch (InvalidMidiDataException var9) {
+                Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), var9);
+            }
+
+            MidiEvent evnt = new MidiEvent(mssg, 0L);
+            p0.add(new MidiEvent[]{evnt});
+        }
+
     }
 
     public long getTickLength() {
@@ -330,8 +365,8 @@ public class SequenceImpl implements Sequence {
         Track newTrack = this.core_create(messages);
         Iterator var5 = tracks.iterator();
 
-        while(var5.hasNext()) {
-            Track t = (Track)var5.next();
+        while (var5.hasNext()) {
+            Track t = (Track) var5.next();
             newTrack.add(t.getAll());
             this.core_delete(t, messages);
         }
@@ -354,50 +389,15 @@ public class SequenceImpl implements Sequence {
         this._save_and_relay(messages);
     }
 
-    public void setTempo(int tempo) {
-        Track p0;
-        if (this.getTracks().length > 0) {
-            p0 = this.getTracks()[0];
-        } else {
-            p0 = this.create();
-        }
-
-        for(MidiEvent oldEvnt = getTempoEvent(p0, 0L); oldEvnt != null; oldEvnt = getTempoEvent(p0, 0L)) {
-            p0.remove(new MidiEvent[]{oldEvnt});
-        }
-
-        if (tempo > 0) {
-            long mpqn = Math.round(6.0E7 / (double)tempo);
-            byte[] data = new byte[3];
-
-            for(int i = 0; i < data.length; ++i) {
-                data[2 - i] = (byte)((int)mpqn);
-                mpqn /= 256L;
-            }
-
-            MetaMessage mssg = new MetaMessage();
-
-            try {
-                mssg.setMessage(81, data, data.length);
-            } catch (InvalidMidiDataException var9) {
-                Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), var9);
-            }
-
-            MidiEvent evnt = new MidiEvent(mssg, 0L);
-            p0.add(new MidiEvent[]{evnt});
-        }
-
-    }
-
     public void split(Track track) {
         Set<Sequence.Message> messages = new HashSet();
         Map<Integer, List<MidiEvent>> extract = track.extractChannels();
         Iterator var5 = extract.keySet().iterator();
 
-        while(var5.hasNext()) {
-            Integer channel = (Integer)var5.next();
+        while (var5.hasNext()) {
+            Integer channel = (Integer) var5.next();
             Track newTrack = this.core_create(messages);
-            TrackUtil.add(newTrack, (Collection)extract.get(channel));
+            TrackUtil.add(newTrack, (Collection) extract.get(channel));
         }
 
         ListenerUtil.pass(this.router, messages);
@@ -412,6 +412,11 @@ public class SequenceImpl implements Sequence {
     private static class BACKUP_RENAME extends IOException {
         public BACKUP_RENAME(String message) {
             super(message);
+        }
+    }
+
+    private static class PART_MAP extends HashMap<javax.sound.midi.Track, PART> {
+        private PART_MAP() {
         }
     }
 
@@ -436,7 +441,7 @@ public class SequenceImpl implements Sequence {
         public int getIndex() {
             javax.sound.midi.Track[] t = SequenceImpl.this.m_Sequence.getTracks();
 
-            for(int i = 0; i < t.length; ++i) {
+            for (int i = 0; i < t.length; ++i) {
                 if (this == SequenceImpl.this.m_PartMap.get(t[i])) {
                     return i;
                 }
@@ -459,17 +464,12 @@ public class SequenceImpl implements Sequence {
         }
 
         public void pass(Track.SetModified message) {
-            if (((Track)message.getSender()).isModified()) {
+            if (((Track) message.getSender()).isModified()) {
                 Set<Sequence.Message> messages = new HashSet();
                 SequenceImpl.this.core_setModified(true, messages);
                 ListenerUtil.pass(SequenceImpl.this.router, messages);
             }
 
-        }
-    }
-
-    private static class PART_MAP extends HashMap<javax.sound.midi.Track, PART> {
-        private PART_MAP() {
         }
     }
 

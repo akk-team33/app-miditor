@@ -32,13 +32,21 @@ public class PlayerImpl implements Player {
     private MidiDevice outputDevice;
     private Player.Mode[] modes;
 
+    public PlayerImpl(Sequence sequence) throws MidiUnavailableException {
+        this.router.addInitials(Arrays.asList(this.msgSetModes, this.msgSetPosition, this.msgSetState, this.msgSetTempo));
+        this.sequencer = MidiSystem.getSequencer(false);
+        this.sequence = sequence;
+        this.sequence.getRegister(Sequence.SetParts.class).add(new SONG_CLIENT());
+        this.router.getRegister(Player.SetState.class).add(new STARTER());
+    }
+
     private static MidiDevice newOutputDevice() throws MidiUnavailableException {
         String preferedOutputDeviceName = PREFS.get("preferedOutputDeviceName", "");
         Preferences prefs = PREFS.node("DeviceInfo");
         MidiDevice.Info[] infos = MidiSystem.getMidiDeviceInfo();
         MidiDevice.Info preferedOutputDeviceInfo = null;
 
-        for(int index = 0; index < infos.length; ++index) {
+        for (int index = 0; index < infos.length; ++index) {
             MidiDevice.Info info = infos[index];
             Preferences node = prefs.node(String.format("%04d", index));
             node.put("name", info.getName());
@@ -57,16 +65,8 @@ public class PlayerImpl implements Player {
             result = MidiSystem.getMidiDevice(preferedOutputDeviceInfo);
         }
 
-        PREFS.put("preferedOutputDeviceName", ((MidiDevice)result).getDeviceInfo().getName());
-        return (MidiDevice)result;
-    }
-
-    public PlayerImpl(Sequence sequence) throws MidiUnavailableException {
-        this.router.addInitials(Arrays.asList(this.msgSetModes, this.msgSetPosition, this.msgSetState, this.msgSetTempo));
-        this.sequencer = MidiSystem.getSequencer(false);
-        this.sequence = sequence;
-        this.sequence.getRegister(Sequence.SetParts.class).add(new SONG_CLIENT());
-        this.router.getRegister(Player.SetState.class).add(new STARTER());
+        PREFS.put("preferedOutputDeviceName", ((MidiDevice) result).getDeviceInfo().getName());
+        return (MidiDevice) result;
     }
 
     private void core_close(Set<MESSAGE> messages) {
@@ -93,7 +93,7 @@ public class PlayerImpl implements Player {
                 int iNormal = -1;
                 this.modes = new Player.Mode[length];
 
-                for(int i = 0; i < length; ++i) {
+                for (int i = 0; i < length; ++i) {
                     if (this.sequencer.getTrackMute(i)) {
                         this.modes[i] = Mode.MUTE;
                     } else {
@@ -177,6 +177,12 @@ public class PlayerImpl implements Player {
         return this.sequencer.getTickPosition();
     }
 
+    public void setPosition(long ticks) {
+        Set<MESSAGE> messages = new HashSet();
+        this.core_setTickPosition(ticks, messages);
+        ListenerUtil.pass(this.router, messages);
+    }
+
     public <MSX extends Player.Message> Register<MSX> getRegister(Class<MSX> msgClass) {
         return this.router.getRegister(msgClass);
     }
@@ -193,49 +199,6 @@ public class PlayerImpl implements Player {
         } else {
             return State.IDLE;
         }
-    }
-
-    public int getTempo() {
-        return Math.round(this.sequencer.getTempoInBPM());
-    }
-
-    public Timing getTiming() {
-        return this.sequence.getTiming();
-    }
-
-    public void setMode(int index, Player.Mode newMode) {
-        Player.Mode oldMode = this.getMode(index);
-        if (oldMode != newMode) {
-            Set<MESSAGE> messages = new HashSet();
-            int length;
-            int i;
-            if (oldMode != Mode.SOLO) {
-                if (newMode == Mode.SOLO) {
-                    length = this.sequence.getTracks().length;
-
-                    for(i = 0; i < length; ++i) {
-                        this.core_setTrackMute(i, i != index, messages);
-                    }
-                } else {
-                    this.core_setTrackMute(index, newMode == Mode.MUTE, messages);
-                }
-            } else {
-                length = this.sequence.getTracks().length;
-
-                for(i = 0; i < length; ++i) {
-                    this.core_setTrackMute(i, i == index && newMode == Mode.MUTE, messages);
-                }
-            }
-
-            ListenerUtil.pass(this.router, messages);
-        }
-
-    }
-
-    public void setPosition(long ticks) {
-        Set<MESSAGE> messages = new HashSet();
-        this.core_setTickPosition(ticks, messages);
-        ListenerUtil.pass(this.router, messages);
     }
 
     public void setState(Player.State newState) {
@@ -265,12 +228,49 @@ public class PlayerImpl implements Player {
         }
     }
 
+    public int getTempo() {
+        return Math.round(this.sequencer.getTempoInBPM());
+    }
+
     public void setTempo(int tempo) {
         Set<MESSAGE> messages = new HashSet();
         messages.add(this.msgSetTempo);
-        this.sequencer.setTempoInBPM((float)tempo);
+        this.sequencer.setTempoInBPM((float) tempo);
         this.sequence.setTempo(tempo);
         ListenerUtil.pass(this.router, messages);
+    }
+
+    public Timing getTiming() {
+        return this.sequence.getTiming();
+    }
+
+    public void setMode(int index, Player.Mode newMode) {
+        Player.Mode oldMode = this.getMode(index);
+        if (oldMode != newMode) {
+            Set<MESSAGE> messages = new HashSet();
+            int length;
+            int i;
+            if (oldMode != Mode.SOLO) {
+                if (newMode == Mode.SOLO) {
+                    length = this.sequence.getTracks().length;
+
+                    for (i = 0; i < length; ++i) {
+                        this.core_setTrackMute(i, i != index, messages);
+                    }
+                } else {
+                    this.core_setTrackMute(index, newMode == Mode.MUTE, messages);
+                }
+            } else {
+                length = this.sequence.getTracks().length;
+
+                for (i = 0; i < length; ++i) {
+                    this.core_setTrackMute(i, i == index && newMode == Mode.MUTE, messages);
+                }
+            }
+
+            ListenerUtil.pass(this.router, messages);
+        }
+
     }
 
     private class MESSAGE implements Player.Message {
@@ -332,9 +332,9 @@ public class PlayerImpl implements Player {
         }
 
         public void pass(Player.SetState message) {
-            Player.State s = ((Player)message.getSender()).getState();
+            Player.State s = ((Player) message.getSender()).getState();
             if (s == State.RUN) {
-                ((Player)message.getSender()).getRegister(Player.SetState.class).remove(this);
+                ((Player) message.getSender()).getRegister(Player.SetState.class).remove(this);
                 (new Timer()).schedule(PlayerImpl.this.new TASK(), 100L, 50L);
             }
 

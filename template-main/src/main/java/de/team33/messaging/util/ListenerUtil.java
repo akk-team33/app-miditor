@@ -11,8 +11,8 @@ public class ListenerUtil {
     public static <MSG> void pass(Listener<? super MSG> listener, Iterable<MSG> messages) {
         Iterator var3 = messages.iterator();
 
-        while(var3.hasNext()) {
-            MSG message = (MSG)var3.next();
+        while (var3.hasNext()) {
+            MSG message = (MSG) var3.next();
             listener.pass(message);
         }
 
