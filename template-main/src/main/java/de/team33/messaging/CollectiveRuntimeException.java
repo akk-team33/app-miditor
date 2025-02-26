@@ -1,18 +1,13 @@
 package de.team33.messaging;
 
-import net.team33.aggregate.iterator.ImmutableIterator;
-import net.team33.aggregate.iterator.ImmutableIteratorProxy;
-import net.team33.aggregate.list.ImmutableList;
-import net.team33.aggregate.list.ImmutableListProxyBase;
-
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Vector;
 
 public class CollectiveRuntimeException extends RuntimeException implements Iterable<Throwable> {
     private final List<Throwable> causes;
-    private final ImmutableList<Throwable> causesProxy;
 
     private static Throwable getFirst(Iterator<? extends Throwable> iterator) {
         return iterator.hasNext() ? (Throwable)iterator.next() : null;
@@ -29,16 +24,15 @@ public class CollectiveRuntimeException extends RuntimeException implements Iter
 
     public CollectiveRuntimeException(String message, Collection<? extends Throwable> causes) {
         super(message, getFirst(causes.iterator()));
-        this.causesProxy = new PROXY();
-        this.causes = new Vector(causes);
+        this.causes = new LinkedList<>(causes);
     }
 
-    public final ImmutableList<Throwable> getCauses() {
-        return this.causesProxy;
+    public final List<Throwable> getCauses() {
+        return Collections.unmodifiableList(causes);
     }
 
-    public final ImmutableIterator<Throwable> iterator() {
-        return new ImmutableIteratorProxy(this.causes.iterator());
+    public final Iterator<Throwable> iterator() {
+        return getCauses().iterator();
     }
 
     public final int size() {
@@ -58,14 +52,5 @@ public class CollectiveRuntimeException extends RuntimeException implements Iter
 
         buffer.append("\n}");
         return buffer.toString();
-    }
-
-    private class PROXY extends ImmutableListProxyBase<Throwable> {
-        private PROXY() {
-        }
-
-        protected List<? extends Throwable> getCore() {
-            return CollectiveRuntimeException.this.causes;
-        }
     }
 }
