@@ -4,7 +4,7 @@ import java.awt.Color;
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import net.team33.messaging.Listener;
-import net.team33.midi.Track;
+import de.team33.midi.Track;
 import de.team33.miditor.controller.UIController;
 
 public class Header extends JLabel {

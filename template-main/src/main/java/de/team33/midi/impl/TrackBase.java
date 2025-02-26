@@ -1,4 +1,4 @@
-package de.team33.miditor.midi.impl;
+package de.team33.midi.impl;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -14,7 +14,7 @@ import net.team33.messaging.Listener;
 import net.team33.messaging.Message;
 import net.team33.messaging.Register;
 import net.team33.messaging.sync.Router;
-import net.team33.midi.Track;
+import de.team33.midi.Track;
 
 public abstract class TrackBase implements Track {
     private static final String FMT_PREFIX = "Track %02d";

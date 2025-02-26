@@ -1,4 +1,4 @@
-package de.team33.miditor.midi.impl;
+package de.team33.midi.impl;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,10 +23,10 @@ import net.team33.messaging.Listener;
 import net.team33.messaging.Register;
 import net.team33.messaging.sync.Router;
 import net.team33.messaging.util.ListenerUtil;
-import net.team33.midi.Sequence;
-import net.team33.midi.Timing;
-import net.team33.midi.Track;
-import net.team33.midi.util.TrackUtil;
+import de.team33.midi.Sequence;
+import de.team33.midi.Timing;
+import de.team33.midi.Track;
+import de.team33.midi.util.TrackUtil;
 import net.team33.miditor.IClickParameter;
 
 public class SequenceImpl implements Sequence {

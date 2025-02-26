@@ -3,7 +3,7 @@ package de.team33.miditor.ui.track;
 import javax.swing.event.TableModelEvent;
 import javax.swing.table.AbstractTableModel;
 import net.team33.messaging.Listener;
-import net.team33.midi.Track;
+import de.team33.midi.Track;
 import de.team33.miditor.controller.UIController;
 
 public abstract class EventTableModel extends AbstractTableModel {

@@ -1,9 +1,9 @@
 package de.team33.miditor.ui.sequence;
 
 import net.team33.messaging.Listener;
-import net.team33.midi.Sequence;
-import net.team33.midi.Timing;
-import net.team33.midi.Track;
+import de.team33.midi.Sequence;
+import de.team33.midi.Timing;
+import de.team33.midi.Track;
 import de.team33.miditor.model.TimeShift;
 import de.team33.miditor.model.TimeShiftBase;
 import net.team33.selection.Selection;

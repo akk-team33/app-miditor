@@ -1,7 +1,7 @@
-package de.team33.miditor.midi.impl;
+package de.team33.midi.impl;
 
-import net.team33.midi.TimeCode;
-import net.team33.midi.Timing;
+import de.team33.midi.TimeCode;
+import de.team33.midi.Timing;
 
 public abstract class TimeCodeBase implements TimeCode {
     private final long m_Ticks;

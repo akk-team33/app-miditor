@@ -11,8 +11,8 @@ import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JRootPane;
 import net.team33.messaging.Listener;
-import net.team33.midi.Player;
-import net.team33.midi.Player.State;
+import de.team33.midi.Player;
+import de.team33.midi.Player.State;
 import de.team33.miditor.ui.Rsrc;
 
 public abstract class DriveControl extends JPanel {

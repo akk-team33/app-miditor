@@ -1,7 +1,7 @@
 package de.team33.miditor.ui;
 
 import java.awt.Component;
-import net.team33.midi.Player;
+import de.team33.midi.Player;
 import de.team33.miditor.ui.player.DriveControl;
 import de.team33.miditor.ui.player.Locator;
 import de.team33.miditor.ui.player.TempoControl;

@@ -9,7 +9,7 @@ import javax.sound.midi.MidiUnavailableException;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
-import de.team33.miditor.midi.impl.SequenceImpl;
+import de.team33.midi.impl.SequenceImpl;
 import de.team33.miditor.ui.MainFrame;
 
 public class MiditorStub implements Runnable {

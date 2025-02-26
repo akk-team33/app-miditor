@@ -5,7 +5,7 @@ import java.awt.Component;
 import java.awt.Font;
 import javax.swing.BorderFactory;
 import net.team33.messaging.Listener;
-import net.team33.midi.Player;
+import de.team33.midi.Player;
 import net.team33.swing.XSpinner;
 
 public abstract class TempoControl {

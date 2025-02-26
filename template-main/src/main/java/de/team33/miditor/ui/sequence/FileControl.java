@@ -10,7 +10,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import net.team33.messaging.Listener;
-import net.team33.midi.Sequence;
+import de.team33.midi.Sequence;
 import net.team33.miditor.CMidiFileFilter;
 import de.team33.miditor.ui.Rsrc;
 import net.team33.swing.XButton;

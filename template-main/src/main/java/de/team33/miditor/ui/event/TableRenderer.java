@@ -5,7 +5,7 @@ import javax.sound.midi.MidiEvent;
 import javax.sound.midi.MidiMessage;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
-import net.team33.midi.Timing;
+import de.team33.midi.Timing;
 
 public abstract class TableRenderer extends DefaultTableCellRenderer {
     private static final String[] chnlType = new String[]{"NoteOff", "NoteOn", "PPress", "Control", "Program", "CPress", "PtchBnd"};

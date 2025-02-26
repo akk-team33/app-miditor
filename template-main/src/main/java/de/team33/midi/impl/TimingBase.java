@@ -1,10 +1,10 @@
-package de.team33.miditor.midi.impl;
+package de.team33.midi.impl;
 
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.MidiMessage;
 import javax.sound.midi.Sequence;
-import net.team33.midi.TimeCode;
-import net.team33.midi.Timing;
+import de.team33.midi.TimeCode;
+import de.team33.midi.Timing;
 
 public abstract class TimingBase implements Timing {
     private int m_BeatUnit = 4;

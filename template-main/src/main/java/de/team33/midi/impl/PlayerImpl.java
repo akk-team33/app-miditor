@@ -1,4 +1,4 @@
-package de.team33.miditor.midi.impl;
+package de.team33.midi.impl;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -14,11 +14,9 @@ import net.team33.messaging.Listener;
 import net.team33.messaging.Register;
 import net.team33.messaging.sync.Router;
 import net.team33.messaging.util.ListenerUtil;
-import net.team33.midi.Player;
-import net.team33.midi.Sequence;
-import net.team33.midi.Timing;
-import net.team33.midi.Player.Mode;
-import net.team33.midi.Player.State;
+import de.team33.midi.Player;
+import de.team33.midi.Sequence;
+import de.team33.midi.Timing;
 import net.team33.util.ClassUtil;
 
 public class PlayerImpl implements Player {

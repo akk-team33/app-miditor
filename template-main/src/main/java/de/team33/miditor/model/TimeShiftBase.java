@@ -4,8 +4,8 @@ import java.util.Arrays;
 import java.util.List;
 import net.team33.messaging.Register;
 import net.team33.messaging.sync.Router;
-import net.team33.midi.Timing;
-import net.team33.midi.util.TimingUtil;
+import de.team33.midi.Timing;
+import de.team33.midi.util.TimingUtil;
 
 public abstract class TimeShiftBase implements TimeShift {
     private final SET_DIVIDEND msgSetDividend = new SET_DIVIDEND();

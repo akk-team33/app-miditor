@@ -8,7 +8,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import net.team33.messaging.Listener;
-import net.team33.midi.Player;
+import de.team33.midi.Player;
 import net.team33.swing.XSpinner;
 
 public abstract class Locator extends JPanel {

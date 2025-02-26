@@ -1,8 +1,8 @@
 package de.team33.miditor.model;
 
 import net.team33.messaging.Listener;
-import net.team33.midi.Sequence;
-import net.team33.midi.Track;
+import de.team33.midi.Sequence;
+import de.team33.midi.Track;
 import net.team33.selection.SelectionImpl;
 
 public class PartSelection extends SelectionImpl<Track> {
