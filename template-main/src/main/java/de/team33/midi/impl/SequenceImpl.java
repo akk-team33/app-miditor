@@ -8,7 +8,7 @@ import net.team33.messaging.Listener;
 import net.team33.messaging.Register;
 import net.team33.messaging.sync.Router;
 import net.team33.messaging.util.ListenerUtil;
-import net.team33.miditor.IClickParameter;
+import de.team33.miditor.IClickParameter;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MetaMessage;

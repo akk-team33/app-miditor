@@ -1,8 +1,8 @@
 package de.team33.miditor.ui.sequence;
 
 import de.team33.midi.Track;
+import de.team33.miditor.IClickParameter;
 import de.team33.miditor.ui.Rsrc;
-import net.team33.miditor.IClickParameter;
 import net.team33.swing.XButton;
 
 import javax.swing.*;

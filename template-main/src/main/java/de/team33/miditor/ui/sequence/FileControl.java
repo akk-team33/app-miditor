@@ -3,7 +3,7 @@ package de.team33.miditor.ui.sequence;
 import de.team33.midi.Sequence;
 import de.team33.miditor.ui.Rsrc;
 import net.team33.messaging.Listener;
-import net.team33.miditor.CMidiFileFilter;
+import de.team33.miditor.CMidiFileFilter;
 import net.team33.swing.XButton;
 
 import javax.swing.*;
