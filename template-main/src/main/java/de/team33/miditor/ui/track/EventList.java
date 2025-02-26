@@ -5,7 +5,7 @@ import javax.swing.ListCellRenderer;
 import javax.swing.ListModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import net.team33.miditor.controller.UIController;
+import de.team33.miditor.controller.UIController;
 
 public abstract class EventList extends JList {
     public EventList() {

@@ -17,7 +17,7 @@ import net.team33.messaging.Listener;
 import net.team33.midi.Player;
 import net.team33.midi.Sequence;
 import net.team33.midi.Track;
-import net.team33.miditor.controller.UIController;
+import de.team33.miditor.controller.UIController;
 import de.team33.miditor.ui.SmallButton;
 import de.team33.miditor.ui.TrackControls;
 import net.team33.selection.Selection;

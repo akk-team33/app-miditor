@@ -4,7 +4,7 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.table.AbstractTableModel;
 import net.team33.messaging.Listener;
 import net.team33.midi.Track;
-import net.team33.miditor.controller.UIController;
+import de.team33.miditor.controller.UIController;
 
 public abstract class EventTableModel extends AbstractTableModel {
     private static String[] m_ColumnNames = new String[]{"Position", "Kanal", "Typ", "d1", "d2", "Rohdaten"};

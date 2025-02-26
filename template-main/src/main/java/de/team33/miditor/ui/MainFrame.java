@@ -23,7 +23,7 @@ import net.team33.midi.Player;
 import net.team33.midi.Sequence;
 import net.team33.midi.Track;
 import net.team33.midi.Player.State;
-import net.team33.miditor.controller.UIController;
+import de.team33.miditor.controller.UIController;
 import net.team33.miditor.model.PartSelection;
 import de.team33.miditor.ui.sequence.Context;
 import net.team33.selection.Selection;

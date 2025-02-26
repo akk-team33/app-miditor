@@ -3,7 +3,7 @@ package de.team33.miditor.ui.track;
 import javax.swing.AbstractListModel;
 import net.team33.messaging.Listener;
 import net.team33.midi.Track;
-import net.team33.miditor.controller.UIController;
+import de.team33.miditor.controller.UIController;
 
 public abstract class EventListModel extends AbstractListModel {
     private Track m_Track = null;
