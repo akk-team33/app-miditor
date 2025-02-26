@@ -14,7 +14,7 @@ import net.team33.messaging.Listener;
 import net.team33.midi.Player;
 import net.team33.midi.Track;
 import net.team33.midi.Player.Mode;
-import net.team33.miditor.ui.track.Context;
+import de.team33.miditor.ui.track.Context;
 import net.team33.selection.Selection;
 import net.team33.swing.XTextField;
 

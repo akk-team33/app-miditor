@@ -6,7 +6,7 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
 import net.team33.miditor.controller.UIController;
-import net.team33.miditor.ui.event.TableRenderer;
+import de.team33.miditor.ui.event.TableRenderer;
 
 public abstract class EventTable extends JTable {
     public EventTable() {

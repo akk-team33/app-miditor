@@ -14,11 +14,11 @@ import net.team33.midi.Timing;
 import net.team33.midi.Track;
 import net.team33.miditor.controller.UIController;
 import net.team33.miditor.controller.UIControllerImpl;
-import net.team33.miditor.ui.event.TableRenderer;
-import net.team33.miditor.ui.track.EventActions;
-import net.team33.miditor.ui.track.EventTable;
-import net.team33.miditor.ui.track.EventTableModel;
-import net.team33.miditor.ui.track.Header;
+import de.team33.miditor.ui.event.TableRenderer;
+import de.team33.miditor.ui.track.EventActions;
+import de.team33.miditor.ui.track.EventTable;
+import de.team33.miditor.ui.track.EventTableModel;
+import de.team33.miditor.ui.track.Header;
 
 public abstract class EventEditor extends UIControllerImpl {
     private static final Insets GBC_INSETS = new Insets(2, 2, 2, 2);
