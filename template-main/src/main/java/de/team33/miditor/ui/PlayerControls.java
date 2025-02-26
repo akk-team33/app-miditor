@@ -2,9 +2,9 @@ package de.team33.miditor.ui;
 
 import java.awt.Component;
 import net.team33.midi.Player;
-import net.team33.miditor.ui.player.DriveControl;
-import net.team33.miditor.ui.player.Locator;
-import net.team33.miditor.ui.player.TempoControl;
+import de.team33.miditor.ui.player.DriveControl;
+import de.team33.miditor.ui.player.Locator;
+import de.team33.miditor.ui.player.TempoControl;
 
 public abstract class PlayerControls {
     public PlayerControls() {
@@ -24,7 +24,7 @@ public abstract class PlayerControls {
 
     protected abstract Context getRootContext();
 
-    public interface Context extends net.team33.miditor.ui.player.Context {
+    public interface Context extends de.team33.miditor.ui.player.Context {
     }
 
     private class DRV_CTRL extends DriveControl {
