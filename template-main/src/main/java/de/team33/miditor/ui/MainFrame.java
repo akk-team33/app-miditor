@@ -54,32 +54,31 @@ public class MainFrame extends XFrame {
     private final CONTEXT context = new CONTEXT();
     private final PLAY_CTRLS playCtrls = new PLAY_CTRLS();
     private final SONG_CTRLS songCtrls = new SONG_CTRLS();
-    private final SONG_CLIENT m_SongClient = new SONG_CLIENT();
 
-    public MainFrame(Sequence sequence, Preferences prefs) throws MidiUnavailableException {
+    public MainFrame(final Sequence sequence, final Preferences prefs) throws MidiUnavailableException {
         super("?", prefs);
         this.sequence = sequence;
-        this.selection = new PartSelection(this.sequence);
-        this.player = new PlayerImpl(this.sequence);
-        this.m_EventEditor = new TRACK_EDITOR();
-        this.setIconImage(Rsrc.MAIN_ICON.getImage());
-        this.setContentPane(new MAIN_PANE());
-        this.setLocationByPlatform(true);
-        this.addWindowListener(this.m_WindowListener);
-        this.player.getSequence().getRegister(Sequence.SetFile.class).add(this.m_SongClient);
+        selection = new PartSelection(this.sequence);
+        player = new PlayerImpl(this.sequence);
+        m_EventEditor = new TRACK_EDITOR();
+        setIconImage(Rsrc.MAIN_ICON.getImage());
+        setContentPane(new MAIN_PANE());
+        setLocationByPlatform(true);
+        addWindowListener(m_WindowListener);
+        player.getSequence().addListener(Sequence.Event.SetFile, this::onSetFile);
     }
 
-    protected void finalize() throws Throwable {
-        this.player.getSequence().getRegister(Sequence.SetFile.class).remove(this.m_SongClient);
-        this.removeWindowListener(this.m_WindowListener);
-        super.finalize();
-    }
+//    protected void finalize() throws Throwable {
+//        player.getSequence().getRegister(Sequence.SetFile.class).remove(m_SongClient);
+//        removeWindowListener(m_WindowListener);
+//        super.finalize();
+//    }
 
     private class CENTER_PANE extends JTabbedPane {
-        public CENTER_PANE() {
+        CENTER_PANE() {
             super(1);
-            this.addTab("Track-Übersicht", (Icon) null, MainFrame.this.songCtrls.getTrackList(), "Übersicht über die im aktuellen Song enthaltenen 'Tonspuren' (Tracks)");
-            this.addTab("Event-Editor", (Icon) null, MainFrame.this.m_EventEditor.getComponent(), "Event-Editor");
+            addTab("Track-Übersicht", (Icon) null, songCtrls.getTrackList(), "Übersicht über die im aktuellen Song enthaltenen 'Tonspuren' (Tracks)");
+            addTab("Event-Editor", (Icon) null, m_EventEditor.getComponent(), "Event-Editor");
         }
     }
 
@@ -92,23 +91,23 @@ public class MainFrame extends XFrame {
         }
 
         public Player getPlayer() {
-            return MainFrame.this.player;
+            return player;
         }
 
         public Selection<Track> getSelection() {
-            return MainFrame.this.selection;
+            return selection;
         }
 
         public Sequence getSequence() {
-            return MainFrame.this.sequence;
+            return sequence;
         }
 
         public UIController getTrackHandler() {
-            return MainFrame.this.m_EventEditor;
+            return m_EventEditor;
         }
 
         public Selection<Track> getTrackSelection() {
-            return MainFrame.this.selection;
+            return selection;
         }
 
         public Window getWindow() {
@@ -119,21 +118,21 @@ public class MainFrame extends XFrame {
     private class MAIN_PANE extends JPanel {
         public MAIN_PANE() {
             super(new BorderLayout());
-            this.add(MainFrame.this.new NORTH_PANE(), "North");
-            this.add(MainFrame.this.new CENTER_PANE(), "Center");
+            add(MainFrame.this.new NORTH_PANE(), "North");
+            add(MainFrame.this.new CENTER_PANE(), "Center");
         }
     }
 
     private class NORTH_PANE extends JPanel {
         public NORTH_PANE() {
             super(new GridBagLayout());
-            this.setBorder(BorderFactory.createEmptyBorder(2, 2, 1, 1));
-            this.add(MainFrame.this.songCtrls.getFileControl(), MainFrame.GBC_FILE_CTRL);
-            this.add(MainFrame.this.songCtrls.getActionControl(), MainFrame.GBC_ACTN_CTRL);
-            this.add(new JPanel(), MainFrame.GBC_SPACE1);
-            this.add(MainFrame.this.playCtrls.getTempoControl(), MainFrame.GBC_TMPO_CTRL);
-            this.add(MainFrame.this.playCtrls.getDriveControl(), MainFrame.GBC_CTRL_PANE);
-            this.add(MainFrame.this.playCtrls.getLocator(), MainFrame.GBC_LCTR_PANE);
+            setBorder(BorderFactory.createEmptyBorder(2, 2, 1, 1));
+            add(songCtrls.getFileControl(), MainFrame.GBC_FILE_CTRL);
+            add(songCtrls.getActionControl(), MainFrame.GBC_ACTN_CTRL);
+            add(new JPanel(), MainFrame.GBC_SPACE1);
+            add(playCtrls.getTempoControl(), MainFrame.GBC_TMPO_CTRL);
+            add(playCtrls.getDriveControl(), MainFrame.GBC_CTRL_PANE);
+            add(playCtrls.getLocator(), MainFrame.GBC_LCTR_PANE);
         }
     }
 
@@ -142,18 +141,13 @@ public class MainFrame extends XFrame {
         }
 
         protected PlayerControls.Context getRootContext() {
-            return MainFrame.this.context;
+            return context;
         }
     }
 
-    private class SONG_CLIENT implements Consumer<Sequence.SetFile> {
-        private SONG_CLIENT() {
-        }
-
-        public void accept(Sequence.SetFile message) {
-            File f = ((Sequence) message.getSender()).getFile();
-            MainFrame.this.setTitle(String.format("%s - Miditor 01a/12", f.getPath()));
-        }
+    public void onSetFile(final Sequence sequence) {
+        final File f = sequence.getFile();
+        setTitle(String.format("%s - Miditor 01a/12", f.getPath()));
     }
 
     private class SONG_CTRLS extends SongControls {
@@ -161,7 +155,7 @@ public class MainFrame extends XFrame {
         }
 
         protected Context getContext() {
-            return MainFrame.this.context;
+            return context;
         }
     }
 
@@ -170,7 +164,7 @@ public class MainFrame extends XFrame {
         }
 
         protected Sequence getSequence() {
-            return MainFrame.this.player.getSequence();
+            return player.getSequence();
         }
     }
 
@@ -178,12 +172,12 @@ public class MainFrame extends XFrame {
         private WINDOW_ADAPTER() {
         }
 
-        public void windowClosed(WindowEvent e) {
-            MainFrame.this.player.setState(State.IDLE);
+        public void windowClosed(final WindowEvent e) {
+            player.setState(State.IDLE);
         }
 
-        public void windowOpened(WindowEvent e) {
-            MainFrame.this.player.setState(State.STOP);
+        public void windowOpened(final WindowEvent e) {
+            player.setState(State.STOP);
         }
     }
 }

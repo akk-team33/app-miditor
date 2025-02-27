@@ -18,19 +18,19 @@ import java.util.function.Consumer;
 
 public abstract class TrackList extends JScrollPane {
     public TrackList() {
-        this.getViewport().add(new TABLE());
-        this.getViewport().setBackground(Color.WHITE);
-        this.setBorder(BorderFactory.createEtchedBorder());
+        getViewport().add(new TABLE());
+        getViewport().setBackground(Color.WHITE);
+        setBorder(BorderFactory.createEtchedBorder());
     }
 
     protected abstract Context getContext();
 
     private static class GBC extends GridBagConstraints {
-        public GBC(int x, int y) {
+        public GBC(final int x, final int y) {
             this(x, y, 1);
         }
 
-        public GBC(int x, int y, int w) {
+        public GBC(final int x, final int y, final int w) {
             super(x, y, w, 1, 0.0, 0.0, 10, 2, new Insets(1, 1, 1, 1), 0, 0);
         }
     }
@@ -39,20 +39,20 @@ public abstract class TrackList extends JScrollPane {
         private final int min;
         private final int max;
 
-        public ACTN_BUTTON(String lbl, int min) {
+        public ACTN_BUTTON(final String lbl, final int min) {
             this(lbl, min, Integer.MAX_VALUE);
         }
 
-        public ACTN_BUTTON(String lbl, int min, int max) {
+        public ACTN_BUTTON(final String lbl, final int min, final int max) {
             super(lbl);
             this.min = min;
             this.max = max;
-            TrackList.this.getContext().getSelection().getRegister().add(new PRT_SEL_CLNT());
+            getContext().getSelection().getRegister().add(new PRT_SEL_CLNT());
         }
 
-        public void actionPerformed(ActionEvent e) {
-            this.doActionWith(TrackList.this.getContext().getSelection());
-            this.setSelected(false);
+        public void actionPerformed(final ActionEvent e) {
+            doActionWith(getContext().getSelection());
+            setSelected(false);
         }
 
         protected abstract void doActionWith(Iterable<Track> var1);
@@ -61,10 +61,10 @@ public abstract class TrackList extends JScrollPane {
             private PRT_SEL_CLNT() {
             }
 
-            public void accept(Selection.Message<Track> message) {
-                boolean superMin = ACTN_BUTTON.this.min <= message.getSender().size();
-                boolean subMax = message.getSender().size() <= ACTN_BUTTON.this.max;
-                ACTN_BUTTON.this.setEnabled(superMin && subMax);
+            public void accept(final Selection.Message<Track> message) {
+                final boolean superMin = min <= message.getSender().size();
+                final boolean subMax = message.getSender().size() <= max;
+                setEnabled(superMin && subMax);
             }
         }
     }
@@ -74,8 +74,8 @@ public abstract class TrackList extends JScrollPane {
             super("del", 1);
         }
 
-        protected void doActionWith(Iterable<Track> trcks) {
-            TrackList.this.getContext().getSequence().delete(trcks);
+        protected void doActionWith(final Iterable<Track> trcks) {
+            getContext().getSequence().delete(trcks);
         }
     }
 
@@ -84,27 +84,27 @@ public abstract class TrackList extends JScrollPane {
             super("join", 2);
         }
 
-        protected void doActionWith(Iterable<Track> trcks) {
-            TrackList.this.getContext().getSequence().join(trcks);
+        protected void doActionWith(final Iterable<Track> trcks) {
+            getContext().getSequence().join(trcks);
         }
     }
 
     private class SELECTOR extends JCheckBox {
         SELECTOR() {
             super("alle");
-            TrackList.this.getContext().getSelection().getRegister().add(new PRT_SEL_CLNT());
-            this.addActionListener(new ACTN_CLNT());
+            getContext().getSelection().getRegister().add(new PRT_SEL_CLNT());
+            addActionListener(new ACTN_CLNT());
         }
 
         private class ACTN_CLNT implements ActionListener {
             private ACTN_CLNT() {
             }
 
-            public void actionPerformed(ActionEvent e) {
-                if (SELECTOR.this.isSelected()) {
-                    SelectionUtil.set(TrackList.this.getContext().getSelection(), TrackList.this.getContext().getSequence().getTracks());
+            public void actionPerformed(final ActionEvent e) {
+                if (isSelected()) {
+                    SelectionUtil.set(getContext().getSelection(), getContext().getSequence().getTracks());
                 } else {
-                    TrackList.this.getContext().getSelection().clear();
+                    getContext().getSelection().clear();
                 }
 
             }
@@ -114,9 +114,9 @@ public abstract class TrackList extends JScrollPane {
             private PRT_SEL_CLNT() {
             }
 
-            public void accept(Selection.Message<Track> message) {
-                int sel = message.getSender().size();
-                SELECTOR.this.setSelected(TrackList.this.getContext().getSequence().getTracks().length - sel < sel);
+            public void accept(final Selection.Message<Track> message) {
+                final int sel = message.getSender().size();
+                setSelected(getContext().getSequence().getTracks().length - sel < sel);
             }
         }
     }
@@ -124,8 +124,8 @@ public abstract class TrackList extends JScrollPane {
     private class SEL_ACTIONS extends JPanel {
         SEL_ACTIONS() {
             super(new GridLayout(1, 0, 1, 1));
-            this.add(TrackList.this.new JOIN_BUTTON());
-            this.add(TrackList.this.new DEL_BUTTON());
+            add(TrackList.this.new JOIN_BUTTON());
+            add(TrackList.this.new DEL_BUTTON());
         }
     }
 
@@ -137,11 +137,11 @@ public abstract class TrackList extends JScrollPane {
         }
 
         protected Selection<Track> getSelection() {
-            return TrackList.this.getContext().getSelection();
+            return getContext().getSelection();
         }
 
         protected Sequence getSequence() {
-            return TrackList.this.getContext().getSequence();
+            return getContext().getSequence();
         }
     }
 
@@ -150,35 +150,30 @@ public abstract class TrackList extends JScrollPane {
         private final SEL_ACTIONS m_SelActions = TrackList.this.new SEL_ACTIONS();
         private final Component m_Shifters = TrackList.this.new SHIFTERS();
 
-        public TABLE() {
+        TABLE() {
             super(new GridBagLayout());
-            TrackList.this.getContext().getSequence().getRegister(Sequence.SetParts.class).add(new CLIENT());
+            getContext().getSequence().addListener(Sequence.Event.SetParts, this::onSetParts);
         }
 
-        private class CLIENT implements Consumer<Sequence.SetParts> {
-            private CLIENT() {
+        private void onSetParts(final Sequence sequence) {
+            final Track[] parts = sequence.getTracks();
+            setVisible(false);
+            removeAll();
+            int k = parts.length;
+
+            for (int i = 0; i < k; ++i) {
+                final TRCK_CTRL details = TrackList.this.new TRCK_CTRL(parts[i], i);
+                add(details.getIndexPane(), new GBC(0, i));
+                add(details.getNamePane(), new GBC(1, i));
+                add(details.getSwitchPane(), new GBC(2, i));
+                add(details.getChannelPane(), new GBC(3, i));
             }
 
-            public void accept(Sequence.SetParts message) {
-                Track[] parts = message.getSender().getTracks();
-                TABLE.this.setVisible(false);
-                TABLE.this.removeAll();
-                int k = parts.length;
-
-                for (int i = 0; i < k; ++i) {
-                    TRCK_CTRL details = TrackList.this.new TRCK_CTRL(parts[i], i);
-                    TABLE.this.add(details.getIndexPane(), new GBC(0, i));
-                    TABLE.this.add(details.getNamePane(), new GBC(1, i));
-                    TABLE.this.add(details.getSwitchPane(), new GBC(2, i));
-                    TABLE.this.add(details.getChannelPane(), new GBC(3, i));
-                }
-
-                TABLE.this.add(new JPanel(), new GBC(0, k++, 4));
-                TABLE.this.add(TABLE.this.m_Selector, new GBC(0, k));
-                TABLE.this.add(TABLE.this.m_Shifters, new GBC(1, k));
-                TABLE.this.add(TABLE.this.m_SelActions, new GBC(2, k));
-                TABLE.this.setVisible(true);
-            }
+            add(new JPanel(), new GBC(0, k++, 4));
+            add(m_Selector, new GBC(0, k));
+            add(m_Shifters, new GBC(1, k));
+            add(m_SelActions, new GBC(2, k));
+            setVisible(true);
         }
     }
 
@@ -186,45 +181,45 @@ public abstract class TrackList extends JScrollPane {
         private final int m_Index;
         private final Track m_Track;
 
-        public TRCK_CONTEXT(Track p, int index) {
-            this.m_Index = index;
-            this.m_Track = p;
+        TRCK_CONTEXT(final Track p, final int index) {
+            m_Index = index;
+            m_Track = p;
         }
 
         public int getIndex() {
-            return this.m_Index;
+            return m_Index;
         }
 
         public Player getPlayer() {
-            return TrackList.this.getContext().getPlayer();
+            return getContext().getPlayer();
         }
 
         public Selection<Track> getSelection() {
-            return TrackList.this.getContext().getSelection();
+            return getContext().getSelection();
         }
 
         public Sequence getSequence() {
-            return TrackList.this.getContext().getSequence();
+            return getContext().getSequence();
         }
 
         public Track getTrack() {
-            return this.m_Track;
+            return m_Track;
         }
 
         public UIController getTrackHandler() {
-            return TrackList.this.getContext().getTrackHandler();
+            return getContext().getTrackHandler();
         }
     }
 
     private class TRCK_CTRL extends TrackControls {
         private final de.team33.miditor.ui.track.Context m_Context;
 
-        public TRCK_CTRL(Track p, int index) {
-            this.m_Context = TrackList.this.new TRCK_CONTEXT(p, index);
+        public TRCK_CTRL(final Track p, final int index) {
+            m_Context = TrackList.this.new TRCK_CONTEXT(p, index);
         }
 
         protected de.team33.miditor.ui.track.Context getContext() {
-            return this.m_Context;
+            return m_Context;
         }
     }
 }

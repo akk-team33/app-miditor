@@ -15,65 +15,59 @@ import java.util.function.Consumer;
 public abstract class FileControl extends JPanel {
     public FileControl() {
         super(new GridLayout(1, 0, 1, 1));
-        this.add(new SAVE_BTTN());
-        this.add(new SVAS_BTTN());
+        add(new SAVE_BTTN());
+        add(new SVAS_BTTN());
     }
 
     protected abstract Context getContext();
 
     private abstract class BUTTON extends XButton {
-        public BUTTON(Icon ico) {
+        public BUTTON(final Icon ico) {
             super(ico);
-            this.setMargin(new Insets(1, 1, 1, 1));
+            setMargin(new Insets(1, 1, 1, 1));
         }
     }
 
     private class SAVE_BTTN extends BUTTON {
-        private final SONG_CLIENT m_SongClient = new SONG_CLIENT();
 
         public SAVE_BTTN() {
             super(Rsrc.SAVEICON);
-            this.setToolTipText("MIDI-Sequenz speichern");
-            FileControl.this.getContext().getSequence().getRegister(Sequence.SetModified.class).add(this.m_SongClient);
+            setToolTipText("MIDI-Sequenz speichern");
+            getContext().getSequence().addListener(Sequence.Event.SetModified, this::onSetModified);
         }
 
-        public void actionPerformed(ActionEvent e) {
+        public void actionPerformed(final ActionEvent e) {
             try {
-                FileControl.this.getContext().getSequence().save();
-            } catch (IOException var3) {
-                JOptionPane.showMessageDialog(FileControl.this.getContext().getFrame(), "Die Datei\n\t" + FileControl.this.getContext().getSequence().getFile().getPath() + "\nkonnte nicht gespeichert werden.\n\nEventuell ist die Datei schreibgeschützt\noder Ihnen fehlen die notwendigen Rechte.", "Datei-Fehler", 0);
+                getContext().getSequence().save();
+            } catch (final IOException var3) {
+                JOptionPane.showMessageDialog(getContext().getFrame(), "Die Datei\n\t" + getContext().getSequence().getFile().getPath() + "\nkonnte nicht gespeichert werden.\n\nEventuell ist die Datei schreibgeschützt\noder Ihnen fehlen die notwendigen Rechte.", "Datei-Fehler", 0);
             }
 
         }
 
-        protected void finalize() throws Throwable {
-            FileControl.this.getContext().getSequence().getRegister(Sequence.SetModified.class).remove(this.m_SongClient);
-            super.finalize();
-        }
+//        protected void finalize() throws Throwable {
+//            getContext().getSequence().getRegister(Sequence.SetModified.class).remove(m_SongClient);
+//            super.finalize();
+//        }
 
-        private class SONG_CLIENT implements Consumer<Sequence.SetModified> {
-            private SONG_CLIENT() {
-            }
-
-            public void accept(Sequence.SetModified message) {
-                boolean b = ((Sequence) message.getSender()).isModified();
-                SAVE_BTTN.this.setEnabled(b);
-            }
+        private void onSetModified(final Sequence sequence) {
+            final boolean b = sequence.isModified();
+            setEnabled(b);
         }
     }
 
     private class SVAS_BTTN extends BUTTON {
         public SVAS_BTTN() {
             super(Rsrc.SVASICON);
-            this.setToolTipText("MIDI-Sequenz speichern als ...");
+            setToolTipText("MIDI-Sequenz speichern als ...");
         }
 
-        public void actionPerformed(ActionEvent e) {
-            JFileChooser chooser = new JFileChooser(FileControl.this.getContext().getSequence().getFile().getParentFile());
-            CMidiFileFilter filter = new CMidiFileFilter();
+        public void actionPerformed(final ActionEvent e) {
+            final JFileChooser chooser = new JFileChooser(getContext().getSequence().getFile().getParentFile());
+            final CMidiFileFilter filter = new CMidiFileFilter();
             chooser.setDialogTitle("Song speichern");
             chooser.setFileFilter(filter);
-            int returnVal = chooser.showSaveDialog(FileControl.this.getContext().getFrame());
+            final int returnVal = chooser.showSaveDialog(getContext().getFrame());
             if (returnVal == 0) {
                 try {
                     File f = chooser.getSelectedFile();
@@ -81,9 +75,9 @@ public abstract class FileControl extends JPanel {
                         f = new File(f.getParentFile(), f.getName() + ".mid");
                     }
 
-                    FileControl.this.getContext().getSequence().save_as(f);
-                } catch (IOException var6) {
-                    JOptionPane.showMessageDialog(FileControl.this.getContext().getFrame(), "Die Datei\n\t" + chooser.getSelectedFile() + "\nkonnte nicht gespeichert werden.\n\nEventuell ist die Datei schreibgeschützt\noder Ihnen fehlen die notwendigen Rechte.", "Datei-Fehler", 0);
+                    getContext().getSequence().save_as(f);
+                } catch (final IOException var6) {
+                    JOptionPane.showMessageDialog(getContext().getFrame(), "Die Datei\n\t" + chooser.getSelectedFile() + "\nkonnte nicht gespeichert werden.\n\nEventuell ist die Datei schreibgeschützt\noder Ihnen fehlen die notwendigen Rechte.", "Datei-Fehler", 0);
                 }
             }
 

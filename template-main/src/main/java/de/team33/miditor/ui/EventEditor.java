@@ -14,7 +14,6 @@ import de.team33.miditor.ui.track.Header;
 import javax.swing.*;
 import javax.swing.table.TableModel;
 import java.awt.*;
-import java.util.function.Consumer;
 
 public abstract class EventEditor extends UIControllerImpl {
     private static final Insets GBC_INSETS = new Insets(2, 2, 2, 2);
@@ -33,8 +32,8 @@ public abstract class EventEditor extends UIControllerImpl {
     private final EVNT_RENDERER m_EventRenderer = new EVNT_RENDERER();
     private JComponent m_RootComponent = null;
 
-    public EventEditor() {
-        this.getSequence().getRegister(Sequence.SetParts.class).add(new SONG_CLIENT());
+    protected EventEditor() {
+        getSequence().addListener(Sequence.Event.SetParts, this::onSetParts);
     }
 
     private EventEditor _EventEditor() {
@@ -42,11 +41,11 @@ public abstract class EventEditor extends UIControllerImpl {
     }
 
     public JComponent getComponent() {
-        if (this.m_RootComponent == null) {
-            this.m_RootComponent = new PANEL();
+        if (m_RootComponent == null) {
+            m_RootComponent = new PANEL();
         }
 
-        return this.m_RootComponent;
+        return m_RootComponent;
     }
 
     protected abstract Sequence getSequence();
@@ -56,7 +55,7 @@ public abstract class EventEditor extends UIControllerImpl {
         }
 
         protected UIController getTrackHandler() {
-            return EventEditor.this._EventEditor();
+            return _EventEditor();
         }
     }
 
@@ -65,7 +64,7 @@ public abstract class EventEditor extends UIControllerImpl {
         }
 
         protected Timing getTiming() {
-            return EventEditor.this.getSequence().getTiming();
+            return getSequence().getTiming();
         }
     }
 
@@ -74,23 +73,23 @@ public abstract class EventEditor extends UIControllerImpl {
         }
 
         protected UIController getTrackHandler() {
-            return EventEditor.this._EventEditor();
+            return _EventEditor();
         }
     }
 
     private class HEADER extends Header {
         public HEADER() {
-            super(EventEditor.this._EventEditor());
+            super(_EventEditor());
         }
     }
 
     private class PANEL extends JPanel {
         public PANEL() {
             super(new GridBagLayout());
-            this.setBorder(BorderFactory.createEtchedBorder());
-            this.add(EventEditor.this.new HEADER(), EventEditor.GBC_HEADER);
-            this.add(EventEditor.this.new SCROLL_PANE(), EventEditor.GBC_BODY);
-            this.add((EventEditor.this.new ACTIONS()).getComponent(), EventEditor.GBC_FOOTER);
+            setBorder(BorderFactory.createEtchedBorder());
+            add(EventEditor.this.new HEADER(), EventEditor.GBC_HEADER);
+            add(EventEditor.this.new SCROLL_PANE(), EventEditor.GBC_BODY);
+            add((EventEditor.this.new ACTIONS()).getComponent(), EventEditor.GBC_FOOTER);
         }
     }
 
@@ -100,28 +99,22 @@ public abstract class EventEditor extends UIControllerImpl {
         }
     }
 
-    private class SONG_CLIENT implements Consumer<Sequence.SetParts> {
-        private SONG_CLIENT() {
+    private void onSetParts(final Sequence sequence) {
+        final Track[] parts = sequence.getTracks();
+        final Track[] var6 = parts;
+        final int var5 = parts.length;
+
+        for (int var4 = 0; var4 < var5; ++var4) {
+            final Track track = var6[var4];
+            if (track == getTrack()) {
+                return;
+            }
         }
 
-        public void accept(Sequence.SetParts message) {
-            Track[] parts = ((Sequence) message.getSender()).getTracks();
-            Track[] var6 = parts;
-            int var5 = parts.length;
-
-            for (int var4 = 0; var4 < var5; ++var4) {
-                Track track = var6[var4];
-                if (track == EventEditor.this.getTrack()) {
-                    return;
-                }
-            }
-
-            if (parts.length == 0) {
-                EventEditor.this.setTrack((Track) null);
-            } else {
-                EventEditor.this.setTrack(parts[0]);
-            }
-
+        if (parts.length == 0) {
+            setTrack((Track) null);
+        } else {
+            setTrack(parts[0]);
         }
     }
 
@@ -130,7 +123,7 @@ public abstract class EventEditor extends UIControllerImpl {
         }
 
         protected TableRenderer getEventRenderer() {
-            return EventEditor.this.m_EventRenderer;
+            return m_EventRenderer;
         }
 
         protected TableModel getTableModel() {
@@ -138,7 +131,7 @@ public abstract class EventEditor extends UIControllerImpl {
         }
 
         protected UIController getTrackHandler() {
-            return EventEditor.this._EventEditor();
+            return _EventEditor();
         }
     }
 }

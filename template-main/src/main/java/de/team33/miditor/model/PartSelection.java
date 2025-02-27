@@ -5,16 +5,12 @@ import de.team33.midi.Track;
 import de.team33.selection.SelectionImpl;
 
 public class PartSelection extends SelectionImpl<Track> {
-    public PartSelection(Sequence sequence) {
-        sequence.getRegister(Sequence.SetParts.class).add(new Consumer());
+
+    public PartSelection(final Sequence sequence) {
+        sequence.addListener(Sequence.Event.SetParts, this::onSetParts);
     }
 
-    private class Consumer implements java.util.function.Consumer<Sequence.SetParts> {
-        private Consumer() {
-        }
-
-        public void accept(Sequence.SetParts message) {
-            PartSelection.this.clear();
-        }
+    private void onSetParts(final Sequence sequence) {
+        clear();
     }
 }
