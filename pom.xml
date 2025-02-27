@@ -54,6 +54,11 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <dependency>
+                <groupId>de.team33.sphinx</groupId>
+                <artifactId>sphinx-alpha</artifactId>
+                <version>1.1.0</version>
+            </dependency>
 
             <!-- Testing -->
             <dependency>

@@ -15,19 +15,19 @@ import java.util.function.Consumer;
 public abstract class DriveControl extends JPanel {
     public DriveControl() {
         super(new GridLayout(1, 0, 1, 1));
-        this.add(new REW_BUTTON());
-        this.add(new SBUTTON(State.RUN));
-        this.add(new SBUTTON(State.PAUSE));
-        this.add(new SBUTTON(State.STOP));
-        this.add(new FWD_BUTTON());
+        add(new REW_BUTTON());
+        add(new SBUTTON(State.RUN));
+        add(new SBUTTON(State.PAUSE));
+        add(new SBUTTON(State.STOP));
+        add(new FWD_BUTTON());
     }
 
     protected abstract Context getContext();
 
     private static class ICOBUTTON extends JButton {
-        public ICOBUTTON(Icon ico) {
-            this.setIcon(ico);
-            this.setMargin(new Insets(1, 1, 1, 1));
+        public ICOBUTTON(final Icon ico) {
+            setIcon(ico);
+            setMargin(new Insets(1, 1, 1, 1));
         }
     }
 
@@ -37,23 +37,23 @@ public abstract class DriveControl extends JPanel {
         }
 
         protected void relocate() {
-            long ticksPerMeasure = DriveControl.this.getContext().getPlayer().getSequence().getTiming().getBarTicks();
+            final long ticksPerMeasure = getContext().getPlayer().getSequence().getTiming().getBarTicks();
             long threshold = 1L;
             threshold *= ticksPerMeasure;
             threshold /= 4L;
-            long ticks = DriveControl.this.getContext().getPlayer().getPosition();
+            long ticks = getContext().getPlayer().getPosition();
             ticks += threshold;
             ticks /= ticksPerMeasure;
             ++ticks;
             ticks *= ticksPerMeasure;
-            DriveControl.this.getContext().getPlayer().setPosition(ticks);
+            getContext().getPlayer().setPosition(ticks);
         }
     }
 
     private abstract class LOC_BUTTON extends ICOBUTTON {
-        public LOC_BUTTON(Icon ico) {
+        public LOC_BUTTON(final Icon ico) {
             super(ico);
-            this.addActionListener(new LISTENER());
+            addActionListener(new LISTENER());
         }
 
         protected abstract void relocate();
@@ -62,8 +62,8 @@ public abstract class DriveControl extends JPanel {
             private LISTENER() {
             }
 
-            public void actionPerformed(ActionEvent e) {
-                LOC_BUTTON.this.relocate();
+            public void actionPerformed(final ActionEvent e) {
+                relocate();
             }
         }
     }
@@ -74,76 +74,66 @@ public abstract class DriveControl extends JPanel {
         }
 
         protected void relocate() {
-            long ticksPerMeasure = DriveControl.this.getContext().getPlayer().getSequence().getTiming().getBarTicks();
+            final long ticksPerMeasure = getContext().getPlayer().getSequence().getTiming().getBarTicks();
             long threshold = 1L;
             threshold *= ticksPerMeasure;
             threshold *= 3L;
             threshold /= 4L;
-            long ticks = DriveControl.this.getContext().getPlayer().getPosition();
+            long ticks = getContext().getPlayer().getPosition();
             ticks += threshold;
             ticks /= ticksPerMeasure;
             --ticks;
             ticks *= ticksPerMeasure;
-            DriveControl.this.getContext().getPlayer().setPosition(ticks);
+            getContext().getPlayer().setPosition(ticks);
         }
     }
 
     private class SBUTTON extends ICOBUTTON {
         private final Player.State m_State;
 
-        public SBUTTON(Player.State s) {
+        SBUTTON(final Player.State s) {
             super(Rsrc.DC_ICONSET[s.ordinal()]);
-            this.m_State = s;
-            DriveControl.this.getContext().getPlayer().getRegister(Player.SetState.class).add(new CLIENT2());
-            DriveControl.this.getContext().getWindow().addWindowListener(new CLIENT3());
-            this.addActionListener(new CLIENT1());
+            m_State = s;
+            getContext().getPlayer()
+                        .addListener(Player.Event.SetState, this::onSetState);
+            getContext().getWindow()
+                        .addWindowListener(new CLIENT3());
+            addActionListener(this::onActionPerformed);
         }
 
-        private synchronized void _setState(Player.State s) {
-            this.setEnabled(s != this.m_State);
-            JRootPane rp = this.getRootPane();
-            if (rp != null) {
-                if (this.m_State == State.RUN && s != State.RUN) {
-                    rp.setDefaultButton(this);
-                    this.requestFocus();
+        private void _setState(final Player.State state) {
+            synchronized (this) {
+                setEnabled(state != m_State);
+                final JRootPane rp = getRootPane();
+                if (null != rp) {
+                    if ((State.RUN == m_State) && (State.RUN != state)) {
+                        rp.setDefaultButton(this);
+                        requestFocus();
+                    }
+
+                    if ((State.STOP == m_State) && (State.RUN == state)) {
+                        rp.setDefaultButton(this);
+                    }
+
+                    if ((State.PAUSE == m_State) && (State.RUN == state)) {
+                        requestFocus();
+                    }
                 }
-
-                if (this.m_State == State.STOP && s == State.RUN) {
-                    rp.setDefaultButton(this);
-                }
-
-                if (this.m_State == State.PAUSE && s == State.RUN) {
-                    this.requestFocus();
-                }
-
-            }
-        }
-
-        private class CLIENT1 implements ActionListener {
-            private CLIENT1() {
-            }
-
-            public void actionPerformed(ActionEvent e) {
-                DriveControl.this.getContext().getPlayer().setState(SBUTTON.this.m_State);
             }
         }
 
-        private class CLIENT2 implements Consumer<Player.SetState> {
-            private CLIENT2() {
-            }
+        private void onActionPerformed(final ActionEvent e) {
+            getContext().getPlayer().setState(m_State);
+        }
 
-            public void accept(Player.SetState message) {
-                Player.State s = message.getSender().getState();
-                SBUTTON.this._setState(s);
-            }
+        private void onSetState(final Player player) {
+            final Player.State state = player.getState();
+            _setState(state);
         }
 
         private class CLIENT3 extends WindowAdapter {
-            private CLIENT3() {
-            }
-
-            public void windowOpened(WindowEvent e) {
-                SBUTTON.this._setState(DriveControl.this.getContext().getPlayer().getState());
+            public void windowOpened(final WindowEvent e) {
+                _setState(getContext().getPlayer().getState());
             }
         }
     }

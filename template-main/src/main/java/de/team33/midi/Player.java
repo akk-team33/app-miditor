@@ -1,59 +1,50 @@
 package de.team33.midi;
 
-import de.team33.messaging.Registry;
+import de.team33.patterns.notes.eris.Channel;
 
-public interface Player extends Registry<Player.Message> {
-    Mode getMode(int var1);
+import java.util.function.Consumer;
+
+public interface Player {
+
+    Mode getMode(int index);
 
     Sequence getSequence();
 
     long getPosition();
 
-    void setPosition(long var1);
+    void setPosition(long ticks);
 
     State getState();
 
-    void setState(State var1);
+    void setState(State newState);
 
     int getTempo();
 
-    void setTempo(int var1);
+    void setTempo(int tempo);
 
     Timing getTiming();
 
-    void setMode(int var1, Mode var2);
+    void setMode(int index, Mode newMode);
 
-    public static enum Mode {
+    void addListener(Event event, Consumer<? super Player> listener);
+
+    enum Mode {
         NORMAL,
         SOLO,
-        MUTE;
-
-        private Mode() {
-        }
+        MUTE
     }
 
-    public static enum State {
+    enum State {
         IDLE,
         STOP,
         PAUSE,
-        RUN;
-
-        private State() {
-        }
+        RUN
     }
 
-    public interface Message extends de.team33.messaging.Message<Player> {
-    }
-
-    public interface SetModes extends Message {
-    }
-
-    public interface SetPosition extends Message {
-    }
-
-    public interface SetState extends Message {
-    }
-
-    public interface SetTempo extends Message {
+    enum Event implements Channel<Player> {
+        SetModes,
+        SetPosition,
+        SetState,
+        SetTempo
     }
 }

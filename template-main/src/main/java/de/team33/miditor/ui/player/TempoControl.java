@@ -14,11 +14,11 @@ public abstract class TempoControl {
     }
 
     public Component getComponent() {
-        if (this.m_RootComponent == null) {
-            this.m_RootComponent = new LABEL();
+        if (m_RootComponent == null) {
+            m_RootComponent = new LABEL();
         }
 
-        return this.m_RootComponent;
+        return m_RootComponent;
     }
 
     protected abstract Player getPlayer();
@@ -27,25 +27,25 @@ public abstract class TempoControl {
         private static final long serialVersionUID = -5125403795254334049L;
 
         public LABEL() {
-            this.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.GRAY), BorderFactory.createEmptyBorder(1, 4, 1, 4)));
-            this.setFont(new Font(this.getFont().getName(), 1, 18));
-            TempoControl.this.getPlayer().getRegister(Player.SetTempo.class).add(new PLR_CLNT());
+            setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.GRAY), BorderFactory.createEmptyBorder(1, 4, 1, 4)));
+            setFont(new Font(getFont().getName(), 1, 18));
+            getPlayer().addListener(Player.Event.SetTempo, this::onSetTempo);
         }
 
-        protected void decrease(int exponent) {
-            this.updateTempo(-1, exponent);
+        protected void decrease(final int exponent) {
+            updateTempo(-1, exponent);
         }
 
-        protected void increase(int exponent) {
-            this.updateTempo(1, exponent);
+        protected void increase(final int exponent) {
+            updateTempo(1, exponent);
         }
 
         protected void maximize() {
-            TempoControl.this.getPlayer().setTempo(180);
+            getPlayer().setTempo(180);
         }
 
         protected void minimize() {
-            TempoControl.this.getPlayer().setTempo(60);
+            getPlayer().setTempo(60);
         }
 
         private void updateTempo(int delta, int exponent) {
@@ -53,17 +53,12 @@ public abstract class TempoControl {
                 delta *= 10;
             }
 
-            TempoControl.this.getPlayer().setTempo(TempoControl.this.getPlayer().getTempo() + delta);
+            getPlayer().setTempo(getPlayer().getTempo() + delta);
         }
 
-        private class PLR_CLNT implements Consumer<Player.SetTempo> {
-            private PLR_CLNT() {
-            }
-
-            public void accept(Player.SetTempo message) {
-                int tempo = message.getSender().getTempo();
-                LABEL.this.setText(String.format("%03d", tempo));
-            }
+        public void onSetTempo(final Player player) {
+            final int tempo = player.getTempo();
+            setText(String.format("%03d", tempo));
         }
     }
 }

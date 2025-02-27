@@ -14,50 +14,48 @@ import java.awt.event.ActionListener;
 import java.util.function.Consumer;
 
 public abstract class TrackControls {
-    public TrackControls() {
-    }
 
-    public Component getChannelPane() {
+    public final Component getChannelPane() {
         return new CHANNEL_PANE();
     }
 
     protected abstract Context getContext();
 
-    public Component getIndexPane() {
+    public final Component getIndexPane() {
         return new INDEX_PANE();
     }
 
-    public Component getNamePane() {
+    public final Component getNamePane() {
         return new NAME_PANE();
     }
 
-    public Component getSwitchPane() {
+    public final Component getSwitchPane() {
         return new SWTCH_PANE();
     }
 
     private class CHANNEL_PANE extends JPanel {
         public CHANNEL_PANE() {
             super(new BorderLayout());
-            TrackControls.this.getContext().getTrack().getRegister(Track.SetChannels.class).add(new CLIENT());
+            getContext().getTrack().getRegister(Track.SetChannels.class).add(new CLIENT());
         }
 
         private class CLIENT implements Consumer<Track.SetChannels> {
             private CLIENT() {
             }
 
-            public void accept(Track.SetChannels message) {
-                CHANNEL_PANE.this.setVisible(false);
-                CHANNEL_PANE.this.removeAll();
-                int[] channels = ((Track) message.getSender()).getChannels();
+            public final void accept(final Track.SetChannels message) {
+                setVisible(false);
+                removeAll();
+                final int[] channels = ((Track) message.getSender()).getChannels();
                 if (channels.length == 0) {
-                    CHANNEL_PANE.this.add(TrackControls.this.new LABEL("--"), "Center");
+                    add(TrackControls.this.new LABEL("--"), "Center");
                 } else if (channels.length == 1) {
-                    CHANNEL_PANE.this.add(TrackControls.this.new LABEL(String.format("Kanal %02d", channels[0] + 1)), "Center");
+                    add(TrackControls.this.new LABEL(String.format("Kanal %02d", channels[0] + 1)), "Center");
                 } else {
-                    CHANNEL_PANE.this.add(TrackControls.this.new SPLIT_BUTTON(), "Center");
+                    add(TrackControls.this.new SPLIT_BUTTON(), "Center");
                 }
 
-                CHANNEL_PANE.this.setVisible(true);
+                setVisible(true);
             }
         }
     }
@@ -67,29 +65,29 @@ public abstract class TrackControls {
             super("edit");
         }
 
-        public void actionPerformed(ActionEvent e) {
-            TrackControls.this.getContext().getTrackHandler().setTrack(TrackControls.this.getContext().getTrack());
-            this.setSelected(false);
+        public final void actionPerformed(final ActionEvent e) {
+            getContext().getTrackHandler().setTrack(getContext().getTrack());
+            setSelected(false);
         }
     }
 
     private class INDEX_PANE extends JCheckBox {
         public INDEX_PANE() {
-            super(TrackControls.this.getContext().getTrack().getPrefix());
-            TrackControls.this.getContext().getTrack().getRegister(Track.SetModified.class).add(new PRT_CLNT());
-            TrackControls.this.getContext().getSelection().getRegister().add(new PRT_SEL_CLNT());
-            this.addActionListener(new LISTENER());
+            super(getContext().getTrack().getPrefix());
+            getContext().getTrack().getRegister(Track.SetModified.class).add(new PRT_CLNT());
+            getContext().getSelection().getRegister().add(new PRT_SEL_CLNT());
+            addActionListener(new LISTENER());
         }
 
         private class LISTENER implements ActionListener {
             private LISTENER() {
             }
 
-            public void actionPerformed(ActionEvent e) {
-                if (INDEX_PANE.this.isSelected()) {
-                    TrackControls.this.getContext().getSelection().add(TrackControls.this.getContext().getTrack());
+            public final void actionPerformed(final ActionEvent e) {
+                if (isSelected()) {
+                    getContext().getSelection().add(getContext().getTrack());
                 } else {
-                    TrackControls.this.getContext().getSelection().remove(TrackControls.this.getContext().getTrack());
+                    getContext().getSelection().remove(getContext().getTrack());
                 }
 
             }
@@ -99,8 +97,8 @@ public abstract class TrackControls {
             private PRT_CLNT() {
             }
 
-            public void accept(Track.SetModified message) {
-                INDEX_PANE.this.setForeground(((Track) message.getSender()).isModified() ? Color.BLUE : Color.BLACK);
+            public final void accept(final Track.SetModified message) {
+                setForeground(((Track) message.getSender()).isModified() ? Color.BLUE : Color.BLACK);
             }
         }
 
@@ -108,59 +106,55 @@ public abstract class TrackControls {
             private PRT_SEL_CLNT() {
             }
 
-            public void accept(Selection.Message<Track> message) {
-                INDEX_PANE.this.setSelected(((Selection) message.getSender()).contains(TrackControls.this.getContext().getTrack()));
+            public final void accept(final Selection.Message<Track> message) {
+                setSelected(((Selection) message.getSender()).contains(getContext().getTrack()));
             }
         }
     }
 
     private class LABEL extends JLabel {
-        public LABEL(String txt) {
+        public LABEL(final String txt) {
             super(txt);
-            this.setHorizontalAlignment(0);
-            this.setBorder(BorderFactory.createEmptyBorder(0, 2, 0, 2));
+            setHorizontalAlignment(0);
+            setBorder(BorderFactory.createEmptyBorder(0, 2, 0, 2));
         }
     }
 
     private class MUTE_BUTTON extends SmallButton {
-        public MUTE_BUTTON() {
+        private MUTE_BUTTON() {
             super("mute");
-            TrackControls.this.getContext().getPlayer().getRegister(Player.SetModes.class).add(new CLIENT());
+            getContext().getPlayer()
+                        .addListener(Player.Event.SetModes, this::onSetModes);
         }
 
-        public void actionPerformed(ActionEvent e) {
-            if (this.isSelected()) {
-                TrackControls.this.getContext().getPlayer().setMode(TrackControls.this.getContext().getIndex(), Mode.MUTE);
+        public final void actionPerformed(final ActionEvent e) {
+            if (isSelected()) {
+                getContext().getPlayer().setMode(getContext().getIndex(), Mode.MUTE);
             } else {
-                TrackControls.this.getContext().getPlayer().setMode(TrackControls.this.getContext().getIndex(), Mode.NORMAL);
+                getContext().getPlayer().setMode(getContext().getIndex(), Mode.NORMAL);
             }
 
         }
 
-        private class CLIENT implements Consumer<Player.SetModes> {
-            private CLIENT() {
-            }
-
-            public void accept(Player.SetModes message) {
-                int index = TrackControls.this.getContext().getIndex();
-                Player.Mode mode = ((Player) message.getSender()).getMode(index);
-                MUTE_BUTTON.this.setSelected(Mode.MUTE == mode);
-            }
+        private void onSetModes(final Player player) {
+            final int index = getContext().getIndex();
+            final Player.Mode mode = player.getMode(index);
+            setSelected(Mode.MUTE == mode);
         }
     }
 
     private class NAME_PANE extends XTextField {
         public NAME_PANE() {
             super(12);
-            TrackControls.this.getContext().getTrack().getRegister(Track.SetName.class).add(new CLIENT());
+            getContext().getTrack().getRegister(Track.SetName.class).add(new CLIENT());
         }
 
         private class CLIENT implements Consumer<Track.SetName> {
             private CLIENT() {
             }
 
-            public void accept(Track.SetName message) {
-                NAME_PANE.this.setText(((Track) message.getSender()).getName());
+            public final void accept(final Track.SetName message) {
+                setText(((Track) message.getSender()).getName());
             }
         }
     }
@@ -168,47 +162,43 @@ public abstract class TrackControls {
     private class SOLO_BUTTON extends SmallButton {
         public SOLO_BUTTON() {
             super("solo");
-            TrackControls.this.getContext().getPlayer().getRegister(Player.SetModes.class).add(new CLIENT());
+            getContext().getPlayer()
+                        .addListener(Player.Event.SetModes, this::onSetModes);
         }
 
-        public void actionPerformed(ActionEvent e) {
-            if (this.isSelected()) {
-                TrackControls.this.getContext().getPlayer().setMode(TrackControls.this.getContext().getIndex(), Mode.SOLO);
+        public final void actionPerformed(final ActionEvent e) {
+            if (isSelected()) {
+                getContext().getPlayer().setMode(getContext().getIndex(), Mode.SOLO);
             } else {
-                TrackControls.this.getContext().getPlayer().setMode(TrackControls.this.getContext().getIndex(), Mode.NORMAL);
+                getContext().getPlayer().setMode(getContext().getIndex(), Mode.NORMAL);
             }
 
         }
 
-        private class CLIENT implements Consumer<Player.SetModes> {
-            private CLIENT() {
-            }
-
-            public void accept(Player.SetModes message) {
-                int index = TrackControls.this.getContext().getIndex();
-                Player.Mode mode = message.getSender().getMode(index);
-                SOLO_BUTTON.this.setSelected(Mode.SOLO == mode);
-            }
+        private void onSetModes(final Player player) {
+            final int index = getContext().getIndex();
+            final Player.Mode mode = player.getMode(index);
+            setSelected(Mode.SOLO == mode);
         }
     }
 
     private class SPLIT_BUTTON extends SmallButton {
-        public SPLIT_BUTTON() {
+        SPLIT_BUTTON() {
             super(" split ");
         }
 
-        public void actionPerformed(ActionEvent e) {
-            TrackControls.this.getContext().getSequence().split(TrackControls.this.getContext().getTrack());
-            this.setSelected(false);
+        public final void actionPerformed(final ActionEvent e) {
+            getContext().getSequence().split(getContext().getTrack());
+            setSelected(false);
         }
     }
 
     private class SWTCH_PANE extends JPanel {
-        public SWTCH_PANE() {
+        SWTCH_PANE() {
             super(new GridLayout(1, 0, 1, 1));
-            this.add(TrackControls.this.new MUTE_BUTTON());
-            this.add(TrackControls.this.new SOLO_BUTTON());
-            this.add(TrackControls.this.new EDIT_BUTTON());
+            add(TrackControls.this.new MUTE_BUTTON());
+            add(TrackControls.this.new SOLO_BUTTON());
+            add(TrackControls.this.new EDIT_BUTTON());
         }
     }
 }

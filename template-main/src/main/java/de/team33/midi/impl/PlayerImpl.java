@@ -1,54 +1,50 @@
 package de.team33.midi.impl;
 
-import de.team33.messaging.Register;
-import de.team33.messaging.sync.Router;
 import de.team33.messaging.util.ClassUtil;
-import de.team33.messaging.util.ListenerUtil;
 import de.team33.midi.Player;
 import de.team33.midi.Sequence;
 import de.team33.midi.Timing;
+import de.team33.patterns.notes.eris.Audience;
 
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Sequencer;
-import java.util.Arrays;
-import java.util.HashSet;
+import java.util.EnumSet;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.function.Consumer;
 import java.util.prefs.Preferences;
 
+@SuppressWarnings("ClassWithTooManyMethods")
 public class PlayerImpl implements Player {
     private static final Preferences PREFS = Preferences.userRoot().node(ClassUtil.getPathString(PlayerImpl.class));
-    private final SET_MODES msgSetModes = new SET_MODES();
-    private final SET_POSITION msgSetPosition = new SET_POSITION();
-    private final SET_TEMPO msgSetTempo = new SET_TEMPO();
-    private final SET_STATE msgSetState = new SET_STATE();
-    private final Router<Player.Message> router = new Router();
+    private static final Mode[] EMPTY_MODES = new Mode[0];
+
     private final Sequence sequence;
     private final Sequencer sequencer;
+    private final Audience audience = new Audience();
     private MidiDevice outputDevice;
     private Player.Mode[] modes;
 
-    public PlayerImpl(Sequence sequence) throws MidiUnavailableException {
-        this.router.addInitials(Arrays.asList(this.msgSetModes, this.msgSetPosition, this.msgSetState, this.msgSetTempo));
-        this.sequencer = MidiSystem.getSequencer(false);
+    public PlayerImpl(final Sequence sequence) throws MidiUnavailableException {
+        sequencer = MidiSystem.getSequencer(false);
         this.sequence = sequence;
-        this.sequence.getRegister(Sequence.SetParts.class).add(new SONG_CLIENT());
-        this.router.getRegister(Player.SetState.class).add(new STARTER());
+        this.sequence.getRegister(Sequence.SetParts.class)
+                     .add(this::onSetParts);
+        audience.add(Event.SetState, new STARTER());
     }
 
     private static MidiDevice newOutputDevice() throws MidiUnavailableException {
-        String preferedOutputDeviceName = PREFS.get("preferedOutputDeviceName", "");
-        Preferences prefs = PREFS.node("DeviceInfo");
-        MidiDevice.Info[] infos = MidiSystem.getMidiDeviceInfo();
+        final String preferedOutputDeviceName = PREFS.get("preferredOutputDeviceName", "");
+        final Preferences prefs = PREFS.node("DeviceInfo");
+        final MidiDevice.Info[] infos = MidiSystem.getMidiDeviceInfo();
         MidiDevice.Info preferedOutputDeviceInfo = null;
 
         for (int index = 0; index < infos.length; ++index) {
-            MidiDevice.Info info = infos[index];
-            Preferences node = prefs.node(String.format("%04d", index));
+            final MidiDevice.Info info = infos[index];
+            final Preferences node = prefs.node(String.format("%04d", index));
             node.put("name", info.getName());
             node.put("description", info.getDescription());
             node.put("vendor", info.getVendor());
@@ -58,312 +54,272 @@ public class PlayerImpl implements Player {
             }
         }
 
-        Object result;
-        if (preferedOutputDeviceInfo == null) {
+        final MidiDevice result;
+        if (null == preferedOutputDeviceInfo) {
             result = MidiSystem.getSynthesizer();
         } else {
             result = MidiSystem.getMidiDevice(preferedOutputDeviceInfo);
         }
 
-        PREFS.put("preferedOutputDeviceName", ((MidiDevice) result).getDeviceInfo().getName());
-        return (MidiDevice) result;
+        PREFS.put("preferedOutputDeviceName", result.getDeviceInfo().getName());
+        return result;
     }
 
-    private void core_close(Set<MESSAGE> messages) {
-        if (this.sequencer.isOpen()) {
-            this.outputDevice.close();
-            this.outputDevice = null;
-            this.sequencer.close();
-            messages.add(this.msgSetState);
+    private void core_close(final Set<? super Event> events) {
+        if (sequencer.isOpen()) {
+            outputDevice.close();
+            outputDevice = null;
+            sequencer.close();
+            events.add(Event.SetState);
         }
-
     }
 
-    private void core_clrModes(Set<MESSAGE> messages) {
-        this.modes = null;
-        messages.add(this.msgSetModes);
+    private void core_clrModes(final Set<? super Event> events) {
+        modes = null;
+        events.add(Event.SetModes);
     }
 
     private Player.Mode[] core_Modes() {
-        if (this.modes == null) {
-            javax.sound.midi.Sequence seq = this.sequencer.getSequence();
-            if (seq != null) {
-                int length = seq.getTracks().length;
+        if (null == modes) {
+            final javax.sound.midi.Sequence seq = sequencer.getSequence();
+            if (null != seq) {
+                final int length = seq.getTracks().length;
                 int nNormal = 0;
                 int iNormal = -1;
-                this.modes = new Player.Mode[length];
+                modes = new Player.Mode[length];
 
                 for (int i = 0; i < length; ++i) {
-                    if (this.sequencer.getTrackMute(i)) {
-                        this.modes[i] = Mode.MUTE;
+                    if (sequencer.getTrackMute(i)) {
+                        modes[i] = Mode.MUTE;
                     } else {
-                        this.modes[i] = Mode.NORMAL;
+                        modes[i] = Mode.NORMAL;
                         ++nNormal;
                         iNormal = i;
                     }
                 }
 
-                if (nNormal == 1) {
-                    this.modes[iNormal] = Mode.SOLO;
+                if (1 == nNormal) {
+                    modes[iNormal] = Mode.SOLO;
                 }
             } else {
-                this.modes = new Player.Mode[0];
+                modes = EMPTY_MODES;
             }
         }
 
-        return this.modes;
+        return modes;
     }
 
-    private void core_open(Set<MESSAGE> messages) {
-        if (!this.sequencer.isOpen()) {
+    private void core_open(final Set<? super Event> events) {
+        if (!sequencer.isOpen()) {
             try {
-                this.outputDevice = newOutputDevice();
-                this.outputDevice.open();
-                this.sequencer.getTransmitter().setReceiver(this.outputDevice.getReceiver());
-                this.sequence.associate(this.sequencer);
-                this.sequencer.open();
-                messages.add(this.msgSetState);
-                messages.add(this.msgSetTempo);
-            } catch (Exception var3) {
-                Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), var3);
+                outputDevice = newOutputDevice();
+                outputDevice.open();
+                sequencer.getTransmitter().setReceiver(outputDevice.getReceiver());
+                sequence.associate(sequencer);
+                sequencer.open();
+                events.add(Event.SetState);
+                events.add(Event.SetTempo);
+            } catch (final Exception e) {
+                Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), e);
             }
         }
 
     }
 
-    private void core_setTickPosition(long ticks, Set<MESSAGE> messages) {
-        if (!this.sequencer.isOpen()) {
-            this.core_open(messages);
+    private void core_setTickPosition(final long ticks, final Set<? super Event> events) {
+        if (!sequencer.isOpen()) {
+            core_open(events);
         }
 
-        this.sequencer.setTickPosition(ticks);
-        messages.add(this.msgSetPosition);
-        messages.add(this.msgSetState);
+        sequencer.setTickPosition(ticks);
+        events.add(Event.SetPosition);
+        events.add(Event.SetState);
     }
 
-    private void core_setTrackMute(int i, boolean b, Set<MESSAGE> messages) {
-        if (this.sequencer.getTrackMute(i) != b) {
-            this.sequencer.setTrackMute(i, b);
-            this.core_clrModes(messages);
-        }
-
-    }
-
-    private void core_start(Set<MESSAGE> messages) {
-        if (!this.sequencer.isOpen()) {
-            this.core_open(messages);
-        }
-
-        if (!this.sequencer.isRunning()) {
-            this.sequencer.start();
-            messages.add(this.msgSetState);
+    private void core_setTrackMute(final int trackIndex, final boolean muted, final Set<? super Event> events) {
+        if (sequencer.getTrackMute(trackIndex) != muted) {
+            sequencer.setTrackMute(trackIndex, muted);
+            core_clrModes(events);
         }
 
     }
 
-    private void core_stop(Set<MESSAGE> messages) {
-        if (this.sequencer.isRunning()) {
-            this.sequencer.stop();
-            messages.add(this.msgSetState);
+    private void core_start(final Set<? super Event> messages) {
+        if (!sequencer.isOpen()) {
+            core_open(messages);
+        }
+
+        if (!sequencer.isRunning()) {
+            sequencer.start();
+            messages.add(Event.SetState);
         }
 
     }
 
-    public Player.Mode getMode(int index) {
-        return index >= 0 && index < this.core_Modes().length ? this.core_Modes()[index] : Mode.NORMAL;
+    private void core_stop(final Set<? super Event> events) {
+        if (sequencer.isRunning()) {
+            sequencer.stop();
+            events.add(Event.SetState);
+        }
+
     }
 
-    public long getPosition() {
-        return this.sequencer.getTickPosition();
+    public final Player.Mode getMode(final int index) {
+        return ((0 <= index) && (index < core_Modes().length)) ? core_Modes()[index] : Mode.NORMAL;
     }
 
-    public void setPosition(long ticks) {
-        Set<MESSAGE> messages = new HashSet();
-        this.core_setTickPosition(ticks, messages);
-        ListenerUtil.pass(this.router, messages);
+    public final long getPosition() {
+        return sequencer.getTickPosition();
     }
 
-    public <MSX extends Player.Message> Register<MSX> getRegister(Class<MSX> msgClass) {
-        return this.router.getRegister(msgClass);
+    public final void setPosition(final long ticks) {
+        final Set<Event> events = EnumSet.noneOf(Event.class);
+        core_setTickPosition(ticks, events);
+        events.forEach(message -> audience.send(message, this));
     }
 
-    public Sequence getSequence() {
-        return this.sequence;
+    @Override
+    public final void addListener(final Event event, final Consumer<? super Player> listener) {
+        audience.add(event, listener);
+        listener.accept(this);
     }
 
-    public Player.State getState() {
-        if (this.sequencer.isRunning()) {
+    public final Sequence getSequence() {
+        return sequence;
+    }
+
+    public final Player.State getState() {
+        if (sequencer.isRunning()) {
             return State.RUN;
-        } else if (this.sequencer.isOpen()) {
-            return this.sequencer.getTickPosition() == 0L ? State.STOP : State.PAUSE;
+        } else if (sequencer.isOpen()) {
+            return 0L == sequencer.getTickPosition() ? State.STOP : State.PAUSE;
         } else {
             return State.IDLE;
         }
     }
 
-    public void setState(Player.State newState) {
-        Set<MESSAGE> messages = new HashSet();
-        Player.State currState = this.getState();
-        if (newState == null) {
-            newState = State.IDLE;
-        }
+    public final void setState(final Player.State newState) {
+        setNonNull((null == newState) ? State.IDLE : newState);
+    }
+
+    private void setNonNull(final Player.State newState) {
+        final Set<Event> events = EnumSet.noneOf(Event.class);
+        final Player.State currState = getState();
 
         if (currState != newState) {
-            if (currState == State.IDLE) {
-                this.core_open(messages);
+            if (State.IDLE == currState) {
+                core_open(events);
             }
 
-            if (newState == State.RUN) {
-                this.core_start(messages);
-            } else if (newState == State.IDLE) {
-                this.core_close(messages);
+            if (State.RUN == newState) {
+                core_start(events);
+            } else if (State.IDLE == newState) {
+                core_close(events);
             } else {
-                this.core_stop(messages);
-                if (newState == State.STOP) {
-                    this.core_setTickPosition(0L, messages);
+                core_stop(events);
+                if (State.STOP == newState) {
+                    core_setTickPosition(0L, events);
                 }
             }
-
-            ListenerUtil.pass(this.router, messages);
+            events.forEach(event -> audience.send(event, this));
         }
     }
 
-    public int getTempo() {
-        return Math.round(this.sequencer.getTempoInBPM());
+    public final int getTempo() {
+        return Math.round(sequencer.getTempoInBPM());
     }
 
-    public void setTempo(int tempo) {
-        Set<MESSAGE> messages = new HashSet();
-        messages.add(this.msgSetTempo);
-        this.sequencer.setTempoInBPM((float) tempo);
-        this.sequence.setTempo(tempo);
-        ListenerUtil.pass(this.router, messages);
+    public final void setTempo(final int tempo) {
+        final Set<Event> events = EnumSet.noneOf(Event.class);
+        events.add(Event.SetTempo);
+        sequencer.setTempoInBPM(tempo);
+        sequence.setTempo(tempo);
+        events.forEach(event -> audience.send(event, this));
     }
 
-    public Timing getTiming() {
-        return this.sequence.getTiming();
+    public final Timing getTiming() {
+        return sequence.getTiming();
     }
 
-    public void setMode(int index, Player.Mode newMode) {
-        Player.Mode oldMode = this.getMode(index);
+    public final void setMode(final int index, final Player.Mode newMode) {
+        final Player.Mode oldMode = getMode(index);
         if (oldMode != newMode) {
-            Set<MESSAGE> messages = new HashSet();
-            int length;
+            final Set<Event> events = EnumSet.noneOf(Event.class);
+            final int length;
             int i;
-            if (oldMode != Mode.SOLO) {
-                if (newMode == Mode.SOLO) {
-                    length = this.sequence.getTracks().length;
+            if (Mode.SOLO != oldMode) {
+                if (Mode.SOLO == newMode) {
+                    length = sequence.getTracks().length;
 
                     for (i = 0; i < length; ++i) {
-                        this.core_setTrackMute(i, i != index, messages);
+                        core_setTrackMute(i, i != index, events);
                     }
                 } else {
-                    this.core_setTrackMute(index, newMode == Mode.MUTE, messages);
+                    core_setTrackMute(index, Mode.MUTE == newMode, events);
                 }
             } else {
-                length = this.sequence.getTracks().length;
+                length = sequence.getTracks().length;
 
                 for (i = 0; i < length; ++i) {
-                    this.core_setTrackMute(i, i == index && newMode == Mode.MUTE, messages);
+                    core_setTrackMute(i, i == index && Mode.MUTE == newMode, events);
                 }
             }
-
-            ListenerUtil.pass(this.router, messages);
-        }
-
-    }
-
-    private class MESSAGE implements Player.Message {
-        private MESSAGE() {
-        }
-
-        public Player getSender() {
-            return PlayerImpl.this;
+            events.forEach(event -> audience.send(event, this));
         }
     }
 
-    private class SET_MODES extends MESSAGE implements Player.SetModes {
-        private SET_MODES() {
-            super();
+    private void onSetParts(final Sequence.SetParts message) {
+        final Set<Event> events = EnumSet.noneOf(Event.class);
+        final boolean running = sequencer.isRunning();
+        final boolean open = sequencer.isOpen();
+        final long currPos = sequencer.getTickPosition();
+        core_close(events);
+        if (open) {
+            core_setTickPosition(currPos, events);
+            if (running) {
+                core_start(events);
+            }
+        }
+        events.forEach(event -> audience.send(event, this));
+    }
+
+    private class STARTER implements Consumer<Player> {
+
+        private volatile Player.State lastState = null;
+
+        public final void accept(final Player player) {
+            synchronized (this) {
+                final State state = player.getState();
+                if (State.RUN == state && state != lastState) {
+                    // TODO?: Timer: static? member?
+                    (new Timer()).schedule(PlayerImpl.this.new Task(), 100L, 50L);
+                }
+                lastState = state;
+            }
         }
     }
 
-    private class SET_POSITION extends MESSAGE implements Player.SetPosition {
-        private SET_POSITION() {
-            super();
-        }
-    }
+    @SuppressWarnings("SynchronizeOnThis")
+    private class Task extends TimerTask {
 
-    private class SET_STATE extends MESSAGE implements Player.SetState {
-        private SET_STATE() {
-            super();
-        }
-    }
+        private volatile int lastTempo = 0;
 
-    private class SET_TEMPO extends MESSAGE implements Player.SetTempo {
-        private SET_TEMPO() {
-            super();
-        }
-    }
+        public final void run() {
+            final Set<Event> events = EnumSet.noneOf(Event.class);
+            events.add(Event.SetPosition);
+            if (!sequencer.isRunning()) {
+                cancel();
+                events.add(Event.SetState);
+            }
 
-    private class SONG_CLIENT implements Consumer<Sequence.SetParts> {
-        private SONG_CLIENT() {
-        }
-
-        public void accept(Sequence.SetParts message) {
-            Set<MESSAGE> messages = new HashSet();
-            boolean running = PlayerImpl.this.sequencer.isRunning();
-            boolean open = PlayerImpl.this.sequencer.isOpen();
-            long currPos = PlayerImpl.this.sequencer.getTickPosition();
-            PlayerImpl.this.core_close(messages);
-            if (open) {
-                PlayerImpl.this.core_setTickPosition(currPos, messages);
-                if (running) {
-                    PlayerImpl.this.core_start(messages);
+            synchronized (this) {
+                final int tempo = getTempo();
+                if (tempo != lastTempo) {
+                    lastTempo = tempo;
+                    events.add(Event.SetTempo);
                 }
             }
-
-            ListenerUtil.pass(PlayerImpl.this.router, messages);
-        }
-    }
-
-    private class STARTER implements Consumer<SetState> {
-        private STARTER() {
-        }
-
-        public void accept(Player.SetState message) {
-            Player.State s = ((Player) message.getSender()).getState();
-            if (s == State.RUN) {
-                ((Player) message.getSender()).getRegister(Player.SetState.class).remove(this);
-                (new Timer()).schedule(PlayerImpl.this.new TASK(), 100L, 50L);
-            }
-
-        }
-    }
-
-    private class TASK extends TimerTask {
-        private int m_Tempo;
-
-        private TASK() {
-            this.m_Tempo = 0;
-        }
-
-        public void run() {
-            Set<MESSAGE> messages = new HashSet();
-            messages.add(PlayerImpl.this.msgSetPosition);
-            if (!PlayerImpl.this.sequencer.isRunning()) {
-                this.cancel();
-                PlayerImpl.this.router.getRegister(Player.SetState.class).add(PlayerImpl.this.new STARTER());
-                messages.add(PlayerImpl.this.msgSetState);
-            }
-
-            int currTempo = PlayerImpl.this.getTempo();
-            if (this.m_Tempo != currTempo) {
-                this.m_Tempo = currTempo;
-                messages.add(PlayerImpl.this.msgSetTempo);
-            }
-
-            ListenerUtil.pass(PlayerImpl.this.router, messages);
+            events.forEach(event -> audience.send(event, PlayerImpl.this));
         }
     }
 }
