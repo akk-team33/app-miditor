@@ -13,52 +13,42 @@ public abstract class EventTableModel extends AbstractTableModel {
     private TRCK_CLIENT m_TrckClient = null;
 
     public EventTableModel() {
-        this.getTrackHandler().getRegister(UIController.SetTrack.class).add(new EVED_CLIENT());
+        getTrackHandler().getRegister(UIController.SetTrack.class)
+                         .add(this::onSetTrack);
     }
 
     private void _fireTableChanged() {
-        this.fireTableChanged(new TableModelEvent(this));
+        fireTableChanged(new TableModelEvent(this));
     }
 
     public int getColumnCount() {
         return m_ColumnNames.length;
     }
 
-    public String getColumnName(int column) {
+    public String getColumnName(final int column) {
         return m_ColumnNames[column];
     }
 
     public int getRowCount() {
-        return this.m_Track == null ? 0 : this.m_Track.size();
+        return m_Track == null ? 0 : m_Track.size();
     }
 
     protected abstract UIController getTrackHandler();
 
-    public Object getValueAt(int rowIndex, int columnIndex) {
-        return this.m_Track.get(rowIndex);
+    public Object getValueAt(final int rowIndex, final int columnIndex) {
+        return m_Track.get(rowIndex);
     }
 
-    private class EVED_CLIENT implements Consumer<UIController.SetTrack> {
-        private EVED_CLIENT() {
-        }
-
-        public void accept(UIController.SetTrack message) {
-            Track track = ((UIController) message.getSender()).getTrack();
-            if (EventTableModel.this.m_Track != track) {
-                if (EventTableModel.this.m_Track != null) {
-                    EventTableModel.this.m_Track.getRegister(Track.SetEvents.class).remove(EventTableModel.this.m_TrckClient);
-                    EventTableModel.this.m_TrckClient = null;
-                }
-
-                EventTableModel.this.m_Track = track;
-                if (track == null) {
-                    EventTableModel.this._fireTableChanged();
-                } else {
-                    EventTableModel.this.m_TrckClient = EventTableModel.this.new TRCK_CLIENT();
-                    EventTableModel.this.m_Track.getRegister(Track.SetEvents.class).add(EventTableModel.this.m_TrckClient);
-                }
+    private void onSetTrack(final UIController.SetTrack message) {
+        final Track track = message.getSender().getTrack();
+        if (m_Track != track) {
+            m_Track = track;
+            if (null == track) {
+                _fireTableChanged();
+            } else {
+                m_TrckClient = new TRCK_CLIENT();
+                m_Track.getRegister(Track.SetEvents.class).add(m_TrckClient);
             }
-
         }
     }
 
@@ -66,8 +56,8 @@ public abstract class EventTableModel extends AbstractTableModel {
         private TRCK_CLIENT() {
         }
 
-        public void accept(Track.SetEvents message) {
-            EventTableModel.this._fireTableChanged();
+        public void accept(final Track.SetEvents message) {
+            _fireTableChanged();
         }
     }
 }

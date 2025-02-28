@@ -87,11 +87,6 @@ public class Distributor<MSG> implements Splitter<MSG> {
         }
     }
 
-    public final synchronized boolean remove(Object listener) {
-        this.register = new REGISTER(this.register);
-        return this.register.remove(listener);
-    }
-
     public final int size() {
         return this.getCurrentRegister().size();
     }

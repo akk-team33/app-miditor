@@ -20,29 +20,12 @@ public class Header extends JLabel {
         private TRACK_LSTNR(UIController ctrl) {
             Track track = ctrl.getTrack();
             if (track != null) {
-                ctrl.getRegister(UIController.UnsetTrack.class).add(new UNSET_LSTNR());
                 track.getRegister(Track.SetName.class).add(this);
             }
-
         }
 
         public void accept(Track.SetName message) {
             Header.this.setText(String.format("%s - %s", ((Track) message.getSender()).getPrefix(), ((Track) message.getSender()).getName()));
-        }
-
-        private class UNSET_LSTNR implements Consumer<UIController.UnsetTrack> {
-            private UNSET_LSTNR() {
-            }
-
-            public void accept(UIController.UnsetTrack message) {
-                UIController ctrl = (UIController) message.getSender();
-                Track track = ctrl.getTrack();
-                if (track != null) {
-                    track.getRegister(Track.SetName.class).remove(TRACK_LSTNR.this);
-                    ctrl.getRegister(UIController.UnsetTrack.class).remove(this);
-                }
-
-            }
         }
     }
 

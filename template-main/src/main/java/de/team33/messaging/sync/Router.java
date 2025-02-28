@@ -127,10 +127,6 @@ public class Router<MSG> implements Relay<MSG> {
             return false;
         }
 
-        public final boolean remove(Object listener) {
-            return false;
-        }
-
         public int size() {
             return 0;
         }
