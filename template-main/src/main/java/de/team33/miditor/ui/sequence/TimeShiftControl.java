@@ -125,7 +125,7 @@ public abstract class TimeShiftControl extends JPanel {
             m_Factor = factor;
             setMargin(new Insets(0, 0, 0, 0));
             setFont(new Font(getFont().getName(), 0, 10));
-            getSelection().getRegister().add(new PRT_SEL_CLNT());
+            getSelection().addListener(Selection.Event.UPDATE, this::onUpdate);
         }
 
         public void actionPerformed(final ActionEvent e) {
@@ -134,13 +134,8 @@ public abstract class TimeShiftControl extends JPanel {
             }
         }
 
-        private class PRT_SEL_CLNT implements Consumer<Selection.Message<Track>> {
-            private PRT_SEL_CLNT() {
-            }
-
-            public void accept(final Selection.Message<Track> message) {
-                setEnabled(1 <= message.getSender().size());
-            }
+        private void onUpdate(final Selection<?> selection) {
+            setEnabled(1 <= selection.size());
         }
     }
 

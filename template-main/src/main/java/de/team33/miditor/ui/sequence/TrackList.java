@@ -14,6 +14,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.Serial;
+import java.util.Set;
 import java.util.function.Consumer;
 
 public abstract class TrackList extends JScrollPane {
@@ -47,7 +48,7 @@ public abstract class TrackList extends JScrollPane {
             super(lbl);
             this.min = min;
             this.max = max;
-            getContext().getSelection().getRegister().add(new PRT_SEL_CLNT());
+            getContext().getSelection().addListener(Selection.Event.UPDATE, this::onUpdate);
         }
 
         public void actionPerformed(final ActionEvent e) {
@@ -57,15 +58,10 @@ public abstract class TrackList extends JScrollPane {
 
         protected abstract void doActionWith(Iterable<Track> var1);
 
-        private class PRT_SEL_CLNT implements Consumer<Selection.Message<Track>> {
-            private PRT_SEL_CLNT() {
-            }
-
-            public void accept(final Selection.Message<Track> message) {
-                final boolean superMin = min <= message.getSender().size();
-                final boolean subMax = message.getSender().size() <= max;
-                setEnabled(superMin && subMax);
-            }
+        private void onUpdate(final Set<?> selection) {
+            final boolean superMin = min <= selection.size();
+            final boolean subMax = selection.size() <= max;
+            setEnabled(superMin && subMax);
         }
     }
 
@@ -92,7 +88,7 @@ public abstract class TrackList extends JScrollPane {
     private class SELECTOR extends JCheckBox {
         SELECTOR() {
             super("alle");
-            getContext().getSelection().getRegister().add(new PRT_SEL_CLNT());
+            getContext().getSelection().addListener(Selection.Event.UPDATE, this::onUpdate);
             addActionListener(new ACTN_CLNT());
         }
 
@@ -106,18 +102,12 @@ public abstract class TrackList extends JScrollPane {
                 } else {
                     getContext().getSelection().clear();
                 }
-
             }
         }
 
-        private class PRT_SEL_CLNT implements Consumer<Selection.Message<Track>> {
-            private PRT_SEL_CLNT() {
-            }
-
-            public void accept(final Selection.Message<Track> message) {
-                final int sel = message.getSender().size();
-                setSelected(getContext().getSequence().getTracks().length - sel < sel);
-            }
+        private void onUpdate(final Set<?> selection) {
+            final int sel = selection.size();
+            setSelected((getContext().getSequence().getTracks().length - sel) < sel);
         }
     }
 

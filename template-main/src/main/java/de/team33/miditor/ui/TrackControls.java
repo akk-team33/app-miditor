@@ -10,6 +10,7 @@ import de.team33.swing.XTextField;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.util.Set;
 import java.util.function.Consumer;
 
 public abstract class TrackControls {
@@ -69,7 +70,7 @@ public abstract class TrackControls {
         public INDEX_PANE() {
             super(getContext().getTrack().getPrefix());
             getContext().getTrack().addListener(Track.Event.SetModified, this::onSetModified);
-            getContext().getSelection().getRegister().add(this::onSelection);
+            getContext().getSelection().addListener(Selection.Event.UPDATE, this::onSelection);
             addActionListener(this::onAction);
         }
 
@@ -85,8 +86,8 @@ public abstract class TrackControls {
             setForeground(track.isModified() ? Color.BLUE : Color.BLACK);
         }
 
-        private void onSelection(final Selection.Message<Track> message) {
-            setSelected(message.getSender().contains(getContext().getTrack()));
+        private void onSelection(final Set<?> selection) {
+            setSelected(selection.contains(getContext().getTrack()));
         }
     }
 
