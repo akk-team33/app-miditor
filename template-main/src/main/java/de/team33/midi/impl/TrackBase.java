@@ -32,7 +32,7 @@ public abstract class TrackBase implements Track {
 
     public TrackBase(final javax.sound.midi.Track t) {
         midiTrack = t;
-        audience.add(Event.SetEvents, this::onSetEvents);
+        addListener(Event.SetEvents, this::onSetEvents);
     }
 
     @Override

@@ -1,107 +1,84 @@
 package de.team33.miditor.model;
 
-import de.team33.messaging.Register;
-import de.team33.messaging.sync.Router;
 import de.team33.midi.Timing;
 import de.team33.midi.util.TimingUtil;
+import de.team33.patterns.notes.eris.Audience;
 
-import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+import java.util.function.Consumer;
 
 public abstract class TimeShiftBase implements TimeShift {
-    private final SET_DIVIDEND msgSetDividend = new SET_DIVIDEND();
-    private final SET_DIVISOR msgSetDivisor = new SET_DIVISOR();
-    private final Router<TimeShift.Message> router = new Router();
-    private long dividend = (long) this.getTiming().getBarBeats();
-    private long divisor = (long) this.getTiming().getBeatUnit();
+
+    private static final Set<Event> INITIAL_EVENTS = Set.of(Event.SetDivisor, Event.SetDividend);
+
+    private final Audience audience = new Audience();
+    private long dividend = getTiming().getBarBeats();
+    private long divisor = getTiming().getBeatUnit();
     private List<Integer> divisors = null;
 
-    public TimeShiftBase() {
-        this.router.addInitials(Arrays.asList(this.msgSetDividend, this.msgSetDivisor));
-    }
-
-    public int getDividend() {
-        return (int) this.dividend;
-    }
-
-    public final void setDividend(int value) {
-        if (this.dividend != (long) value) {
-            this.dividend = (long) value;
-            this.router.accept(this.msgSetDividend);
+    @Override
+    public final void addListener(final Event event, final Consumer<? super TimeShift> listener) {
+        audience.add(event, listener);
+        if (INITIAL_EVENTS.contains(event)) {
+            listener.accept(this);
         }
-
     }
 
-    public int getDivisor() {
-        return (int) this.divisor;
+    public final int getDividend() {
+        return (int) dividend;
     }
 
-    public final void setDivisor(int value) {
-        if (this.getDivisors().contains(value)) {
-            this.divisor = (long) value;
-            this.router.accept(this.msgSetDivisor);
+    public final void setDividend(final int dividend) {
+        if (this.dividend != dividend) {
+            this.dividend = dividend;
+            audience.send(Event.SetDividend, this);
         }
+    }
 
+    public final int getDivisor() {
+        return (int) divisor;
+    }
+
+    public final void setDivisor(final int divisor) {
+        if (getDivisors().contains(divisor)) {
+            this.divisor = divisor;
+            audience.send(Event.SetDivisor, this);
+        }
     }
 
     private List<Integer> getDivisors() {
-        if (this.divisors == null) {
-            this.divisors = TimingUtil.getUnits(this.getTiming(), 1);
+        if (null == divisors) {
+            divisors = TimingUtil.getUnits(getTiming(), 1);
         }
-
-        return this.divisors;
+        return divisors;
     }
 
-    public int getNextDivisor() {
-        return (Integer) this.getDivisors().get(this.getNextDivisorIndex());
+    public final int getNextDivisor() {
+        return getDivisors().get(getNextDivisorIndex());
     }
 
     private int getNextDivisorIndex() {
-        int ret = this.getDivisors().indexOf(this.getDivisor()) + 1;
-        return ret == this.getDivisors().size() ? 0 : ret;
+        final int ret = getDivisors().indexOf(getDivisor()) + 1;
+        return ret == getDivisors().size() ? 0 : ret;
     }
 
     public final int getPrevDivisor() {
-        return (Integer) this.getDivisors().get(this.getPrevDivisorIndex());
+        return getDivisors().get(getPrevDivisorIndex());
     }
 
     private final int getPrevDivisorIndex() {
-        int ret = this.getDivisors().indexOf(this.getDivisor());
-        return ret == 0 ? this.getDivisors().size() - 1 : ret - 1;
-    }
-
-    public <MSX extends TimeShift.Message> Register<MSX> getRegister(Class<MSX> msgClass) {
-        return this.router.getRegister(msgClass);
+        final int ret = getDivisors().indexOf(getDivisor());
+        return 0 == ret ? getDivisors().size() - 1 : ret - 1;
     }
 
     public final int getTicks() {
-        return (int) (this.dividend * (long) this.getTickUnit() / this.divisor);
+        return (int) (dividend * getTickUnit() / divisor);
     }
 
     public final int getTickUnit() {
-        return this.getTiming().getTickUnit();
+        return getTiming().getTickUnit();
     }
 
     protected abstract Timing getTiming();
-
-    private class MESSAGE implements TimeShift.Message {
-        private MESSAGE() {
-        }
-
-        public TimeShift getSender() {
-            return TimeShiftBase.this;
-        }
-    }
-
-    private class SET_DIVIDEND extends MESSAGE implements TimeShift.SetDividend {
-        private SET_DIVIDEND() {
-            super();
-        }
-    }
-
-    private class SET_DIVISOR extends MESSAGE implements TimeShift.SetDivisor {
-        private SET_DIVISOR() {
-            super();
-        }
-    }
 }

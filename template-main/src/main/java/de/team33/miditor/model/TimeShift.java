@@ -1,15 +1,18 @@
 package de.team33.miditor.model;
 
-import de.team33.messaging.Registry;
+import de.team33.patterns.notes.eris.Channel;
 
-public interface TimeShift extends Registry<TimeShift.Message> {
+import java.util.function.Consumer;
+
+public interface TimeShift {
+
     int getDividend();
 
-    void setDividend(int var1);
+    void setDividend(int dividend);
 
     int getDivisor();
 
-    void setDivisor(int var1);
+    void setDivisor(int divisor);
 
     int getNextDivisor();
 
@@ -19,12 +22,10 @@ public interface TimeShift extends Registry<TimeShift.Message> {
 
     int getTickUnit();
 
-    public interface Message extends de.team33.messaging.Message<TimeShift> {
-    }
+    void addListener(Event event, Consumer<? super TimeShift> listener);
 
-    public interface SetDividend extends Message {
-    }
-
-    public interface SetDivisor extends Message {
+    enum Event implements Channel<TimeShift> {
+        SetDividend,
+        SetDivisor
     }
 }
