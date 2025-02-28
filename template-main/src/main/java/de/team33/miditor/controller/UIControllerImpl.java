@@ -1,78 +1,47 @@
 package de.team33.miditor.controller;
 
 import de.team33.messaging.Register;
-import de.team33.messaging.sync.Router;
 import de.team33.midi.Track;
+import de.team33.patterns.notes.eris.Audience;
 
 import java.util.Arrays;
+import java.util.Set;
+import java.util.function.Consumer;
 
 public class UIControllerImpl implements UIController {
-    private final MESSAGE msgSetTrack = new SET_TRACK();
-    private final MESSAGE msgUnsetTrack = new UNSET_TRACK();
-    private final MESSAGE msgSetSelection = new SET_TRACK_SELECTION();
-    private final ROUTER router = new ROUTER();
+
+    private static final Set<Event> INITIAL_EVENTS = Set.of(Event.SetTrack, Event.SetTrackSelection);
+
+    private final Audience audience = new Audience();
     private int[] m_Selection = new int[0];
     private Track m_Track = null;
 
-    public UIControllerImpl() {
-        this.router.addInitials(Arrays.asList(this.msgSetTrack, this.msgSetSelection));
-    }
-
-    public <MSX extends UIController.Message> Register<MSX> getRegister(Class<MSX> msgClass) {
-        return this.router.getRegister(msgClass);
+    @Override
+    public final void addListener(final Event event, final Consumer<? super UIController> listener) {
+        audience.add(event, listener);
+        if (INITIAL_EVENTS.contains(event)) {
+            listener.accept(this);
+        }
     }
 
     public Track getTrack() {
         return this.m_Track;
     }
 
-    public void setTrack(Track track) {
-        this.router.accept(this.msgUnsetTrack);
+    public void setTrack(final Track track) {
+        audience.send(Event.UnsetTrack, this);
         this.m_Track = track;
-        this.router.accept(this.msgSetTrack);
+        audience.send(Event.SetTrack, this);
     }
 
     public int[] getTrackSelection() {
         return this.m_Selection;
     }
 
-    public void setTrackSelection(int[] newSelection) {
-        if (!Arrays.equals(this.m_Selection, newSelection)) {
-            this.m_Selection = newSelection;
-            this.router.accept(this.msgSetSelection);
-        }
-
-    }
-
-    private static class ROUTER extends Router<UIController.Message> {
-        private ROUTER() {
-        }
-    }
-
-    private class MESSAGE implements UIController.Message {
-        private MESSAGE() {
-        }
-
-        public UIController getSender() {
-            return UIControllerImpl.this;
-        }
-    }
-
-    private class SET_TRACK extends MESSAGE implements UIController.SetTrack {
-        private SET_TRACK() {
-            super();
-        }
-    }
-
-    private class SET_TRACK_SELECTION extends MESSAGE implements UIController.SetTrackSelection {
-        private SET_TRACK_SELECTION() {
-            super();
-        }
-    }
-
-    private class UNSET_TRACK extends MESSAGE implements UIController.UnsetTrack {
-        private UNSET_TRACK() {
-            super();
+    public void setTrackSelection(final int[] selected) {
+        if (!Arrays.equals(this.m_Selection, selected)) {
+            this.m_Selection = selected;
+            audience.send(Event.SetTrackSelection, this);
         }
     }
 }

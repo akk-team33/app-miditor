@@ -160,9 +160,6 @@ public class MainFrame extends XFrame {
     }
 
     private class TRACK_EDITOR extends EventEditor {
-        private TRACK_EDITOR() {
-        }
-
         protected Sequence getSequence() {
             return player.getSequence();
         }

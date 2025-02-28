@@ -1,26 +1,25 @@
 package de.team33.miditor.controller;
 
-import de.team33.messaging.Registry;
 import de.team33.midi.Track;
+import de.team33.patterns.notes.eris.Channel;
 
-public interface UIController extends Registry<UIController.Message> {
+import java.util.function.Consumer;
+
+public interface UIController {
+
     Track getTrack();
 
-    void setTrack(Track var1);
+    void setTrack(Track track);
 
     int[] getTrackSelection();
 
-    void setTrackSelection(int[] var1);
+    void setTrackSelection(int[] selected);
 
-    public interface Message extends de.team33.messaging.Message<UIController> {
-    }
+    void addListener(Event event, Consumer<? super UIController> listener);
 
-    public interface SetTrack extends Message {
-    }
-
-    public interface SetTrackSelection extends Message {
-    }
-
-    public interface UnsetTrack extends Message {
+    enum Event implements Channel<UIController> {
+        SetTrack,
+        SetTrackSelection,
+        UnsetTrack
     }
 }

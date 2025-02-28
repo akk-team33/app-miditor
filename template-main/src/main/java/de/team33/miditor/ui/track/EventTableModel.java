@@ -12,34 +12,33 @@ public abstract class EventTableModel extends AbstractTableModel {
     private Track m_Track = null;
 
     protected EventTableModel() {
-        getTrackHandler().getRegister(UIController.SetTrack.class)
-                         .add(this::onSetTrack);
+        getTrackHandler().addListener(UIController.Event.SetTrack, this::onSetTrack);
     }
 
     private void _fireTableChanged() {
         fireTableChanged(new TableModelEvent(this));
     }
 
-    public int getColumnCount() {
+    public final int getColumnCount() {
         return m_ColumnNames.length;
     }
 
-    public String getColumnName(final int column) {
+    public final String getColumnName(final int column) {
         return m_ColumnNames[column];
     }
 
-    public int getRowCount() {
+    public final int getRowCount() {
         return m_Track == null ? 0 : m_Track.size();
     }
 
     protected abstract UIController getTrackHandler();
 
-    public Object getValueAt(final int rowIndex, final int columnIndex) {
+    public final Object getValueAt(final int rowIndex, final int columnIndex) {
         return m_Track.get(rowIndex);
     }
 
-    private void onSetTrack(final UIController.SetTrack message) {
-        final Track track = message.getSender().getTrack();
+    private void onSetTrack(final UIController controller) {
+        final Track track = controller.getTrack();
         if (m_Track != track) {
             m_Track = track;
             if (null == track) {

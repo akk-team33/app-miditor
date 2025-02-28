@@ -4,14 +4,12 @@ import de.team33.midi.Track;
 import de.team33.miditor.controller.UIController;
 
 import javax.swing.*;
-import java.util.function.Consumer;
 
 public abstract class EventListModel extends AbstractListModel {
     private Track m_Track = null;
 
     public EventListModel() {
-        getTrackHandler().getRegister(UIController.SetTrack.class)
-                         .add(this::onSetTrack);
+        getTrackHandler().addListener(UIController.Event.SetTrack, this::onSetTrack);
     }
 
     private void _fireContentsChanged() {
@@ -28,8 +26,8 @@ public abstract class EventListModel extends AbstractListModel {
 
     protected abstract UIController getTrackHandler();
 
-    public void onSetTrack(final UIController.SetTrack message) {
-        final Track track = message.getSender().getTrack();
+    public void onSetTrack(final UIController controller) {
+        final Track track = controller.getTrack();
         if (m_Track != track) {
             m_Track = track;
             if (track == null) {
