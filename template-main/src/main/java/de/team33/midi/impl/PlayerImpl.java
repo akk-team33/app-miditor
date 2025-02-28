@@ -1,6 +1,6 @@
 package de.team33.midi.impl;
 
-import de.team33.messaging.util.ClassUtil;
+import de.team33.midi.util.ClassUtil;
 import de.team33.midi.Player;
 import de.team33.midi.Sequence;
 import de.team33.midi.Timing;

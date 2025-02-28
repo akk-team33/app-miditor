@@ -1,6 +1,5 @@
 package de.team33.miditor.controller;
 
-import de.team33.messaging.Register;
 import de.team33.midi.Track;
 import de.team33.patterns.notes.eris.Audience;
 
