@@ -1,6 +1,5 @@
 package de.team33.midi.impl;
 
-import de.team33.messaging.util.ListenerUtil;
 import de.team33.midi.Sequence;
 import de.team33.midi.Timing;
 import de.team33.midi.Track;
@@ -53,7 +52,7 @@ public class SequenceImpl implements Sequence {
             m_PartMap.put(tRaw, new PART(tRaw));
         }
 
-        if (getTracks().length > 0) {
+        if (0 < getTracks().length) {
             m_Timing = new TIMING(getTimingEvent(getTracks()[0], 0L));
         } else {
             m_Timing = new TIMING(null);
@@ -71,7 +70,7 @@ public class SequenceImpl implements Sequence {
         if (doBackup && file.exists()) {
             backup(file);
         }
-        final int mode = s.getTracks().length > 1 ? 1 : 0;
+        final int mode = 1 < s.getTracks().length ? 1 : 0;
         MidiSystem.write(s, mode, file);
     }
 
@@ -104,9 +103,9 @@ public class SequenceImpl implements Sequence {
             }
 
             final MidiMessage mssg = evnt.getMessage();
-            if (mssg.getStatus() == 255) {
+            if (255 == mssg.getStatus()) {
                 final byte[] b = mssg.getMessage();
-                if (b.length > 2 && b[1] == type && b.length - b[2] == 3) {
+                if (2 < b.length && b[1] == type && 3 == b.length - b[2]) {
                     ret = evnt;
                 }
             }
@@ -148,9 +147,6 @@ public class SequenceImpl implements Sequence {
 
     private void core_clear(final Set<Event> events) {
         if (null != m_Parts) {
-            for (final PART p : m_Parts) {
-                p.clrRegister();
-            }
             m_Parts = null;
             events.add(Event.SetParts);
             core_setModified(true, events);
@@ -159,7 +155,7 @@ public class SequenceImpl implements Sequence {
 
     private Track core_create(final Set<Event> events) {
         final javax.sound.midi.Track rawTrack = m_Sequence.createTrack();
-        if (rawTrack != null) {
+        if (null != rawTrack) {
             core_clear(events);
             m_PartMap.put(rawTrack, new PART(rawTrack));
         }
@@ -170,7 +166,7 @@ public class SequenceImpl implements Sequence {
     private boolean core_delete(final Track p, final Set<Event> events) {
         boolean ret = false;
         if (p instanceof PART) {
-            final javax.sound.midi.Track tRaw = ((PART) p).getTrack();
+            final javax.sound.midi.Track tRaw = ((PART) p).getMidiTrack();
             if (m_PartMap.containsKey(tRaw)) {
                 ret = m_Sequence.deleteTrack(tRaw);
                 if (ret) {
@@ -263,26 +259,26 @@ public class SequenceImpl implements Sequence {
     }
 
     public final Track[] getTracks() {
-        if (m_Parts == null) {
+        if (null == m_Parts) {
             final javax.sound.midi.Track[] rawTracks = m_Sequence.getTracks();
             m_Parts = new PART[rawTracks.length];
 
             for (int i = 0; i < rawTracks.length; ++i) {
                 m_Parts[i] = m_PartMap.get(rawTracks[i]);
-                m_Parts[i].getRegister(Track.SetModified.class).add(this::onSetModified);
+                m_Parts[i].addListener(Track.Event.SetModified, this::onSetModified);
             }
         }
         return m_Parts;
     }
 
     public final int getTempo() {
-        if (getTracks().length > 0) {
+        if (0 < getTracks().length) {
             final MidiEvent evnt = getTempoEvent(getTracks()[0], 0L);
-            if (evnt != null) {
+            if (null != evnt) {
                 final byte[] b = evnt.getMessage().getMessage();
                 int mpqn = 0;
 
-                for (int i = 3; i < 6; ++i) {
+                for (int i = 3; 6 > i; ++i) {
                     mpqn *= 256;
                     mpqn += b[i] & 255;
                 }
@@ -296,17 +292,17 @@ public class SequenceImpl implements Sequence {
 
     public final void setTempo(final int tempo) {
         final Track p0;
-        if (getTracks().length > 0) {
+        if (0 < getTracks().length) {
             p0 = getTracks()[0];
         } else {
             p0 = create();
         }
 
-        for (MidiEvent oldEvnt = getTempoEvent(p0, 0L); oldEvnt != null; oldEvnt = getTempoEvent(p0, 0L)) {
+        for (MidiEvent oldEvnt = getTempoEvent(p0, 0L); null != oldEvnt; oldEvnt = getTempoEvent(p0, 0L)) {
             p0.remove(oldEvnt);
         }
 
-        if (tempo > 0) {
+        if (0 < tempo) {
             long mpqn = Math.round(6.0E7 / (double) tempo);
             final byte[] data = new byte[3];
 
@@ -395,10 +391,6 @@ public class SequenceImpl implements Sequence {
             super(t);
         }
 
-        protected final void clrRegister() {
-            super.clrRegister();
-        }
-
         public final int getIndex() {
             final javax.sound.midi.Track[] t = m_Sequence.getTracks();
 
@@ -411,8 +403,8 @@ public class SequenceImpl implements Sequence {
             return -1;
         }
 
-        protected final javax.sound.midi.Track getTrack() {
-            return super.getTrack();
+        protected final javax.sound.midi.Track getMidiTrack() {
+            return super.getMidiTrack();
         }
 
         protected final void setModified(final boolean isModified) {
@@ -420,8 +412,8 @@ public class SequenceImpl implements Sequence {
         }
     }
 
-    public final void onSetModified(final Track.SetModified message) {
-        if (message.getSender().isModified()) {
+    public final void onSetModified(final Track track) {
+        if (track.isModified()) {
             final Set<Event> events = EnumSet.noneOf(Event.class);
             core_setModified(true, events);
             events.forEach(event -> audience.send(event, this));

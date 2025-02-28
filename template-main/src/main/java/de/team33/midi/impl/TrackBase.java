@@ -1,149 +1,134 @@
 package de.team33.midi.impl;
 
 import de.team33.messaging.Message;
-import de.team33.messaging.Register;
-import de.team33.messaging.sync.Router;
 import de.team33.midi.Track;
+import de.team33.patterns.notes.eris.Audience;
 
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.MidiMessage;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.Vector;
 import java.util.function.Consumer;
 
 public abstract class TrackBase implements Track {
-    private static final String FMT_PREFIX = "Track %02d";
-    private static final String NO_NAME = "- Kein Name -";
-    private final Track.SetChannels msgSetChannels = new SET_CHANNELS();
-    private final Track.SetModified msgSetModified = new SET_MODIFIED();
-    private final Track.SetName msgSetName = new SET_NAME();
-    private final Track.SetEvents msgSetEvents = new SET_EVENTS();
-    private final Track.Released msgReleased = new RELEASED();
-    private final Router<Message<Track>> router = new Router();
+
+    private static final String FMT_PREFIX =
+            "Track %02d";
+    private static final String NO_NAME =
+            "- Kein Name -";
+    private static final Set<Event> INITIAL_EVENTS =
+            Set.of(Event.SetChannels, Event.SetEvents, Event.SetModified, Event.SetName);
+
+    private final Audience audience = new Audience();
     private final javax.sound.midi.Track midiTrack;
     private int[] channels = new int[0];
     private String name = "";
     private boolean modified = false;
 
-    public TrackBase(javax.sound.midi.Track t) {
-        this.router.addInitials(Arrays.asList(this.msgSetChannels, this.msgSetEvents, this.msgSetModified, this.msgSetName));
-        this.midiTrack = t;
-        this.router.getRegister(Track.SetEvents.class).add(new SET_EVENTS_LSTNR());
+    public TrackBase(final javax.sound.midi.Track t) {
+        midiTrack = t;
+        audience.add(Event.SetEvents, this::onSetEvents);
     }
 
-    public final void add(MidiEvent... events) {
-        synchronized (this.midiTrack) {
-            Set<Message<Track>> messages = new HashSet();
-            MidiEvent[] var7 = events;
-            int var6 = events.length;
+    @Override
+    public final void addListener(final Event event, final Consumer<? super Track> listener) {
+        audience.add(event, listener);
+        if (INITIAL_EVENTS.contains(event)) {
+            listener.accept(this);
+        }
+    }
 
-            for (int var5 = 0; var5 < var6; ++var5) {
-                MidiEvent evnt = var7[var5];
-                this.core_add(evnt, messages);
+    public final void add(final MidiEvent... midiEvents) {
+        synchronized (midiTrack) {
+            final Set<Event> events = EnumSet.noneOf(Event.class);
+            final int length = midiEvents.length;
+            for (final MidiEvent midiEvent : midiEvents) {
+                core_add(midiEvent, events);
             }
 
-            this.relay(messages);
+            relay(events);
         }
     }
 
-    protected void clrRegister() {
-        this.router.accept(this.msgReleased);
-        this.router.clear();
-        this.router.getRegister(Track.SetEvents.class).add(new SET_EVENTS_LSTNR());
-    }
-
-    private final boolean core_add(MidiEvent event, Set<Message<Track>> messages) {
-        if (this.midiTrack.add(event)) {
-            this.core_clear(messages);
+    private boolean core_add(final MidiEvent midiEvent, final Set<Event> events) {
+        if (midiTrack.add(midiEvent)) {
+            core_clear(events);
             return true;
         } else {
             return false;
         }
     }
 
-    private final void core_clear(Set<Message<Track>> messages) {
-        this.core_modify(true, messages);
-        messages.add(this.msgSetEvents);
+    private void core_clear(final Set<Event> events) {
+        core_modify(true, events);
+        events.add(Event.SetEvents);
     }
 
-    private final void core_modify(boolean isModified, Set<Message<Track>> messages) {
-        if (this.modified != isModified) {
-            this.modified = isModified;
-            messages.add(this.msgSetModified);
-        }
-
-    }
-
-    private final boolean core_remove(MidiEvent event, Set<Message<Track>> messages) {
-        if (this.midiTrack.remove(event)) {
-            this.core_clear(messages);
-            return true;
-        } else {
-            return false;
+    private void core_modify(final boolean isModified, final Set<? super Event> events) {
+        if (modified != isModified) {
+            modified = isModified;
+            events.add(Event.SetModified);
         }
     }
 
-    private final void core_shift(MidiEvent oldEvent, long delta, Set<Message<Track>> messages) {
-        long oldTime = oldEvent.getTick();
+    private void core_remove(final MidiEvent midiEvent, final Set<Event> events) {
+        if (midiTrack.remove(midiEvent)) {
+            core_clear(events);
+        }
+    }
+
+    private void core_shift(final MidiEvent oldMidiEvent, final long delta, final Set<Event> events) {
+        final long oldTime = oldMidiEvent.getTick();
         long newTime = oldTime + delta;
-        if (newTime < 0L) {
+        if (0L > newTime) {
             newTime = 0L;
         }
 
         if (newTime != oldTime) {
-            MidiEvent newEvent = new MidiEvent(oldEvent.getMessage(), newTime);
-            this.core_remove(oldEvent, messages);
-            this.core_add(newEvent, messages);
+            final MidiEvent newEvent = new MidiEvent(oldMidiEvent.getMessage(), newTime);
+            core_remove(oldMidiEvent, events);
+            core_add(newEvent, events);
         }
-
     }
 
     public final Map<Integer, List<MidiEvent>> extractChannels() {
-        synchronized (this.midiTrack) {
-            Set<Message<Track>> messages = new HashSet();
-            Map<Integer, List<MidiEvent>> ret = new TreeMap();
-            MidiEvent[] allEvents = this.getAll();
-            MidiEvent[] var8 = allEvents;
-            int var7 = allEvents.length;
+        synchronized (midiTrack) {
+            final Set<Event> events = EnumSet.noneOf(Event.class);
+            final Map<Integer, List<MidiEvent>> result = new TreeMap<>();
 
-            for (int var6 = 0; var6 < var7; ++var6) {
-                MidiEvent evnt = var8[var6];
-                MidiMessage mssg = evnt.getMessage();
-                int status = mssg.getStatus();
-                if (128 <= status && status < 240) {
-                    int channel = status & 15;
-                    if (!ret.containsKey(channel)) {
-                        ret.put(channel, new Vector());
-                    }
-
-                    ((List) ret.get(channel)).add(evnt);
-                    this.core_remove(evnt, messages);
+            for (final MidiEvent midiEvent : getAll()) {
+                final MidiMessage midiMessage = midiEvent.getMessage();
+                final int status = midiMessage.getStatus();
+                if (128 <= status && 240 > status) {
+                    final int channel = status & 15;
+                    result.computeIfAbsent(channel, key -> new ArrayList<>(0))
+                          .add(midiEvent);
+                    core_remove(midiEvent, events);
                 }
             }
 
-            this.relay(messages);
-            return ret;
+            relay(events);
+            return result;
         }
     }
 
-    public final MidiEvent get(int index) {
-        synchronized (this.midiTrack) {
-            return this.midiTrack.get(index);
+    public final MidiEvent get(final int index) {
+        synchronized (midiTrack) {
+            return midiTrack.get(index);
         }
     }
 
     public final MidiEvent[] getAll() {
-        synchronized (this.midiTrack) {
-            MidiEvent[] ret = new MidiEvent[this.size()];
+        synchronized (midiTrack) {
+            final MidiEvent[] ret = new MidiEvent[size()];
 
             for (int i = 0; i < ret.length; ++i) {
-                ret[i] = this.midiTrack.get(i);
+                ret[i] = midiTrack.get(i);
             }
 
             return ret;
@@ -151,174 +136,109 @@ public abstract class TrackBase implements Track {
     }
 
     public final int[] getChannels() {
-        return this.channels;
+        return channels.clone();
     }
 
     protected abstract int getIndex();
 
     public final String getName() {
-        return this.name;
+        return name;
     }
 
     public final String getPrefix() {
-        return String.format("Track %02d", this.getIndex());
+        return String.format("Track %02d", getIndex());
     }
 
-    public final <MSX extends Message<Track>> Register<MSX> getRegister(Class<MSX> msgClass) {
-        return this.router.getRegister(msgClass);
-    }
-
-    protected javax.sound.midi.Track getTrack() {
-        return this.midiTrack;
+    @SuppressWarnings("DesignForExtension")
+    protected javax.sound.midi.Track getMidiTrack() {
+        return midiTrack;
     }
 
     public final boolean isModified() {
-        return this.modified;
+        return modified;
     }
 
-    protected void setModified(boolean isModified) {
-        Set<Message<Track>> messages = new HashSet();
-        this.core_modify(isModified, messages);
-        this.relay(messages);
+    @SuppressWarnings("DesignForExtension")
+    protected void setModified(final boolean isModified) {
+        final Set<Event> events = EnumSet.noneOf(Event.class);
+        core_modify(isModified, events);
+        relay(events);
     }
 
-    private final void relay(Set<Message<Track>> messages) {
-        Iterator var3 = messages.iterator();
-
-        while (var3.hasNext()) {
-            Message<Track> msg = (Message) var3.next();
-            this.router.accept(msg);
-        }
-
+    private void relay(final Set<Event> events) {
+        events.forEach(event -> audience.send(event, this));
     }
 
-    public final void remove(MidiEvent... events) {
-        synchronized (this.midiTrack) {
-            Set<Message<Track>> messages = new HashSet();
-            MidiEvent[] var7 = events;
-            int var6 = events.length;
-
-            for (int var5 = 0; var5 < var6; ++var5) {
-                MidiEvent event = var7[var5];
-                this.core_remove(event, messages);
-            }
-
-            this.relay(messages);
+    public final void remove(final MidiEvent... midiEvents) {
+        synchronized (midiTrack) {
+            final Set<Event> events = EnumSet.noneOf(Event.class);
+            Arrays.stream(midiEvents)
+                  .forEach(event -> core_remove(event, events));
+            relay(events);
         }
     }
 
-    public final void shift(long delta) {
-        synchronized (this.midiTrack) {
-            Set<Message<Track>> messages = new HashSet();
-            MidiEvent[] events = this.getAll();
-            MidiEvent[] var9 = events;
-            int var8 = events.length;
-
-            for (int var7 = 0; var7 < var8; ++var7) {
-                MidiEvent event = var9[var7];
-                this.core_shift(event, delta, messages);
-            }
-
-            this.relay(messages);
+    public final void shift(final long delta) {
+        synchronized (midiTrack) {
+            final Set<Event> messages = EnumSet.noneOf(Event.class);
+            Arrays.stream(getAll())
+                  .forEach(event -> core_shift(event, delta, messages));
+            relay(messages);
         }
     }
 
     public final int size() {
-        synchronized (this.midiTrack) {
-            return this.midiTrack.size();
+        synchronized (midiTrack) {
+            return midiTrack.size();
         }
     }
 
-    private class MESSAGE implements Message<Track> {
-        private MESSAGE() {
-        }
+    private void onSetEvents(final Track track) {
+        synchronized (midiTrack) {
+            final Set<Event> events = EnumSet.noneOf(Event.class);
+            String newName = "- Kein Name -";
+            int nChannels = 0;
+            final int[] nPerChannel = new int[16];
+            int i = 0;
 
-        public final Track getSender() {
-            return TrackBase.this;
-        }
-    }
-
-    private class RELEASED extends MESSAGE implements Track.Released {
-        private RELEASED() {
-            super();
-        }
-    }
-
-    private class SET_CHANNELS extends MESSAGE implements Track.SetChannels {
-        private SET_CHANNELS() {
-            super();
-        }
-    }
-
-    private class SET_EVENTS extends MESSAGE implements Track.SetEvents {
-        private SET_EVENTS() {
-            super();
-        }
-    }
-
-    private class SET_EVENTS_LSTNR implements Consumer<SetEvents> {
-        private SET_EVENTS_LSTNR() {
-        }
-
-        public void accept(Track.SetEvents message) {
-            synchronized (TrackBase.this.midiTrack) {
-                Set<Message<Track>> messages = new HashSet();
-                String newName = "- Kein Name -";
-                int nChannels = 0;
-                int[] nPerChannel = new int[16];
-                int i = 0;
-
-                int ix;
-                for (ix = TrackBase.this.midiTrack.size(); i < ix; ++i) {
-                    MidiEvent evnt = TrackBase.this.midiTrack.get(i);
-                    MidiMessage mssg = evnt.getMessage();
-                    int status = mssg.getStatus();
-                    if (128 <= status && status < 240) {
-                        int channel = status & 15;
-                        if (++nPerChannel[channel] == 1) {
-                            ++nChannels;
-                        }
-                    } else if (newName == "- Kein Name -" && status == 255) {
-                        byte[] b = mssg.getMessage();
-                        if (b.length > 2 && b[1] == 3 && b[2] == b.length - 3) {
-                            newName = new String(b, 3, b.length - 3);
-                        }
+            int ix;
+            for (ix = midiTrack.size(); i < ix; ++i) {
+                final MidiEvent evnt = midiTrack.get(i);
+                final MidiMessage mssg = evnt.getMessage();
+                final int status = mssg.getStatus();
+                if (128 <= status && 240 > status) {
+                    final int channel = status & 15;
+                    if (1 == ++nPerChannel[channel]) {
+                        ++nChannels;
+                    }
+                } else if ("- Kein Name -" == newName && 255 == status) {
+                    final byte[] b = mssg.getMessage();
+                    if (2 < b.length && 3 == b[1] && b[2] == b.length - 3) {
+                        newName = new String(b, 3, b.length - 3);
                     }
                 }
-
-                int[] newChannels = new int[nChannels];
-                ix = 0;
-
-                for (int k = 0; ix < nPerChannel.length; ++ix) {
-                    if (nPerChannel[ix] > 0) {
-                        newChannels[k++] = ix;
-                    }
-                }
-
-                if (!newName.equals(TrackBase.this.name)) {
-                    TrackBase.this.name = newName;
-                    messages.add(TrackBase.this.msgSetName);
-                }
-
-                if (!Arrays.equals(newChannels, TrackBase.this.channels)) {
-                    TrackBase.this.channels = newChannels;
-                    messages.add(TrackBase.this.msgSetChannels);
-                }
-
-                TrackBase.this.relay(messages);
             }
-        }
-    }
 
-    private class SET_MODIFIED extends MESSAGE implements Track.SetModified {
-        private SET_MODIFIED() {
-            super();
-        }
-    }
+            final int[] newChannels = new int[nChannels];
+            ix = 0;
 
-    private class SET_NAME extends MESSAGE implements Track.SetName {
-        private SET_NAME() {
-            super();
+            for (int k = 0; ix < nPerChannel.length; ++ix) {
+                if (0 < nPerChannel[ix]) {
+                    newChannels[k++] = ix;
+                }
+            }
+
+            if (!newName.equals(name)) {
+                name = newName;
+                events.add(Event.SetName);
+            }
+
+            if (!Arrays.equals(newChannels, channels)) {
+                channels = newChannels;
+                events.add(Event.SetChannels);
+            }
+
+            relay(events);
         }
     }
 }

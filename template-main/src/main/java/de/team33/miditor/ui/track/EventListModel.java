@@ -8,7 +8,6 @@ import java.util.function.Consumer;
 
 public abstract class EventListModel extends AbstractListModel {
     private Track m_Track = null;
-    private TRCK_CLIENT m_TrckClient = null;
 
     public EventListModel() {
         getTrackHandler().getRegister(UIController.SetTrack.class)
@@ -36,18 +35,12 @@ public abstract class EventListModel extends AbstractListModel {
             if (track == null) {
                 _fireContentsChanged();
             } else {
-                m_TrckClient = new TRCK_CLIENT();
-                m_Track.getRegister(Track.SetEvents.class).add(m_TrckClient);
+                m_Track.addListener(Track.Event.SetEvents, this::onSetEvents);
             }
         }
     }
 
-    private class TRCK_CLIENT implements Consumer<Track.SetEvents> {
-        private TRCK_CLIENT() {
-        }
-
-        public void accept(final Track.SetEvents message) {
-            _fireContentsChanged();
-        }
+    private void onSetEvents(final Track track) {
+        _fireContentsChanged();
     }
 }

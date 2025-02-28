@@ -1,18 +1,18 @@
 package de.team33.midi;
 
-import de.team33.messaging.Message;
-import de.team33.messaging.Registry;
+import de.team33.patterns.notes.eris.Channel;
 
 import javax.sound.midi.MidiEvent;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
-public interface Track extends Registry<Message<Track>> {
+public interface Track {
     void add(MidiEvent... var1);
 
     Map<Integer, List<MidiEvent>> extractChannels();
 
-    MidiEvent get(int var1);
+    MidiEvent get(int index);
 
     MidiEvent[] getAll();
 
@@ -24,24 +24,19 @@ public interface Track extends Registry<Message<Track>> {
 
     boolean isModified();
 
-    void remove(MidiEvent... var1);
+    void remove(MidiEvent... midiEvents);
 
-    void shift(long var1);
+    void shift(long delta);
 
     int size();
 
-    public interface Released extends Message<Track> {
-    }
+    void addListener(Event event, Consumer<? super Track> listener);
 
-    public interface SetChannels extends Message<Track> {
-    }
-
-    public interface SetEvents extends Message<Track> {
-    }
-
-    public interface SetModified extends Message<Track> {
-    }
-
-    public interface SetName extends Message<Track> {
+    enum Event implements Channel<Track> {
+        // TODO?: Released,
+        SetChannels,
+        SetEvents,
+        SetModified,
+        SetName
     }
 }

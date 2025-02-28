@@ -10,7 +10,6 @@ import de.team33.swing.XTextField;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.function.Consumer;
 
 public abstract class TrackControls {
@@ -34,29 +33,24 @@ public abstract class TrackControls {
     }
 
     private class CHANNEL_PANE extends JPanel {
-        public CHANNEL_PANE() {
+        CHANNEL_PANE() {
             super(new BorderLayout());
-            getContext().getTrack().getRegister(Track.SetChannels.class).add(new CLIENT());
+            getContext().getTrack().addListener(Track.Event.SetChannels, this::onSetChannels);
         }
 
-        private class CLIENT implements Consumer<Track.SetChannels> {
-            private CLIENT() {
+        private void onSetChannels(final Track track) {
+            setVisible(false);
+            removeAll();
+            final int[] channels = track.getChannels();
+            if (channels.length == 0) {
+                add(TrackControls.this.new LABEL("--"), "Center");
+            } else if (channels.length == 1) {
+                add(TrackControls.this.new LABEL(String.format("Kanal %02d", channels[0] + 1)), "Center");
+            } else {
+                add(TrackControls.this.new SPLIT_BUTTON(), "Center");
             }
 
-            public final void accept(final Track.SetChannels message) {
-                setVisible(false);
-                removeAll();
-                final int[] channels = ((Track) message.getSender()).getChannels();
-                if (channels.length == 0) {
-                    add(TrackControls.this.new LABEL("--"), "Center");
-                } else if (channels.length == 1) {
-                    add(TrackControls.this.new LABEL(String.format("Kanal %02d", channels[0] + 1)), "Center");
-                } else {
-                    add(TrackControls.this.new SPLIT_BUTTON(), "Center");
-                }
-
-                setVisible(true);
-            }
+            setVisible(true);
         }
     }
 
@@ -74,41 +68,25 @@ public abstract class TrackControls {
     private class INDEX_PANE extends JCheckBox {
         public INDEX_PANE() {
             super(getContext().getTrack().getPrefix());
-            getContext().getTrack().getRegister(Track.SetModified.class).add(new PRT_CLNT());
-            getContext().getSelection().getRegister().add(new PRT_SEL_CLNT());
-            addActionListener(new LISTENER());
+            getContext().getTrack().addListener(Track.Event.SetModified, this::onSetModified);
+            getContext().getSelection().getRegister().add(this::onSelection);
+            addActionListener(this::onAction);
         }
 
-        private class LISTENER implements ActionListener {
-            private LISTENER() {
-            }
-
-            public final void actionPerformed(final ActionEvent e) {
-                if (isSelected()) {
-                    getContext().getSelection().add(getContext().getTrack());
-                } else {
-                    getContext().getSelection().remove(getContext().getTrack());
-                }
-
+        private void onAction(final ActionEvent e) {
+            if (isSelected()) {
+                getContext().getSelection().add(getContext().getTrack());
+            } else {
+                getContext().getSelection().remove(getContext().getTrack());
             }
         }
 
-        private class PRT_CLNT implements Consumer<Track.SetModified> {
-            private PRT_CLNT() {
-            }
-
-            public final void accept(final Track.SetModified message) {
-                setForeground(((Track) message.getSender()).isModified() ? Color.BLUE : Color.BLACK);
-            }
+        private void onSetModified(final Track track) {
+            setForeground(track.isModified() ? Color.BLUE : Color.BLACK);
         }
 
-        private class PRT_SEL_CLNT implements Consumer<Selection.Message<Track>> {
-            private PRT_SEL_CLNT() {
-            }
-
-            public final void accept(final Selection.Message<Track> message) {
-                setSelected(((Selection) message.getSender()).contains(getContext().getTrack()));
-            }
+        private void onSelection(final Selection.Message<Track> message) {
+            setSelected(message.getSender().contains(getContext().getTrack()));
         }
     }
 
@@ -146,16 +124,11 @@ public abstract class TrackControls {
     private class NAME_PANE extends XTextField {
         public NAME_PANE() {
             super(12);
-            getContext().getTrack().getRegister(Track.SetName.class).add(new CLIENT());
+            getContext().getTrack().addListener(Track.Event.SetName, this::onSetName);
         }
 
-        private class CLIENT implements Consumer<Track.SetName> {
-            private CLIENT() {
-            }
-
-            public final void accept(final Track.SetName message) {
-                setText(((Track) message.getSender()).getName());
-            }
+        private void onSetName(final Track track) {
+            setText(track.getName());
         }
     }
 
