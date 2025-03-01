@@ -8,9 +8,25 @@ import javax.swing.*;
 import java.awt.*;
 
 public abstract class ListRenderer extends DefaultListCellRenderer {
-    private static final String[] chnlType = new String[]{"NoteOff", "NoteOn", "PPress", "Control", "Program", "CPress", "PtchBnd"};
-    private static final String[] noteName = new String[]{"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "H"};
-    private static final String[] sysSpec = new String[]{"SysEx", "MTC/short", "Song Position", "Song Select", "SYS(4)", "SYS(5)", "Tune Request", "EOX", "Timing Clock", "SYS(9)", "Start", "Continue", "Stop", "SYS(D)", "Active Sensing", "META"};
+    private static final String[] chnlType = {"NoteOff", "NoteOn", "PPress", "Control", "Program", "CPress", "PtchBnd"};
+    private static final String[] noteName = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "H"};
+    private static final String[] sysSpec = {
+            "SysEx",
+            "MTC/short",
+            "Song Position",
+            "Song Select",
+            "SYS(4)",
+            "SYS(5)",
+            "Tune Request",
+            "EOX",
+            "Timing Clock",
+            "SYS(9)",
+            "Start",
+            "Continue",
+            "Stop",
+            "SYS(D)",
+            "Active Sensing",
+            "META"};
 
     public ListRenderer() {
     }

@@ -3,6 +3,7 @@ package de.team33.midi.impl;
 import de.team33.midi.Track;
 import de.team33.midi.proxy.SequenceProxy;
 import de.team33.midi.proxy.TrackProxy;
+import de.team33.midi.util.MidiMessageUtil;
 import de.team33.patterns.notes.eris.Audience;
 
 import javax.sound.midi.MidiEvent;
@@ -170,13 +171,10 @@ public class TrackBase implements Track {
     public final String getName() {
         synchronized (midiTrack) {
             return stream().map(MidiEvent::getMessage)
-                           .filter(midiMessage -> 255 == midiMessage.getStatus())
-                           .map(MidiMessage::getMessage)
-                           .filter(bytes -> 2 < bytes.length)
-                           .filter(bytes -> 3 == bytes[1])
-                           .filter(bytes -> bytes.length - 3 == bytes[2])
-                           .map(bytes -> new String(bytes, 3, bytes.length - 3, StandardCharsets.US_ASCII))
-                           .findAny().orElse(NO_NAME);
+                           .filter(MidiMessageUtil::isTrackName)
+                           .map(MidiMessageUtil::trackName)
+                           .findAny()
+                           .orElse(NO_NAME);
         }
     }
 
