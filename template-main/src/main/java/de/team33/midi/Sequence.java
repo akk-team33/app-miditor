@@ -1,17 +1,17 @@
 package de.team33.midi;
 
+import de.team33.midi.proxy.SequencerProxy;
 import de.team33.miditor.IClickParameter;
 import de.team33.patterns.notes.eris.Channel;
 
 import javax.sound.midi.InvalidMidiDataException;
-import javax.sound.midi.Sequencer;
 import java.io.File;
 import java.io.IOException;
 import java.util.function.Consumer;
 
 public interface Sequence {
 
-    void associate(Sequencer sequencer) throws InvalidMidiDataException;
+    void associate(SequencerProxy sequencer) throws InvalidMidiDataException;
 
     Track create();
 

@@ -1,6 +1,8 @@
 package de.team33.midi.impl;
 
 import de.team33.midi.Track;
+import de.team33.midi.proxy.SequenceProxy;
+import de.team33.midi.proxy.TrackProxy;
 import de.team33.patterns.notes.eris.Audience;
 
 import javax.sound.midi.MidiEvent;
@@ -25,13 +27,13 @@ public class TrackBase implements Track {
             Set.of(Route.SetChannels, Route.SetEvents, Route.SetModified, Route.SetName);
 
     private final Audience audience = new Audience();
-    private final javax.sound.midi.Sequence midiSequence;
-    private final javax.sound.midi.Track midiTrack;
+    private final SequenceProxy midiSequence;
+    private final TrackProxy midiTrack;
     private int[] channels = new int[0];
     private String name = "";
     private boolean modified = false;
 
-    public TrackBase(final javax.sound.midi.Sequence s, final javax.sound.midi.Track t) {
+    public TrackBase(final SequenceProxy s, final TrackProxy t) {
         midiSequence = s;
         midiTrack = t;
         addListener(Route.SetEvents, this::onSetEvents);
@@ -147,11 +149,7 @@ public class TrackBase implements Track {
     }
 
     final int getIndex() {
-        final javax.sound.midi.Track[] t = midiSequence.getTracks();
-        return IntStream.range(0, t.length)
-                        .filter(index -> t[index] == midiTrack)
-                        .findAny()
-                        .orElse(-1);
+        return midiSequence.getTracks().indexOf(midiTrack);
     }
 
     @Override
@@ -165,7 +163,7 @@ public class TrackBase implements Track {
     }
 
     @SuppressWarnings("DesignForExtension")
-    protected javax.sound.midi.Track getMidiTrack() {
+    protected TrackProxy getMidiTrack() {
         return midiTrack;
     }
 

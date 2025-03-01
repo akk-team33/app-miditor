@@ -2,10 +2,10 @@ package de.team33.midi.impl;
 
 import de.team33.midi.TimeCode;
 import de.team33.midi.Timing;
+import de.team33.midi.proxy.SequenceProxy;
 
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.MidiMessage;
-import javax.sound.midi.Sequence;
 
 public abstract class TimingBase implements Timing {
     private int m_BeatUnit = 4;
@@ -35,7 +35,7 @@ public abstract class TimingBase implements Timing {
         return this.m_BeatUnit;
     }
 
-    protected abstract Sequence getSequence();
+    protected abstract SequenceProxy getSequence();
 
     public int getSubBeatTicks() {
         return this.getSequence().getResolution() * 4 / this.getSubBeatUnit();

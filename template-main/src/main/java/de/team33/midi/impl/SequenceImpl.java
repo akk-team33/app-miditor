@@ -3,6 +3,9 @@ package de.team33.midi.impl;
 import de.team33.midi.Sequence;
 import de.team33.midi.Timing;
 import de.team33.midi.Track;
+import de.team33.midi.proxy.SequenceProxy;
+import de.team33.midi.proxy.SequencerProxy;
+import de.team33.midi.proxy.TrackProxy;
 import de.team33.midi.util.TrackUtil;
 import de.team33.miditor.IClickParameter;
 import de.team33.patterns.notes.eris.Audience;
@@ -12,7 +15,6 @@ import javax.sound.midi.MetaMessage;
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.MidiMessage;
 import javax.sound.midi.MidiSystem;
-import javax.sound.midi.Sequencer;
 import javax.sound.midi.ShortMessage;
 import java.io.File;
 import java.io.IOException;
@@ -33,23 +35,23 @@ public class SequenceImpl implements Sequence {
 
     private final Audience audience = new Audience();
     private final PART_MAP m_PartMap = new PART_MAP();
-    private final javax.sound.midi.Sequence m_Sequence;
+    private final SequenceProxy midiSequence;
     protected int m_nSelectedTracks;
     private boolean m_isSessionFile = false;
     private boolean m_Modified = false;
-    private TrackBase[] m_Parts = null;
+    private TrackBase[] midiTracks = null;
     private File m_File;
     private Timing m_Timing;
 
     public SequenceImpl(final File file) throws InvalidMidiDataException, IOException {
         m_File = initialFile(file);
-        m_Sequence = initialSequence(m_File);
-        final javax.sound.midi.Track[] var5;
-        final int var4 = (var5 = m_Sequence.getTracks()).length;
+        midiSequence = initialSequence(m_File);
+        final List<TrackProxy> midiTracks = midiSequence.getTracks();
+        final int size = midiTracks.size();
 
-        for (int var3 = 0; var3 < var4; ++var3) {
-            final javax.sound.midi.Track tRaw = var5[var3];
-            m_PartMap.put(tRaw, new TrackBase(m_Sequence, tRaw));
+        for (int index = 0; index < size; ++index) {
+            final TrackProxy tRaw = midiTracks.get(index);
+            m_PartMap.put(tRaw, new TrackBase(midiSequence, tRaw));
         }
 
         if (0 < getTracks().length) {
@@ -57,7 +59,6 @@ public class SequenceImpl implements Sequence {
         } else {
             m_Timing = new TIMING(null);
         }
-
     }
 
     @Override
@@ -66,16 +67,20 @@ public class SequenceImpl implements Sequence {
         listener.accept(this);
     }
 
-    private static void _save(final javax.sound.midi.Sequence s, final File file, final boolean doBackup) throws IOException {
+    private static void _save(final SequenceProxy sequence,
+                              final File file,
+                              final boolean doBackup) throws IOException {
         if (doBackup && file.exists()) {
             backup(file);
         }
-        final int mode = 1 < s.getTracks().length ? 1 : 0;
-        MidiSystem.write(s, mode, file);
+        sequence.write(file.toPath());
     }
 
     private static void backup(final File file) throws IOException {
-        final String fmt = file.getPath().replaceAll(Pattern.quote("%"), Matcher.quoteReplacement("%%")).replaceAll("([.][^.]*)$", ".%03d$1");
+        final String fmt = file.getPath()
+                               .replaceAll(Pattern.quote("%"),
+                                           Matcher.quoteReplacement("%%"))
+                               .replaceAll("([.][^.]*)$", ".%03d$1");
         int i = 0;
 
         File fBak;
@@ -130,34 +135,35 @@ public class SequenceImpl implements Sequence {
         }
     }
 
-    private static javax.sound.midi.Sequence initialSequence(final File file) throws InvalidMidiDataException, IOException {
-        return MidiSystem.getSequence(file);
+    private static SequenceProxy initialSequence(final File file) throws InvalidMidiDataException, IOException {
+        return new SequenceProxy(MidiSystem.getSequence(file));
     }
 
     private void _save_and_relay(final Set<Event> events) throws IOException {
-        _save(m_Sequence, m_File, !m_isSessionFile);
+        _save(midiSequence, m_File, !m_isSessionFile);
         m_isSessionFile = true;
         core_setModified(false, events);
         events.forEach(event -> audience.send(event, this));
     }
 
-    public final void associate(final Sequencer sequencer) throws InvalidMidiDataException {
-        sequencer.setSequence(m_Sequence);
+    @Override
+    public final void associate(final SequencerProxy sequencer) throws InvalidMidiDataException {
+        sequencer.setSequence(midiSequence);
     }
 
     private void core_clear(final Set<Event> events) {
-        if (null != m_Parts) {
-            m_Parts = null;
+        if (null != midiTracks) {
+            midiTracks = null;
             events.add(Event.SetParts);
             core_setModified(true, events);
         }
     }
 
     private Track core_create(final Set<Event> events) {
-        final javax.sound.midi.Track rawTrack = m_Sequence.createTrack();
+        final TrackProxy rawTrack = midiSequence.createTrack();
         if (null != rawTrack) {
             core_clear(events);
-            m_PartMap.put(rawTrack, new TrackBase(m_Sequence, rawTrack));
+            m_PartMap.put(rawTrack, new TrackBase(midiSequence, rawTrack));
         }
 
         return m_PartMap.get(rawTrack);
@@ -166,9 +172,9 @@ public class SequenceImpl implements Sequence {
     private boolean core_delete(final Track p, final Set<Event> events) {
         boolean ret = false;
         if (p instanceof TrackBase) {
-            final javax.sound.midi.Track tRaw = ((TrackBase) p).getMidiTrack();
+            final TrackProxy tRaw = ((TrackBase) p).getMidiTrack();
             if (m_PartMap.containsKey(tRaw)) {
-                ret = m_Sequence.deleteTrack(tRaw);
+                ret = midiSequence.deleteTrack(tRaw);
                 if (ret) {
                     core_clear(events);
                     m_PartMap.remove(tRaw);
@@ -200,6 +206,7 @@ public class SequenceImpl implements Sequence {
         }
     }
 
+    @Override
     public final Track create() {
         final Set<Event> events = EnumSet.noneOf(Event.class);
         final Track ret = core_create(events);
@@ -207,6 +214,7 @@ public class SequenceImpl implements Sequence {
         return ret;
     }
 
+    @Override
     public final Track create(final IClickParameter cp) {
         final Set<Event> events = EnumSet.noneOf(Event.class);
         final Track ret = core_create(events);
@@ -239,6 +247,7 @@ public class SequenceImpl implements Sequence {
         return ret;
     }
 
+    @Override
     public final void delete(final Iterable<Track> tracks) {
         final Set<Event> events = EnumSet.noneOf(Event.class);
         for (final Track p : tracks) {
@@ -247,6 +256,7 @@ public class SequenceImpl implements Sequence {
         events.forEach(event -> audience.send(event, this));
     }
 
+    @Override
     public final boolean delete(final Track track) {
         final Set<Event> events = EnumSet.noneOf(Event.class);
         final boolean ret = core_delete(track, events);
@@ -254,23 +264,26 @@ public class SequenceImpl implements Sequence {
         return ret;
     }
 
+    @Override
     public final File getFile() {
         return m_File;
     }
 
+    @Override
     public final Track[] getTracks() {
-        if (null == m_Parts) {
-            final javax.sound.midi.Track[] rawTracks = m_Sequence.getTracks();
-            m_Parts = new TrackBase[rawTracks.length];
+        if (null == midiTracks) {
+            final List<TrackProxy> rawTracks = midiSequence.getTracks();
+            this.midiTracks = new TrackBase[rawTracks.size()];
 
-            for (int i = 0; i < rawTracks.length; ++i) {
-                m_Parts[i] = m_PartMap.get(rawTracks[i]);
-                m_Parts[i].addListener(Track.Route.SetModified, this::onSetModified);
+            for (int i = 0; i < rawTracks.size(); ++i) {
+                midiTracks[i] = m_PartMap.get(rawTracks.get(i));
+                midiTracks[i].addListener(Track.Route.SetModified, this::onSetModified);
             }
         }
-        return m_Parts;
+        return midiTracks;
     }
 
+    @Override
     public final int getTempo() {
         if (0 < getTracks().length) {
             final MidiEvent evnt = getTempoEvent(getTracks()[0], 0L);
@@ -290,6 +303,7 @@ public class SequenceImpl implements Sequence {
         return 0;
     }
 
+    @Override
     public final void setTempo(final int tempo) {
         final Track p0;
         if (0 < getTracks().length) {
@@ -323,18 +337,22 @@ public class SequenceImpl implements Sequence {
         }
     }
 
+    @Override
     public final long getTickLength() {
-        return m_Sequence.getTickLength();
+        return midiSequence.getTickLength();
     }
 
+    @Override
     public final Timing getTiming() {
         return m_Timing;
     }
 
+    @Override
     public final boolean isModified() {
         return m_Modified;
     }
 
+    @Override
     public final void join(final Iterable<Track> tracks) {
         final Set<Event> events = EnumSet.noneOf(Event.class);
         final Track newTrack = core_create(events);
@@ -345,10 +363,12 @@ public class SequenceImpl implements Sequence {
         events.forEach(event -> audience.send(event, this));
     }
 
+    @Override
     public final void save() throws IOException {
         _save_and_relay(new HashSet());
     }
 
+    @Override
     public final void save_as(File file) throws IOException {
         final Set<Event> events = EnumSet.noneOf(Event.class);
         file = initialFile(file);
@@ -359,6 +379,7 @@ public class SequenceImpl implements Sequence {
         _save_and_relay(events);
     }
 
+    @Override
     public final void split(final Track track) {
         final Set<Event> events = EnumSet.noneOf(Event.class);
         final Map<Integer, List<MidiEvent>> extract = track.extractChannels();
@@ -381,7 +402,7 @@ public class SequenceImpl implements Sequence {
         }
     }
 
-    private static class PART_MAP extends HashMap<javax.sound.midi.Track, TrackBase> {
+    private static class PART_MAP extends HashMap<TrackProxy, TrackBase> {
     }
 
     public final void onSetModified(final Track track) {
@@ -397,8 +418,9 @@ public class SequenceImpl implements Sequence {
             super(timing);
         }
 
-        protected final javax.sound.midi.Sequence getSequence() {
-            return m_Sequence;
+        @Override
+        protected final SequenceProxy getSequence() {
+            return midiSequence;
         }
     }
 }

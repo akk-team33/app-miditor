@@ -1,15 +1,17 @@
 package de.team33.midi.impl;
 
+import de.team33.midi.proxy.SequenceProxy;
+import de.team33.midi.proxy.SequencerProxy;
 import de.team33.midi.util.ClassUtil;
 import de.team33.midi.Player;
 import de.team33.midi.Sequence;
 import de.team33.midi.Timing;
 import de.team33.patterns.notes.eris.Audience;
 
+import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
-import javax.sound.midi.Sequencer;
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.Timer;
@@ -23,13 +25,13 @@ public class PlayerImpl implements Player {
     private static final Mode[] EMPTY_MODES = new Mode[0];
 
     private final Sequence sequence;
-    private final Sequencer sequencer;
+    private final SequencerProxy sequencer;
     private final Audience audience = new Audience();
     private MidiDevice outputDevice;
     private Player.Mode[] modes;
 
     public PlayerImpl(final Sequence sequence) throws MidiUnavailableException {
-        sequencer = MidiSystem.getSequencer(false);
+        this.sequencer = new SequencerProxy(MidiSystem.getSequencer(false));
         this.sequence = sequence;
         this.sequence.addListener(Sequence.Event.SetParts, this::onSetParts);
         audience.add(Event.SetState, new STARTER());
@@ -80,9 +82,9 @@ public class PlayerImpl implements Player {
 
     private Player.Mode[] core_Modes() {
         if (null == modes) {
-            final javax.sound.midi.Sequence seq = sequencer.getSequence();
+            final SequenceProxy seq = sequencer.getSequence();
             if (null != seq) {
-                final int length = seq.getTracks().length;
+                final int length = seq.getTracks().size();
                 int nNormal = 0;
                 int iNormal = -1;
                 modes = new Player.Mode[length];
@@ -118,11 +120,10 @@ public class PlayerImpl implements Player {
                 sequencer.open();
                 events.add(Event.SetState);
                 events.add(Event.SetTempo);
-            } catch (final Exception e) {
+            } catch (final MidiUnavailableException | InvalidMidiDataException e) {
                 Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), e);
             }
         }
-
     }
 
     private void core_setTickPosition(final long ticks, final Set<? super Event> events) {

@@ -1,10 +1,13 @@
 package de.team33.midi.proxy;
 
 import javax.sound.midi.InvalidMidiDataException;
+import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Patch;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Sequencer;
 import javax.sound.midi.Track;
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -76,5 +79,10 @@ public class SequenceProxy {
     final SequenceProxy setSequencer(final Sequencer sequencer) throws InvalidMidiDataException {
         sequencer.setSequence(backing);
         return this;
+    }
+
+    public final void write(final Path path) throws IOException {
+        final int type = (1 < backing.getTracks().length) ? 1 : 0;
+        MidiSystem.write(backing, type, path.toFile());
     }
 }
