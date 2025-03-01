@@ -13,75 +13,79 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Consumer;
+import java.util.stream.IntStream;
 
-public abstract class TrackBase implements Track {
+public class TrackBase implements Track {
 
     private static final String FMT_PREFIX =
             "Track %02d";
     private static final String NO_NAME =
-            "- Kein Name -";
-    private static final Set<Event> INITIAL_EVENTS =
-            Set.of(Event.SetChannels, Event.SetEvents, Event.SetModified, Event.SetName);
+            "- No Name -";
+    private static final Set<Route> INITIAL_ROUTES =
+            Set.of(Route.SetChannels, Route.SetEvents, Route.SetModified, Route.SetName);
 
     private final Audience audience = new Audience();
+    private final javax.sound.midi.Sequence midiSequence;
     private final javax.sound.midi.Track midiTrack;
     private int[] channels = new int[0];
     private String name = "";
     private boolean modified = false;
 
-    public TrackBase(final javax.sound.midi.Track t) {
+    public TrackBase(final javax.sound.midi.Sequence s, final javax.sound.midi.Track t) {
+        midiSequence = s;
         midiTrack = t;
-        addListener(Event.SetEvents, this::onSetEvents);
+        addListener(Route.SetEvents, this::onSetEvents);
     }
 
     @Override
-    public final void addListener(final Event event, final Consumer<? super Track> listener) {
-        audience.add(event, listener);
-        if (INITIAL_EVENTS.contains(event)) {
+    public final void addListener(final Route route, final Consumer<? super Track> listener) {
+        audience.add(route, listener);
+        if (INITIAL_ROUTES.contains(route)) {
             listener.accept(this);
         }
     }
 
+    @Override
     public final void add(final MidiEvent... midiEvents) {
         synchronized (midiTrack) {
-            final Set<Event> events = EnumSet.noneOf(Event.class);
+            final Set<Route> routes = EnumSet.noneOf(Route.class);
             final int length = midiEvents.length;
             for (final MidiEvent midiEvent : midiEvents) {
-                core_add(midiEvent, events);
+                core_add(midiEvent, routes);
             }
 
-            relay(events);
+            relay(routes);
         }
     }
 
-    private boolean core_add(final MidiEvent midiEvent, final Set<Event> events) {
+    private boolean core_add(final MidiEvent midiEvent, final Set<Route> routes) {
         if (midiTrack.add(midiEvent)) {
-            core_clear(events);
+            core_clear(routes);
             return true;
         } else {
             return false;
         }
     }
 
-    private void core_clear(final Set<Event> events) {
-        core_modify(true, events);
-        events.add(Event.SetEvents);
+    private void core_clear(final Set<Route> routes) {
+        core_modify(true, routes);
+        routes.add(Route.SetEvents);
     }
 
-    private void core_modify(final boolean isModified, final Set<? super Event> events) {
+    private void core_modify(final boolean isModified, final Set<? super Route> events) {
         if (modified != isModified) {
             modified = isModified;
-            events.add(Event.SetModified);
+            events.add(Route.SetModified);
         }
     }
 
-    private void core_remove(final MidiEvent midiEvent, final Set<Event> events) {
+    private void core_remove(final MidiEvent midiEvent, final Set<Route> routes) {
         if (midiTrack.remove(midiEvent)) {
-            core_clear(events);
+            core_clear(routes);
         }
     }
 
-    private void core_shift(final MidiEvent oldMidiEvent, final long delta, final Set<Event> events) {
+    private void core_shift(final MidiEvent oldMidiEvent, final long delta, final Set<Route> routes) {
         final long oldTime = oldMidiEvent.getTick();
         long newTime = oldTime + delta;
         if (0L > newTime) {
@@ -90,14 +94,15 @@ public abstract class TrackBase implements Track {
 
         if (newTime != oldTime) {
             final MidiEvent newEvent = new MidiEvent(oldMidiEvent.getMessage(), newTime);
-            core_remove(oldMidiEvent, events);
-            core_add(newEvent, events);
+            core_remove(oldMidiEvent, routes);
+            core_add(newEvent, routes);
         }
     }
 
+    @Override
     public final Map<Integer, List<MidiEvent>> extractChannels() {
         synchronized (midiTrack) {
-            final Set<Event> events = EnumSet.noneOf(Event.class);
+            final Set<Route> routes = EnumSet.noneOf(Route.class);
             final Map<Integer, List<MidiEvent>> result = new TreeMap<>();
 
             for (final MidiEvent midiEvent : getAll()) {
@@ -107,21 +112,23 @@ public abstract class TrackBase implements Track {
                     final int channel = status & 15;
                     result.computeIfAbsent(channel, key -> new ArrayList<>(0))
                           .add(midiEvent);
-                    core_remove(midiEvent, events);
+                    core_remove(midiEvent, routes);
                 }
             }
 
-            relay(events);
+            relay(routes);
             return result;
         }
     }
 
+    @Override
     public final MidiEvent get(final int index) {
         synchronized (midiTrack) {
             return midiTrack.get(index);
         }
     }
 
+    @Override
     public final MidiEvent[] getAll() {
         synchronized (midiTrack) {
             final MidiEvent[] ret = new MidiEvent[size()];
@@ -134,18 +141,27 @@ public abstract class TrackBase implements Track {
         }
     }
 
+    @Override
     public final int[] getChannels() {
         return channels.clone();
     }
 
-    protected abstract int getIndex();
+    final int getIndex() {
+        final javax.sound.midi.Track[] t = midiSequence.getTracks();
+        return IntStream.range(0, t.length)
+                        .filter(index -> t[index] == midiTrack)
+                        .findAny()
+                        .orElse(-1);
+    }
 
+    @Override
     public final String getName() {
         return name;
     }
 
+    @Override
     public final String getPrefix() {
-        return String.format("Track %02d", getIndex());
+        return String.format(FMT_PREFIX, getIndex());
     }
 
     @SuppressWarnings("DesignForExtension")
@@ -153,39 +169,43 @@ public abstract class TrackBase implements Track {
         return midiTrack;
     }
 
+    @Override
     public final boolean isModified() {
         return modified;
     }
 
     @SuppressWarnings("DesignForExtension")
     protected void setModified(final boolean isModified) {
-        final Set<Event> events = EnumSet.noneOf(Event.class);
-        core_modify(isModified, events);
-        relay(events);
+        final Set<Route> routes = EnumSet.noneOf(Route.class);
+        core_modify(isModified, routes);
+        relay(routes);
     }
 
-    private void relay(final Set<Event> events) {
-        events.forEach(event -> audience.send(event, this));
+    private void relay(final Set<Route> routes) {
+        routes.forEach(event -> audience.send(event, this));
     }
 
+    @Override
     public final void remove(final MidiEvent... midiEvents) {
         synchronized (midiTrack) {
-            final Set<Event> events = EnumSet.noneOf(Event.class);
+            final Set<Route> routes = EnumSet.noneOf(Route.class);
             Arrays.stream(midiEvents)
-                  .forEach(event -> core_remove(event, events));
-            relay(events);
+                  .forEach(event -> core_remove(event, routes));
+            relay(routes);
         }
     }
 
+    @Override
     public final void shift(final long delta) {
         synchronized (midiTrack) {
-            final Set<Event> messages = EnumSet.noneOf(Event.class);
+            final Set<Route> messages = EnumSet.noneOf(Route.class);
             Arrays.stream(getAll())
                   .forEach(event -> core_shift(event, delta, messages));
             relay(messages);
         }
     }
 
+    @Override
     public final int size() {
         synchronized (midiTrack) {
             return midiTrack.size();
@@ -194,8 +214,8 @@ public abstract class TrackBase implements Track {
 
     private void onSetEvents(final Track track) {
         synchronized (midiTrack) {
-            final Set<Event> events = EnumSet.noneOf(Event.class);
-            String newName = "- Kein Name -";
+            final Set<Route> routes = EnumSet.noneOf(Route.class);
+            String newName = NO_NAME;
             int nChannels = 0;
             final int[] nPerChannel = new int[16];
             int i = 0;
@@ -210,7 +230,7 @@ public abstract class TrackBase implements Track {
                     if (1 == ++nPerChannel[channel]) {
                         ++nChannels;
                     }
-                } else if ("- Kein Name -" == newName && 255 == status) {
+                } else if (NO_NAME == newName && 255 == status) {
                     final byte[] b = mssg.getMessage();
                     if (2 < b.length && 3 == b[1] && b[2] == b.length - 3) {
                         newName = new String(b, 3, b.length - 3);
@@ -229,15 +249,15 @@ public abstract class TrackBase implements Track {
 
             if (!newName.equals(name)) {
                 name = newName;
-                events.add(Event.SetName);
+                routes.add(Route.SetName);
             }
 
             if (!Arrays.equals(newChannels, channels)) {
                 channels = newChannels;
-                events.add(Event.SetChannels);
+                routes.add(Route.SetChannels);
             }
 
-            relay(events);
+            relay(routes);
         }
     }
 }

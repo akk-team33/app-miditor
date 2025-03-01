@@ -37,7 +37,7 @@ public class SequenceImpl implements Sequence {
     protected int m_nSelectedTracks;
     private boolean m_isSessionFile = false;
     private boolean m_Modified = false;
-    private PART[] m_Parts = null;
+    private TrackBase[] m_Parts = null;
     private File m_File;
     private Timing m_Timing;
 
@@ -49,7 +49,7 @@ public class SequenceImpl implements Sequence {
 
         for (int var3 = 0; var3 < var4; ++var3) {
             final javax.sound.midi.Track tRaw = var5[var3];
-            m_PartMap.put(tRaw, new PART(tRaw));
+            m_PartMap.put(tRaw, new TrackBase(m_Sequence, tRaw));
         }
 
         if (0 < getTracks().length) {
@@ -157,7 +157,7 @@ public class SequenceImpl implements Sequence {
         final javax.sound.midi.Track rawTrack = m_Sequence.createTrack();
         if (null != rawTrack) {
             core_clear(events);
-            m_PartMap.put(rawTrack, new PART(rawTrack));
+            m_PartMap.put(rawTrack, new TrackBase(m_Sequence, rawTrack));
         }
 
         return m_PartMap.get(rawTrack);
@@ -165,8 +165,8 @@ public class SequenceImpl implements Sequence {
 
     private boolean core_delete(final Track p, final Set<Event> events) {
         boolean ret = false;
-        if (p instanceof PART) {
-            final javax.sound.midi.Track tRaw = ((PART) p).getMidiTrack();
+        if (p instanceof TrackBase) {
+            final javax.sound.midi.Track tRaw = ((TrackBase) p).getMidiTrack();
             if (m_PartMap.containsKey(tRaw)) {
                 ret = m_Sequence.deleteTrack(tRaw);
                 if (ret) {
@@ -192,7 +192,7 @@ public class SequenceImpl implements Sequence {
         if (m_Modified != b) {
             m_Modified = b;
             if (!m_Modified) {
-                for (final PART part : m_PartMap.values()) {
+                for (final TrackBase part : m_PartMap.values()) {
                     part.setModified(false);
                 }
             }
@@ -261,11 +261,11 @@ public class SequenceImpl implements Sequence {
     public final Track[] getTracks() {
         if (null == m_Parts) {
             final javax.sound.midi.Track[] rawTracks = m_Sequence.getTracks();
-            m_Parts = new PART[rawTracks.length];
+            m_Parts = new TrackBase[rawTracks.length];
 
             for (int i = 0; i < rawTracks.length; ++i) {
                 m_Parts[i] = m_PartMap.get(rawTracks[i]);
-                m_Parts[i].addListener(Track.Event.SetModified, this::onSetModified);
+                m_Parts[i].addListener(Track.Route.SetModified, this::onSetModified);
             }
         }
         return m_Parts;
@@ -381,35 +381,7 @@ public class SequenceImpl implements Sequence {
         }
     }
 
-    private static class PART_MAP extends HashMap<javax.sound.midi.Track, PART> {
-        private PART_MAP() {
-        }
-    }
-
-    private class PART extends TrackBase {
-        public PART(final javax.sound.midi.Track t) {
-            super(t);
-        }
-
-        public final int getIndex() {
-            final javax.sound.midi.Track[] t = m_Sequence.getTracks();
-
-            for (int i = 0; i < t.length; ++i) {
-                if (this == m_PartMap.get(t[i])) {
-                    return i;
-                }
-            }
-
-            return -1;
-        }
-
-        protected final javax.sound.midi.Track getMidiTrack() {
-            return super.getMidiTrack();
-        }
-
-        protected final void setModified(final boolean isModified) {
-            super.setModified(isModified);
-        }
+    private static class PART_MAP extends HashMap<javax.sound.midi.Track, TrackBase> {
     }
 
     public final void onSetModified(final Track track) {

@@ -33,7 +33,7 @@ public abstract class EventListModel extends AbstractListModel {
             if (track == null) {
                 _fireContentsChanged();
             } else {
-                m_Track.addListener(Track.Event.SetEvents, this::onSetEvents);
+                m_Track.addListener(Track.Route.SetEvents, this::onSetEvents);
             }
         }
     }

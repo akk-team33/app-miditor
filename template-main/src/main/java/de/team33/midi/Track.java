@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 public interface Track {
+
     void add(MidiEvent... var1);
 
     Map<Integer, List<MidiEvent>> extractChannels();
@@ -30,9 +31,9 @@ public interface Track {
 
     int size();
 
-    void addListener(Event event, Consumer<? super Track> listener);
+    void addListener(Route route, Consumer<? super Track> listener);
 
-    enum Event implements Channel<Track> {
+    enum Route implements Channel<Track> {
         // TODO?: Released,
         SetChannels,
         SetEvents,

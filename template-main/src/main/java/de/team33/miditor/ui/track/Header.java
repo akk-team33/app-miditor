@@ -23,6 +23,6 @@ public class Header extends JLabel {
 
     private void onSetTrack(final UIController controller) {
         Optional.ofNullable(controller.getTrack())
-                .ifPresent(track -> track.addListener(Track.Event.SetName, this::onSetName));
+                .ifPresent(track -> track.addListener(Track.Route.SetName, this::onSetName));
     }
 }

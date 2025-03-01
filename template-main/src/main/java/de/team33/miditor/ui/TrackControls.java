@@ -11,7 +11,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.Set;
-import java.util.function.Consumer;
 
 public abstract class TrackControls {
 
@@ -36,7 +35,7 @@ public abstract class TrackControls {
     private class CHANNEL_PANE extends JPanel {
         CHANNEL_PANE() {
             super(new BorderLayout());
-            getContext().getTrack().addListener(Track.Event.SetChannels, this::onSetChannels);
+            getContext().getTrack().addListener(Track.Route.SetChannels, this::onSetChannels);
         }
 
         private void onSetChannels(final Track track) {
@@ -69,7 +68,7 @@ public abstract class TrackControls {
     private class INDEX_PANE extends JCheckBox {
         public INDEX_PANE() {
             super(getContext().getTrack().getPrefix());
-            getContext().getTrack().addListener(Track.Event.SetModified, this::onSetModified);
+            getContext().getTrack().addListener(Track.Route.SetModified, this::onSetModified);
             getContext().getSelection().addListener(Selection.Event.UPDATE, this::onSelection);
             addActionListener(this::onAction);
         }
@@ -125,7 +124,7 @@ public abstract class TrackControls {
     private class NAME_PANE extends XTextField {
         public NAME_PANE() {
             super(12);
-            getContext().getTrack().addListener(Track.Event.SetName, this::onSetName);
+            getContext().getTrack().addListener(Track.Route.SetName, this::onSetName);
         }
 
         private void onSetName(final Track track) {
