@@ -17,12 +17,12 @@ public class Header extends JLabel {
         uiController.addListener(UIController.Event.SetTrack, this::onSetTrack);
     }
 
-    private void onSetName(final Track track) {
+    private void onSetEvents(final Track track) {
         setText(String.format("%s - %s", track.getPrefix(), track.getName()));
     }
 
     private void onSetTrack(final UIController controller) {
         Optional.ofNullable(controller.getTrack())
-                .ifPresent(track -> track.addListener(Track.Route.SetName, this::onSetName));
+                .ifPresent(track -> track.addListener(Track.Route.SetEvents, this::onSetEvents));
     }
 }

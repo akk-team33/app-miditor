@@ -7,6 +7,7 @@ import de.team33.patterns.notes.eris.Audience;
 
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.MidiMessage;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
@@ -16,6 +17,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class TrackBase implements Track {
 
@@ -24,19 +26,19 @@ public class TrackBase implements Track {
     private static final String NO_NAME =
             "- No Name -";
     private static final Set<Route> INITIAL_ROUTES =
-            Set.of(Route.SetChannels, Route.SetEvents, Route.SetModified, Route.SetName);
+            Set.of(Route.SetEvents, Route.SetModified);
+    private static final int CMS_MIN = 128;
+    private static final int CMS_BOUND = 240;
+    private static final int CHANNEL_BITS = 15;
 
     private final Audience audience = new Audience();
     private final SequenceProxy midiSequence;
     private final TrackProxy midiTrack;
-    private int[] channels = new int[0];
-    private String name = "";
     private boolean modified = false;
 
-    public TrackBase(final SequenceProxy s, final TrackProxy t) {
-        midiSequence = s;
-        midiTrack = t;
-        addListener(Route.SetEvents, this::onSetEvents);
+    TrackBase(final SequenceProxy midiSequence, final TrackProxy midiTrack) {
+        this.midiSequence = midiSequence;
+        this.midiTrack = midiTrack;
     }
 
     @Override
@@ -51,25 +53,20 @@ public class TrackBase implements Track {
     public final void add(final MidiEvent... midiEvents) {
         synchronized (midiTrack) {
             final Set<Route> routes = EnumSet.noneOf(Route.class);
-            final int length = midiEvents.length;
             for (final MidiEvent midiEvent : midiEvents) {
                 core_add(midiEvent, routes);
             }
-
             relay(routes);
         }
     }
 
-    private boolean core_add(final MidiEvent midiEvent, final Set<Route> routes) {
+    private void core_add(final MidiEvent midiEvent, final Set<? super Route> routes) {
         if (midiTrack.add(midiEvent)) {
             core_clear(routes);
-            return true;
-        } else {
-            return false;
         }
     }
 
-    private void core_clear(final Set<Route> routes) {
+    private void core_clear(final Set<? super Route> routes) {
         core_modify(true, routes);
         routes.add(Route.SetEvents);
     }
@@ -81,13 +78,13 @@ public class TrackBase implements Track {
         }
     }
 
-    private void core_remove(final MidiEvent midiEvent, final Set<Route> routes) {
+    private void core_remove(final MidiEvent midiEvent, final Set<? super Route> routes) {
         if (midiTrack.remove(midiEvent)) {
             core_clear(routes);
         }
     }
 
-    private void core_shift(final MidiEvent oldMidiEvent, final long delta, final Set<Route> routes) {
+    private void core_shift(final MidiEvent oldMidiEvent, final long delta, final Set<? super Route> routes) {
         final long oldTime = oldMidiEvent.getTick();
         long newTime = oldTime + delta;
         if (0L > newTime) {
@@ -104,14 +101,15 @@ public class TrackBase implements Track {
     @Override
     public final Map<Integer, List<MidiEvent>> extractChannels() {
         synchronized (midiTrack) {
+            // TODO: stream().collect(Collectors.groupingBy(event -> event))
             final Set<Route> routes = EnumSet.noneOf(Route.class);
             final Map<Integer, List<MidiEvent>> result = new TreeMap<>();
 
             for (final MidiEvent midiEvent : getAll()) {
                 final MidiMessage midiMessage = midiEvent.getMessage();
                 final int status = midiMessage.getStatus();
-                if (128 <= status && 240 > status) {
-                    final int channel = status & 15;
+                if (CMS_MIN <= status && CMS_BOUND > status) {
+                    final int channel = status & CHANNEL_BITS;
                     result.computeIfAbsent(channel, key -> new ArrayList<>(0))
                           .add(midiEvent);
                     core_remove(midiEvent, routes);
@@ -130,31 +128,56 @@ public class TrackBase implements Track {
         }
     }
 
+    @Deprecated
     @Override
     public final MidiEvent[] getAll() {
         synchronized (midiTrack) {
-            final MidiEvent[] ret = new MidiEvent[size()];
-
-            for (int i = 0; i < ret.length; ++i) {
-                ret[i] = midiTrack.get(i);
-            }
-
-            return ret;
+            return stream().toArray(MidiEvent[]::new);
         }
     }
 
     @Override
-    public final int[] getChannels() {
-        return channels.clone();
+    public final List<MidiEvent> toList() {
+        synchronized (midiTrack) {
+            return stream().toList();
+        }
     }
 
-    final int getIndex() {
+    private Stream<MidiEvent> stream() {
+        return IntStream.range(0, midiTrack.size())
+                        .mapToObj(midiTrack::get);
+    }
+
+    @Override
+    public final int[] getChannels() {
+        synchronized (midiTrack) {
+            return stream().map(MidiEvent::getMessage)
+                           .mapToInt(MidiMessage::getStatus)
+                           .filter(status -> CMS_MIN <= status)
+                           .filter(status -> CMS_BOUND > status)
+                           .map(status -> status & CHANNEL_BITS)
+                           .distinct()
+                           //TODO?: .sorted()
+                           .toArray();
+        }
+    }
+
+    private int getIndex() {
         return midiSequence.getTracks().indexOf(midiTrack);
     }
 
     @Override
     public final String getName() {
-        return name;
+        synchronized (midiTrack) {
+            return stream().map(MidiEvent::getMessage)
+                           .filter(midiMessage -> 255 == midiMessage.getStatus())
+                           .map(MidiMessage::getMessage)
+                           .filter(bytes -> 2 < bytes.length)
+                           .filter(bytes -> 3 == bytes[1])
+                           .filter(bytes -> bytes.length - 3 == bytes[2])
+                           .map(bytes -> new String(bytes, 3, bytes.length - 3, StandardCharsets.US_ASCII))
+                           .findAny().orElse(NO_NAME);
+        }
     }
 
     @Override
@@ -162,8 +185,7 @@ public class TrackBase implements Track {
         return String.format(FMT_PREFIX, getIndex());
     }
 
-    @SuppressWarnings("DesignForExtension")
-    protected TrackProxy getMidiTrack() {
+    final TrackProxy getMidiTrack() {
         return midiTrack;
     }
 
@@ -172,8 +194,7 @@ public class TrackBase implements Track {
         return modified;
     }
 
-    @SuppressWarnings("DesignForExtension")
-    protected void setModified(final boolean isModified) {
+    final void setModified(final boolean isModified) {
         final Set<Route> routes = EnumSet.noneOf(Route.class);
         core_modify(isModified, routes);
         relay(routes);
@@ -207,55 +228,6 @@ public class TrackBase implements Track {
     public final int size() {
         synchronized (midiTrack) {
             return midiTrack.size();
-        }
-    }
-
-    private void onSetEvents(final Track track) {
-        synchronized (midiTrack) {
-            final Set<Route> routes = EnumSet.noneOf(Route.class);
-            String newName = NO_NAME;
-            int nChannels = 0;
-            final int[] nPerChannel = new int[16];
-            int i = 0;
-
-            int ix;
-            for (ix = midiTrack.size(); i < ix; ++i) {
-                final MidiEvent evnt = midiTrack.get(i);
-                final MidiMessage mssg = evnt.getMessage();
-                final int status = mssg.getStatus();
-                if (128 <= status && 240 > status) {
-                    final int channel = status & 15;
-                    if (1 == ++nPerChannel[channel]) {
-                        ++nChannels;
-                    }
-                } else if (NO_NAME == newName && 255 == status) {
-                    final byte[] b = mssg.getMessage();
-                    if (2 < b.length && 3 == b[1] && b[2] == b.length - 3) {
-                        newName = new String(b, 3, b.length - 3);
-                    }
-                }
-            }
-
-            final int[] newChannels = new int[nChannels];
-            ix = 0;
-
-            for (int k = 0; ix < nPerChannel.length; ++ix) {
-                if (0 < nPerChannel[ix]) {
-                    newChannels[k++] = ix;
-                }
-            }
-
-            if (!newName.equals(name)) {
-                name = newName;
-                routes.add(Route.SetName);
-            }
-
-            if (!Arrays.equals(newChannels, channels)) {
-                channels = newChannels;
-                routes.add(Route.SetChannels);
-            }
-
-            relay(routes);
         }
     }
 }

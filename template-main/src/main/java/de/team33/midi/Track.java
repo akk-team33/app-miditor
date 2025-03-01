@@ -9,13 +9,16 @@ import java.util.function.Consumer;
 
 public interface Track {
 
-    void add(MidiEvent... var1);
+    void add(MidiEvent... midiEvents);
 
     Map<Integer, List<MidiEvent>> extractChannels();
 
     MidiEvent get(int index);
 
+    @Deprecated
     MidiEvent[] getAll();
+
+    List<MidiEvent> toList();
 
     int[] getChannels();
 
@@ -34,10 +37,7 @@ public interface Track {
     void addListener(Route route, Consumer<? super Track> listener);
 
     enum Route implements Channel<Track> {
-        // TODO?: Released,
-        SetChannels,
         SetEvents,
-        SetModified,
-        SetName
+        SetModified
     }
 }

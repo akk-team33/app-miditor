@@ -35,7 +35,7 @@ public abstract class TrackControls {
     private class CHANNEL_PANE extends JPanel {
         CHANNEL_PANE() {
             super(new BorderLayout());
-            getContext().getTrack().addListener(Track.Route.SetChannels, this::onSetChannels);
+            getContext().getTrack().addListener(Track.Route.SetEvents, this::onSetChannels);
         }
 
         private void onSetChannels(final Track track) {
@@ -124,10 +124,10 @@ public abstract class TrackControls {
     private class NAME_PANE extends XTextField {
         public NAME_PANE() {
             super(12);
-            getContext().getTrack().addListener(Track.Route.SetName, this::onSetName);
+            getContext().getTrack().addListener(Track.Route.SetEvents, this::onSetEvents);
         }
 
-        private void onSetName(final Track track) {
+        private void onSetEvents(final Track track) {
             setText(track.getName());
         }
     }
