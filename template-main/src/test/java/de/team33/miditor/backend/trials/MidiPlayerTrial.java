@@ -15,6 +15,7 @@ class MidiPlayerTrial {
     private MidiPlayerTrial(final String[] args) throws InvalidMidiDataException, IOException {
         this.args = args;
         this.midiCenter = new MidiCenter().load(Path.of("Beatles-Let_it_be-B.mid"));
+        this.midiCenter.player().addStateListener(state -> System.out.printf("Player state: %s%n", state));
     }
 
     @SuppressWarnings({"OverlyBroadThrowsClause", "ProhibitedExceptionDeclared"})
@@ -24,30 +25,23 @@ class MidiPlayerTrial {
 
     private void run() throws InterruptedException {
         final MidiPlayer player = midiCenter.player();
-        System.out.printf("Player state: %s%n", player.state());
 
         player.start();
-        System.out.printf("Player state: %s%n", player.state());
         Thread.sleep(5000);
 
         player.pause();
-        System.out.printf("Player state: %s%n", player.state());
         Thread.sleep(2500);
 
         player.start();
-        System.out.printf("Player state: %s%n", player.state());
         Thread.sleep(5000);
 
         player.stop();
-        System.out.printf("Player state: %s%n", player.state());
         Thread.sleep(2500);
 
         player.start();
-        System.out.printf("Player state: %s%n", player.state());
         Thread.sleep(5000);
 
         player.off();
-        System.out.printf("Player state: %s%n", player.state());
         System.out.printf("- Quit - - - - - - -%n");
     }
 }

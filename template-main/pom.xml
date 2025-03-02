@@ -25,6 +25,10 @@
         </dependency>
         <dependency>
             <groupId>de.team33.patterns</groupId>
+            <artifactId>notes-eris</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>de.team33.patterns</groupId>
             <artifactId>io-deimos</artifactId>
         </dependency>
         <dependency>
