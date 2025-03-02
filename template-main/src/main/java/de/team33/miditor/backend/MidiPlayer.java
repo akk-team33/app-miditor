@@ -1,18 +1,17 @@
 package de.team33.miditor.backend;
 
-import javax.sound.midi.MidiUnavailableException;
-import javax.sound.midi.Sequencer;
+import static de.team33.miditor.backend.MidiCenter.CNV;
 
 public abstract class MidiPlayer {
 
-    abstract Sequencer sequencer();
+    abstract MidiCenter center();
 
     public final State state() {
-        if (!sequencer().isOpen()) {
+        if (!center().sequencer.isOpen()) {
             return State.IDLE;
-        } else if (sequencer().isRunning()) {
+        } else if (center().sequencer.isRunning()) {
             return State.RUN;
-        } else if (0L == sequencer().getTickPosition()) {
+        } else if (0L == center().sequencer.getTickPosition()) {
             return State.STOP;
         } else {
             return State.PAUSE;
@@ -20,42 +19,38 @@ public abstract class MidiPlayer {
     }
 
     public final void on() {
-        if (!sequencer().isOpen()) {
-            try {
-                sequencer().open();
-                // TODO: rise event!
-            } catch (final MidiUnavailableException e) {
-                throw new IllegalStateException(e.getMessage(), e);
-            }
+        if (!center().sequencer.isOpen()) {
+            CNV.run(() -> center().sequencer.open());
+            // TODO: rise event!
         }
     }
 
     public final void start() {
         if (State.RUN != state()) {
             on();
-            sequencer().start();
+            center().sequencer.start();
             // TODO: rise event!
         }
     }
 
     public final void stop() {
         if (State.RUN == state()) {
-            sequencer().stop();
-            sequencer().setTickPosition(0L);
+            center().sequencer.stop();
+            center().sequencer.setTickPosition(0L);
             // TODO: rise event!
         }
     }
 
     public final void pause() {
         if (State.RUN == state()) {
-            sequencer().stop();
+            center().sequencer.stop();
             // TODO: rise event!
         }
     }
 
     public final void off() {
-        if (sequencer().isOpen()) {
-            sequencer().close();
+        if (center().sequencer.isOpen()) {
+            center().sequencer.close();
             // TODO: rise event!
         }
     }

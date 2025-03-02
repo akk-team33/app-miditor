@@ -1,8 +1,10 @@
 package de.team33.miditor.backend;
 
+import de.team33.patterns.exceptional.dione.Converter;
+import de.team33.patterns.exceptional.dione.Wrapping;
+
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiSystem;
-import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Sequencer;
 import java.io.IOException;
@@ -10,33 +12,27 @@ import java.nio.file.Path;
 
 public class MidiCenter {
 
-    private final Sequencer sequencer;
-    private Sequence sequence;
+    static final Converter CNV = Converter.using(Wrapping.method(IllegalStateException::new));
+
+    final Sequencer sequencer;
 
     public MidiCenter() {
-        try {
-            this.sequencer = MidiSystem.getSequencer(true);
-            //this.sequencer.open();
-        } catch (final MidiUnavailableException e) {
-            throw new IllegalStateException(e.getMessage(), e);
-        }
+        this.sequencer = CNV.get(() -> MidiSystem.getSequencer(true));
     }
 
     public final MidiCenter load(final Path path) throws InvalidMidiDataException, IOException {
-        sequence = MidiSystem.getSequence(path.toFile());
+        final Sequence sequence = MidiSystem.getSequence(path.toFile());
         sequencer.setSequence(sequence);
         // TODO: rise event!
         return this;
     }
 
     public final MidiPlayer player() {
-        return new Player();
-    }
-
-    private class Player extends MidiPlayer {
-        @Override
-        final Sequencer sequencer() {
-            return sequencer;
-        }
+        return new MidiPlayer() {
+            @Override
+            MidiCenter center() {
+                return MidiCenter.this;
+            }
+        };
     }
 }
