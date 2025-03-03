@@ -1,26 +1,32 @@
 package de.team33.miditor.backend;
 
 import de.team33.patterns.notes.alpha.Audience;
+import de.team33.patterns.notes.alpha.Mapping;
+import de.team33.patterns.notes.alpha.Sender;
 
 import javax.sound.midi.Sequencer;
 
 import java.util.function.Consumer;
 
-import static de.team33.miditor.backend.MidiCenter.CNV;
+import static de.team33.miditor.backend.Util.CNV;
 
-public class MidiPlayer {
-    
-    private final Audience audience;
+public class MidiPlayer extends Sender<MidiPlayer> {
+
     private final Sequencer sequencer;
+    private final Mapping mapping;
 
-    MidiPlayer(final Audience audience, final Sequencer sequencer) {
-        this.audience = audience;
-        this.sequencer = sequencer;
+    MidiPlayer(final Context ctx) {
+        super(ctx.audience(), MidiPlayer.class);
+        this.sequencer = ctx.sequencer();
+        this.mapping = Mapping.builder()
+                              .put(Channel.SET_STATE, this::state)
+                              .put(Channel.SET_POSITION, sequencer::getTickPosition)
+                              .build();
     }
 
-    public final void addStateListener(final Consumer<State> listener) {
-        audience.add(Channel.SET_STATE, listener);
-        listener.accept(state());
+    @Override
+    protected final Mapping mapping() {
+        return mapping;
     }
 
     public final State state() {
@@ -38,7 +44,7 @@ public class MidiPlayer {
     public final void on() {
         if (!sequencer.isOpen()) {
             CNV.run(sequencer::open);
-            audience.send(Channel.SET_STATE, State.STOP);
+            fire(Channel.SET_STATE);
         }
     }
 
@@ -46,7 +52,7 @@ public class MidiPlayer {
         if (!sequencer.isRunning()) {
             on();
             sequencer.start();
-            audience.send(Channel.SET_STATE, State.RUN);
+            fire(Channel.SET_STATE);
         }
     }
 
@@ -54,22 +60,41 @@ public class MidiPlayer {
         if (sequencer.isRunning()) {
             sequencer.stop();
             sequencer.setTickPosition(0L);
-            audience.send(Channel.SET_STATE, State.STOP);
-            audience.send(Channel.SET_POSITION, 0L);
+            fire(Channel.SET_STATE, Channel.SET_POSITION);
         }
     }
 
     public final void pause() {
         if (sequencer.isRunning()) {
             sequencer.stop();
-            audience.send(Channel.SET_STATE, State.PAUSE);
+            fire(Channel.SET_STATE);
         }
     }
 
     public final void off() {
         if (sequencer.isOpen()) {
             sequencer.close();
-            audience.send(Channel.SET_STATE, State.IDLE);
+            fire(Channel.SET_STATE);
         }
+    }
+
+    interface Context {
+        Audience audience();
+        Sequencer sequencer();
+    }
+
+    @SuppressWarnings("ClassNameSameAsAncestorName")
+    @FunctionalInterface
+    public interface Channel<M> extends de.team33.patterns.notes.alpha.Channel<M> {
+
+        /**
+         * Symbolizes a change of the current player state.
+         */
+        Channel<State> SET_STATE = () -> "SET_STATE";
+
+        /**
+         * Symbolizes a change of the current player position.
+         */
+        Channel<Long> SET_POSITION = () -> "SET_POSITION";
     }
 }

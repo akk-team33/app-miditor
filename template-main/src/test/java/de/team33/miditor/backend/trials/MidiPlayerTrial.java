@@ -15,7 +15,12 @@ class MidiPlayerTrial {
     private MidiPlayerTrial(final String[] args) throws InvalidMidiDataException, IOException {
         this.args = args;
         this.midiCenter = new MidiCenter().load(Path.of("Beatles-Let_it_be-B.mid"));
-        this.midiCenter.player().addStateListener(state -> System.out.printf("Player state: %s%n", state));
+        this.midiCenter.add(MidiCenter.Channel.SET_PATH,
+                            path -> System.out.printf("Center path: %s%n", path));
+        this.midiCenter.player().add(MidiPlayer.Channel.SET_STATE,
+                                     state -> System.out.printf("Player state: %s%n", state));
+        this.midiCenter.player().add(MidiPlayer.Channel.SET_POSITION,
+                                     position -> System.out.printf("Player position: %s%n", position));
     }
 
     @SuppressWarnings({"OverlyBroadThrowsClause", "ProhibitedExceptionDeclared"})

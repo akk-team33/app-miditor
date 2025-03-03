@@ -3,6 +3,8 @@ package de.team33.patterns.notes.alpha;
 import java.util.function.Consumer;
 
 /**
+ * TODO: revise!
+ * <p>
  * Identifies channels of notifications and associates specific sorts of events with resulting message types.
  * A typical application scenario might look something like this:
  * <p>
@@ -31,12 +33,11 @@ import java.util.function.Consumer;
  * corresponding message from the service.
  * In principle, this is not necessary, but it simplifies the structuring and formulation of the individual constants.
  *
+ * @param <M> The message type.
  * @see Registry#add(Channel, Consumer) Registry.add(Channel&lt;M&gt;, Consumer&lt;? super M&gt;)
  * @see Audience#send(Channel, Object) Audience.send(Channel&lt;M&gt;, M)
  * @see Registry#add(Channel, Consumer)
  * @see Audience#send(Channel, Object)
- *
- * @param <M> The message type.
  */
 public interface Channel<M> {
 

@@ -11,6 +11,8 @@ public interface Registry {
     /**
      * Registers a <em>listener</em> with this registry to receive messages that are triggered based on a specific
      * event.
+     * <p>
+     * An implementation is expected to be thread-safe!
      *
      * @param channel  The {@link Channel} that represents a specific sort of event,
      *                 causing messages of type {@code <M>}.
@@ -25,6 +27,8 @@ public interface Registry {
      * <p>
      * <em>CAUTION</em>: the <em>listener</em> must be identifiable by {@link Object#equals(Object)}
      * to be successfully removed!
+     * <p>
+     * An implementation is expected to be thread-safe!
      *
      * @param channel  The {@link Channel} that represents a specific sort of event,
      *                 causing messages of type {@code <M>}.

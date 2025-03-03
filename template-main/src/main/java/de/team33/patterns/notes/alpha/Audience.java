@@ -91,11 +91,13 @@ public class Audience implements Registry {
     }
 
     /**
+     * TODO: revise!
+     * <p>
      * Sends messages from the given {@link Mapping} to all listeners that have
      * {@linkplain #add(Channel, Consumer) registered} for one of the given {@link Channel channels}.
      */
-    public final void sendAll(final Mapping mapping, final Channel<?>... channels) {
-        sendAll(Arrays.asList(channels), mapping);
+    public final Consumer<Mapping> sendAll(final Channel<?>... channels) {
+        return mapping -> sendAll(Arrays.asList(channels), mapping);
     }
 
     /**
