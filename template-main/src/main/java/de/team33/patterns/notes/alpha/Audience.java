@@ -1,6 +1,7 @@
 package de.team33.patterns.notes.alpha;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -57,6 +58,16 @@ public class Audience implements Registry {
         }
     }
 
+    @Override
+    public final <M> void remove(final Channel<M> channel, final Consumer<? super M> listener) {
+        synchronized (monitor) {
+            final List<Consumer<? super M>> oldList = getListeners(channel);
+            final List<Consumer<? super M>> newList = new ArrayList<>(oldList);
+            newList.remove(listener);
+            putListeners(channel, newList);
+        }
+    }
+
     private static <M> Optional<Consumer<M>> emitter(final Collection<? extends Consumer<? super M>> listeners) {
         return listeners.isEmpty()
                 ? Optional.empty()
@@ -77,5 +88,24 @@ public class Audience implements Registry {
      */
     public final <M> void send(final Channel<M> channel, final M message) {
         emitter(channel).ifPresent(emitter -> executor.execute(() -> emitter.accept(message)));
+    }
+
+    /**
+     * Sends messages from the given {@link Mapping} to all listeners that have
+     * {@linkplain #add(Channel, Consumer) registered} for one of the given {@link Channel channels}.
+     */
+    public final void sendAll(final Mapping mapping, final Channel<?>... channels) {
+        sendAll(Arrays.asList(channels), mapping);
+    }
+
+    /**
+     * Sends messages from the given {@link Mapping} to all listeners that have
+     * {@linkplain #add(Channel, Consumer) registered} for one of the given {@link Channel channels}.
+     */
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public final void sendAll(final Iterable<? extends Channel<?>> channels, final Mapping mapping) {
+        for (final Channel channel : channels) {
+            send(channel, mapping.get(channel));
+        }
     }
 }

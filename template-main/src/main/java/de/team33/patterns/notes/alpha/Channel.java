@@ -39,4 +39,6 @@ import java.util.function.Consumer;
  * @param <M> The message type.
  */
 public interface Channel<M> {
+
+    String name();
 }
