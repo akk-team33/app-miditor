@@ -20,6 +20,7 @@ public class MidiPlayer {
 
     public final void addStateListener(final Consumer<State> listener) {
         audience.add(Channel.SET_STATE, listener);
+        listener.accept(state());
     }
 
     public final State state() {
