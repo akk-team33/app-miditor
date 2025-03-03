@@ -1,12 +1,12 @@
 package de.team33.patterns.notes.alpha;
 
 import de.team33.patterns.building.elara.BuilderBase;
-import de.team33.patterns.notes.eris.Audience;
-import de.team33.patterns.notes.eris.Channel;
 
 import java.util.function.Consumer;
 
 public abstract class Sender<S extends Sender<S>> extends BuilderBase<S> {
+
+    private final Audience audience;
 
     /**
      * Initializes a new instance and checks the intended <em>sender</em> type for consistency.
@@ -15,10 +15,28 @@ public abstract class Sender<S extends Sender<S>> extends BuilderBase<S> {
      * @throws IllegalArgumentException if the given <em>sender</em> class does not represent <em>this</em> instance.
      */
     protected Sender(final Class<S> senderClass) {
-        super(senderClass);
+        this(senderClass, new Audience());
     }
 
-    protected abstract Audience audience();
+    /**
+     * Initializes a new instance and checks the intended <em>sender</em> type for consistency.
+     *
+     * @param senderClass The {@link Class} representation of the intended effective <em>sender</em> type.
+     * @param audience    An {@link Audience} to be used. Typically <em>new</em>.
+     *                    Be careful sharing an existing {@link Audience}!
+     * @throws IllegalArgumentException if the given <em>sender</em> class does not represent <em>this</em> instance.
+     */
+    protected Sender(final Class<S> senderClass, final Audience audience) {
+        super(senderClass);
+        this.audience = audience;
+    }
+
+    /**
+     * Returns the associated {@link Audience}.
+     */
+    protected final Audience audience() {
+        return audience;
+    }
 
     /**
      * Adds a <em>listener</em> to this <em>sender</em> to receive messages that are triggered based on a specific

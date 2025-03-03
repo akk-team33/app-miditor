@@ -1,6 +1,6 @@
 package de.team33.miditor.backend;
 
-import de.team33.patterns.notes.eris.Audience;
+import de.team33.patterns.notes.alpha.Audience;
 
 import javax.sound.midi.Sequencer;
 

@@ -2,7 +2,7 @@ package de.team33.miditor.backend;
 
 import de.team33.patterns.exceptional.dione.Converter;
 import de.team33.patterns.exceptional.dione.Wrapping;
-import de.team33.patterns.notes.eris.Audience;
+import de.team33.patterns.notes.alpha.Sender;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiSystem;
@@ -10,14 +10,14 @@ import javax.sound.midi.Sequencer;
 import java.io.IOException;
 import java.nio.file.Path;
 
-public class MidiCenter {
+public class MidiCenter extends Sender<MidiCenter> {
 
     static final Converter CNV = Converter.using(Wrapping.method(IllegalStateException::new));
 
-    private final Audience audience = new Audience();
     private final Sequencer sequencer;
 
     public MidiCenter() {
+        super(MidiCenter.class);
         this.sequencer = CNV.get(() -> MidiSystem.getSequencer(true));
     }
 
@@ -28,6 +28,6 @@ public class MidiCenter {
     }
 
     public final MidiPlayer player() {
-        return new MidiPlayer(audience, sequencer);
+        return new MidiPlayer(audience(), sequencer);
     }
 }
