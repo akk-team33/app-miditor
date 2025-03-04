@@ -2,6 +2,7 @@ package de.team33.miditor.backend.trials;
 
 import de.team33.miditor.backend.MidiCenter;
 import de.team33.miditor.backend.MidiPlayer;
+import de.team33.miditor.backend.MidiPlayer.Trigger;
 
 import javax.sound.midi.InvalidMidiDataException;
 import java.io.IOException;
@@ -26,27 +27,27 @@ class MidiCenterTrial {
         final MidiPlayer player = midiCenter.player();
         System.out.printf("Player state: %s%n", player.state());
 
-        player.start();
+        player.act(Trigger.START);
         System.out.printf("Player state: %s%n", player.state());
         Thread.sleep(5000);
 
-        player.pause();
+        player.act(Trigger.PAUSE);
         System.out.printf("Player state: %s%n", player.state());
         Thread.sleep(2500);
 
-        player.start();
+        player.act(Trigger.START);
         System.out.printf("Player state: %s%n", player.state());
         Thread.sleep(5000);
 
-        player.stop();
+        player.act(Trigger.STOP);
         System.out.printf("Player state: %s%n", player.state());
         Thread.sleep(2500);
 
-        player.start();
+        player.act(Trigger.START);
         System.out.printf("Player state: %s%n", player.state());
         Thread.sleep(5000);
 
-        player.off();
+        player.act(Trigger.OFF);
         System.out.printf("Player state: %s%n", player.state());
         System.out.printf("- Quit - - - - - - -%n");
     }

@@ -7,6 +7,8 @@ import javax.sound.midi.InvalidMidiDataException;
 import java.io.IOException;
 import java.nio.file.Path;
 
+import static de.team33.miditor.backend.MidiPlayer.*;
+
 class MidiPlayerTrial {
 
     private final String[] args;
@@ -17,9 +19,11 @@ class MidiPlayerTrial {
         this.midiCenter = new MidiCenter().load(Path.of("Beatles-Let_it_be-B.mid"));
         this.midiCenter.add(MidiCenter.Channel.SET_PATH,
                             path -> System.out.printf("Center path: %s%n", path));
-        this.midiCenter.player().add(MidiPlayer.Channel.SET_STATE,
+        this.midiCenter.player().add(Channel.SET_STATE,
                                      state -> System.out.printf("Player state: %s%n", state));
-        this.midiCenter.player().add(MidiPlayer.Channel.SET_POSITION,
+        this.midiCenter.player().add(Channel.SET_STATE,
+                                     state -> System.out.printf("Effective triggers: %s%n", Trigger.allEffectiveOn(state)));
+        this.midiCenter.player().add(Channel.SET_POSITION,
                                      position -> System.out.printf("Player position: %s%n", position));
     }
 
@@ -30,24 +34,24 @@ class MidiPlayerTrial {
 
     private void run() throws InterruptedException {
         final MidiPlayer player = midiCenter.player();
-        player.on();
+        player.act(Trigger.ON);
 
-        player.start();
+        player.act(Trigger.START);
         Thread.sleep(5000);
 
-        player.pause();
+        player.act(Trigger.PAUSE);
         Thread.sleep(2500);
 
-        player.start();
+        player.act(Trigger.START);
         Thread.sleep(5000);
 
-        player.stop();
+        player.act(Trigger.STOP);
         Thread.sleep(2500);
 
-        player.start();
+        player.act(Trigger.START);
         Thread.sleep(5000);
 
-        player.off();
+        player.act(Trigger.OFF);
         System.out.printf("- Quit - - - - - - -%n");
     }
 }
