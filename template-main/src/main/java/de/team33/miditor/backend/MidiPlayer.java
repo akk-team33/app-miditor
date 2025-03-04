@@ -6,8 +6,6 @@ import de.team33.patterns.notes.alpha.Sender;
 
 import javax.sound.midi.Sequencer;
 
-import java.util.function.Consumer;
-
 import static de.team33.miditor.backend.Util.CNV;
 
 public class MidiPlayer extends Sender<MidiPlayer> {
@@ -30,52 +28,34 @@ public class MidiPlayer extends Sender<MidiPlayer> {
     }
 
     public final State state() {
-        if (!sequencer.isOpen()) {
-            return State.IDLE;
-        } else if (sequencer.isRunning()) {
-            return State.RUN;
-        } else if (0L == sequencer.getTickPosition()) {
-            return State.STOP;
-        } else {
-            return State.PAUSE;
-        }
+        return State.of(sequencer);
     }
 
-    public final void on() {
-        if (!sequencer.isOpen()) {
-            CNV.run(sequencer::open);
-            fire(Channel.SET_STATE);
-        }
-    }
-
-    public final void start() {
-        if (!sequencer.isRunning()) {
-            on();
-            sequencer.start();
-            fire(Channel.SET_STATE);
-        }
-    }
-
-    public final void stop() {
-        if (sequencer.isRunning()) {
-            sequencer.stop();
-            sequencer.setTickPosition(0L);
+    private void setState(final State newState) {
+        final State oldState = State.of(sequencer);
+        if (oldState.switchTo(newState).apply(sequencer)) {
             fire(Channel.SET_STATE, Channel.SET_POSITION);
         }
     }
 
+    public final void on() {
+        setState(State.READY);
+    }
+
+    public final void start() {
+        setState(State.RUNNING);
+    }
+
+    public final void stop() {
+        setState(State.READY);
+    }
+
     public final void pause() {
-        if (sequencer.isRunning()) {
-            sequencer.stop();
-            fire(Channel.SET_STATE);
-        }
+        setState(State.PAUSED);
     }
 
     public final void off() {
-        if (sequencer.isOpen()) {
-            sequencer.close();
-            fire(Channel.SET_STATE);
-        }
+        setState(State.OFF);
     }
 
     interface Context {
