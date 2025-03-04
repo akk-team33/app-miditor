@@ -30,6 +30,7 @@ class MidiPlayerTrial {
 
     private void run() throws InterruptedException {
         final MidiPlayer player = midiCenter.player();
+        player.on();
 
         player.start();
         Thread.sleep(5000);
