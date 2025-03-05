@@ -40,6 +40,7 @@ class MidiPlayerTrial {
         Thread.sleep(5000);
 
         player.act(Trigger.PAUSE);
+        player.setPosition(player.position() + 1);
         Thread.sleep(2500);
 
         player.act(Trigger.START);
@@ -48,6 +49,7 @@ class MidiPlayerTrial {
         player.act(Trigger.STOP);
         Thread.sleep(2500);
 
+        player.setPosition(3000);
         player.act(Trigger.START);
         Thread.sleep(5000);
 

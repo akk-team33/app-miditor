@@ -8,6 +8,7 @@ import de.team33.patterns.notes.alpha.Sender;
 import javax.sound.midi.Sequencer;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -40,6 +41,24 @@ public class MidiPlayer extends Sender<MidiPlayer> {
     @Override
     protected final Mapping mapping() {
         return mapping;
+    }
+
+    public final long position() {
+        return sequencer.getTickPosition();
+    }
+
+    public final MidiPlayer setPosition(final long newPosition) {
+        final Set<Channel<?>> channels = new HashSet<>(0);
+        final long oldPosition = position();
+        if (newPosition != oldPosition) {
+            final State oldState = state();
+            sequencer.setTickPosition(newPosition);
+            channels.add(Channel.SET_POSITION);
+            if (oldState != state()) {
+                channels.add(Channel.SET_STATE);
+            }
+        }
+        return fire(channels);
     }
 
     public final State state() {
