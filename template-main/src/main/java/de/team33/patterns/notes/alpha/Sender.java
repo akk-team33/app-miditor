@@ -7,8 +7,6 @@ import java.util.function.Consumer;
 
 public abstract class Sender<S extends Sender<S>> extends BuilderBase<S> {
 
-    private final Audience audience;
-
     /**
      * Initializes a new instance and checks the intended <em>sender</em> type for consistency.
      *
@@ -16,28 +14,13 @@ public abstract class Sender<S extends Sender<S>> extends BuilderBase<S> {
      * @throws IllegalArgumentException if the given <em>sender</em> class does not represent <em>this</em> instance.
      */
     protected Sender(final Class<S> senderClass) {
-        this(new Audience(), senderClass);
-    }
-
-    /**
-     * Initializes a new instance and checks the intended <em>sender</em> type for consistency.
-     *
-     * @param audience    An {@link Audience} to be used. Typically <em>new</em>.
-     *                    Be careful sharing an existing {@link Audience}!
-     * @param senderClass The {@link Class} representation of the intended effective <em>sender</em> type.
-     * @throws IllegalArgumentException if the given <em>sender</em> class does not represent <em>this</em> instance.
-     */
-    protected Sender(final Audience audience, final Class<S> senderClass) {
         super(senderClass);
-        this.audience = audience;
     }
 
     /**
      * Returns the associated {@link Audience}.
      */
-    protected final Audience audience() {
-        return audience;
-    }
+    protected abstract Audience audience();
 
     /**
      * Returns a {@link Mapping} to provide messages for certain {@link Channel channels}.
@@ -120,7 +103,7 @@ public abstract class Sender<S extends Sender<S>> extends BuilderBase<S> {
      *                               for at least one of the given <em>channels</em>.
      */
     protected final S fire(final Iterable<? extends Channel<?>> channels) {
-        audience.sendAll(channels, mapping());
+        audience().sendAll(channels, mapping());
         return THIS();
     }
 }

@@ -25,6 +25,8 @@ class MidiPlayerTrial {
                                      state -> System.out.printf("Effective triggers: %s%n", Trigger.allEffectiveOn(state)));
         this.midiCenter.player().add(Channel.SET_POSITION,
                                      position -> System.out.printf("Player position: %s%n", position));
+        this.midiCenter.player().add(Channel.SET_TEMPO,
+                                     tempo -> System.out.printf("Player tempo: %s%n", tempo));
     }
 
     @SuppressWarnings({"OverlyBroadThrowsClause", "ProhibitedExceptionDeclared"})

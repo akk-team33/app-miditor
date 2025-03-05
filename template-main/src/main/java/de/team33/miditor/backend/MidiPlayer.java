@@ -5,6 +5,7 @@ import de.team33.patterns.notes.alpha.Audience;
 import de.team33.patterns.notes.alpha.Mapping;
 import de.team33.patterns.notes.alpha.Sender;
 
+import javax.sound.midi.MetaMessage;
 import javax.sound.midi.Sequencer;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -20,27 +21,53 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static de.team33.miditor.backend.Midi.MetaMessage.Type.SET_TEMPO;
 import static de.team33.miditor.backend.Util.CNV;
 import static java.util.function.Predicate.not;
 
 @SuppressWarnings("UnusedReturnValue")
 public class MidiPlayer extends Sender<MidiPlayer> {
 
+    private final Audience audience;
     private final Sequencer sequencer;
     private final Mapping mapping;
 
-    MidiPlayer(final Context ctx) {
-        super(ctx.audience(), MidiPlayer.class);
-        this.sequencer = ctx.sequencer();
+    MidiPlayer(final Audience audience, final Sequencer sequencer) {
+        super(MidiPlayer.class);
+        this.audience = audience;
+        this.sequencer = sequencer;
         this.mapping = Mapping.builder()
                               .put(Channel.SET_STATE, this::state)
-                              .put(Channel.SET_POSITION, sequencer::getTickPosition)
+                              .put(Channel.SET_POSITION, this::position)
+                              .put(Channel.SET_TEMPO, this::tempo)
                               .build();
+        sequencer.addMetaEventListener(this::onMetaEvent);
+    }
+
+    private void onMetaEvent(final MetaMessage metaMessage) {
+        if (SET_TEMPO.value() == metaMessage.getType()) {
+            fire(Channel.SET_TEMPO);
+        }
+    }
+
+    @Override
+    protected Audience audience() {
+        return audience;
     }
 
     @Override
     protected final Mapping mapping() {
         return mapping;
+    }
+
+    public final int tempo() {
+        return Math.round(sequencer.getTempoInBPM());
+    }
+
+    public final MidiPlayer setTempo(final int tempo) {
+        sequencer.setTempoInBPM(tempo);
+        // TODO?: this.sequence.setTempo(tempo);
+        return fire(Channel.SET_TEMPO);
     }
 
     public final long position() {
@@ -166,14 +193,6 @@ public class MidiPlayer extends Sender<MidiPlayer> {
         }
     }
 
-    @SuppressWarnings("InterfaceWithOnlyOneDirectInheritor")
-    interface Context {
-
-        Audience audience();
-
-        Sequencer sequencer();
-    }
-
     @SuppressWarnings("ClassNameSameAsAncestorName")
     @FunctionalInterface
     public interface Channel<M> extends de.team33.patterns.notes.alpha.Channel<M> {
@@ -187,5 +206,10 @@ public class MidiPlayer extends Sender<MidiPlayer> {
          * Symbolizes a change of the current player position.
          */
         Channel<Long> SET_POSITION = () -> "SET_POSITION";
+
+        /**
+         * Symbolizes a change of the current player tempo.
+         */
+        Channel<Integer> SET_TEMPO = () -> "SET_TEMPO";
     }
 }
