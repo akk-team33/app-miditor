@@ -9,4 +9,12 @@ final class Util {
 
     private Util() {
     }
+
+    static void sleep(final long millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (final InterruptedException e) {
+            throw new IllegalStateException(e.getMessage(), e);
+        }
+    }
 }

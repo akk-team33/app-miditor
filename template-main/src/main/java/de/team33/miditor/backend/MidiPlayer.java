@@ -23,10 +23,13 @@ import java.util.stream.Stream;
 
 import static de.team33.miditor.backend.Midi.MetaMessage.Type.SET_TEMPO;
 import static de.team33.miditor.backend.Util.CNV;
+import static de.team33.miditor.backend.Util.sleep;
 import static java.util.function.Predicate.not;
 
 @SuppressWarnings("UnusedReturnValue")
 public class MidiPlayer extends Sender<MidiPlayer> {
+
+    private static final int INTERVAL = 50;
 
     private final Audience audience;
     private final Sequencer sequencer;
@@ -42,6 +45,22 @@ public class MidiPlayer extends Sender<MidiPlayer> {
                               .put(Channel.SET_TEMPO, this::tempo)
                               .build();
         sequencer.addMetaEventListener(this::onMetaEvent);
+        audience.add(Channel.SET_STATE, this::onSetState);
+    }
+
+    private void onSetState(final State state) {
+        if (State.RUNNING == state) {
+            new Thread(this::whileRunning, "TODO:name").start();
+        }
+    }
+
+    private void whileRunning() {
+        sleep(INTERVAL);
+        while (sequencer.isRunning()) {
+            fire(Channel.SET_POSITION);
+            sleep(INTERVAL);
+        }
+        fire(Channel.SET_POSITION, Channel.SET_STATE);
     }
 
     private void onMetaEvent(final MetaMessage metaMessage) {

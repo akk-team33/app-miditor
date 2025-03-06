@@ -1,5 +1,6 @@
 package de.team33.miditor.backend;
 
+import de.team33.patterns.execution.metis.SimpleAsyncExecutor;
 import de.team33.patterns.notes.alpha.Audience;
 import de.team33.patterns.notes.alpha.Mapping;
 import de.team33.patterns.notes.alpha.Sender;
@@ -10,11 +11,13 @@ import javax.sound.midi.Sequencer;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.concurrent.Executor;
 
 import static de.team33.miditor.backend.Util.CNV;
 
 public class MidiCenter extends Sender<MidiCenter> {
 
+    private final Executor executor;
     private final Audience audience;
     private final Mapping mapping;
     private final Sequencer sequencer;
@@ -23,7 +26,8 @@ public class MidiCenter extends Sender<MidiCenter> {
 
     public MidiCenter() {
         super(MidiCenter.class);
-        this.audience = new Audience();
+        this.executor = new SimpleAsyncExecutor();
+        this.audience = new Audience(executor);
         this.sequencer = CNV.get(() -> MidiSystem.getSequencer(true));
         this.midiPlayer = new MidiPlayer(audience, sequencer);
         this.filePath = new Mutable<Path>(p -> p.toAbsolutePath().normalize()).set(Path.of("no-name.mid"));
