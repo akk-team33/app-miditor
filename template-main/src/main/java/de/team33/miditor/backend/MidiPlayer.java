@@ -19,6 +19,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static de.team33.miditor.backend.Midi.MetaMessage.Type.SET_TEMPO;
@@ -34,6 +35,7 @@ public class MidiPlayer extends Sender<MidiPlayer> {
     private final Audience audience;
     private final Sequencer sequencer;
     private final Mapping mapping;
+    private final Features features = new Features();
 
     MidiPlayer(final Audience audience, final Sequencer sequencer) {
         super(MidiPlayer.class);
@@ -43,6 +45,7 @@ public class MidiPlayer extends Sender<MidiPlayer> {
                               .put(Channel.SET_STATE, this::getState)
                               .put(Channel.SET_POSITION, this::getPosition)
                               .put(Channel.SET_TEMPO, this::getTempo)
+                              .put(Channel.SET_TRACK_MODE, this::getTrackModes)
                               .build();
         sequencer.addMetaEventListener(this::onMetaEvent);
         audience.add(Channel.SET_STATE, this::onSetState);
@@ -70,7 +73,7 @@ public class MidiPlayer extends Sender<MidiPlayer> {
     }
 
     @Override
-    protected Audience audience() {
+    protected final Audience audience() {
         return audience;
     }
 
@@ -114,6 +117,49 @@ public class MidiPlayer extends Sender<MidiPlayer> {
     public final MidiPlayer push(final Trigger trigger) {
         final Set<Channel<?>> results = trigger.apply(sequencer, getState());
         return fire(results);
+    }
+
+    private List<TrackMode> newTrackModes() {
+        final List<TrackMode> stage = IntStream.range(0, Util.tracksSize(sequencer))
+                                               .mapToObj(this::mapMode)
+                                               .toList();
+        final boolean normal = (1L != stage.stream()
+                                           .filter(TrackMode.NORMAL::equals)
+                                           .count());
+        return normal ? stage : stage.stream()
+                                     .map(mode -> (TrackMode.NORMAL == mode) ? TrackMode.SOLO : mode)
+                                     .toList();
+    }
+
+    private TrackMode mapMode(final int index) {
+        return sequencer.getTrackMute(index) ? TrackMode.MUTE : TrackMode.NORMAL;
+    }
+
+    public final List<TrackMode> getTrackModes() {
+        return features.get(Key.TRACK_MODES);
+    }
+
+    public final TrackMode getTrackMode(final int index) {
+        return getTrackModes().get(index);
+    }
+
+    public final MidiPlayer setTrackMode(final int index, final TrackMode newMode) {
+        final Set<Channel<?>> channels = new HashSet<>(1);
+        final TrackMode oldMode = features.get(Key.TRACK_MODES).get(index);
+        if (oldMode != newMode) {
+            if (TrackMode.SOLO == newMode) {
+                IntStream.range(0, Util.tracksSize(sequencer))
+                         .forEach(ix -> sequencer.setTrackMute(ix, ix != index));
+            } else if ((TrackMode.SOLO == oldMode) && (TrackMode.NORMAL == newMode)) {
+                IntStream.range(0, Util.tracksSize(sequencer))
+                         .forEach(ix -> sequencer.setTrackMute(ix, false));
+            } else {
+                sequencer.setTrackMute(index, TrackMode.MUTE == newMode);
+            }
+            features.reset(Key.TRACK_MODES);
+            channels.add(Channel.SET_TRACK_MODE);
+        }
+        return fire(channels);
     }
 
     @SuppressWarnings("WeakerAccess")
@@ -234,5 +280,30 @@ public class MidiPlayer extends Sender<MidiPlayer> {
          * Symbolizes a change of the current player tempo.
          */
         Channel<Integer> SET_TEMPO = () -> "SET_TEMPO";
+
+        /**
+         * Symbolizes a change of the current player track modes.
+         */
+        Channel<List<TrackMode>> SET_TRACK_MODE = () -> "SET_TRACK_MODE";
+    }
+
+    @SuppressWarnings("ClassNameSameAsAncestorName")
+    @FunctionalInterface
+    interface Key<R> extends de.team33.patterns.features.alpha.Features.Key<MidiPlayer, R> {
+
+        Key<List<TrackMode>> TRACK_MODES = MidiPlayer::newTrackModes;
+    }
+
+    @SuppressWarnings("ClassNameSameAsAncestorName")
+    private final class Features extends de.team33.patterns.features.alpha.Features<MidiPlayer> {
+
+        private Features() {
+            super(ConcurrentHashMap::new);
+        }
+
+        @Override
+        protected final MidiPlayer host() {
+            return MidiPlayer.this;
+        }
     }
 }
