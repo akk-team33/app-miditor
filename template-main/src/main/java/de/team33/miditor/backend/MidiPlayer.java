@@ -119,16 +119,16 @@ public class MidiPlayer extends Sender<MidiPlayer> {
     @SuppressWarnings("WeakerAccess")
     public enum Trigger {
 
-        ON(Choice.by(State.OFF, Action.OPEN)),
-        START(Choice.by(State.OFF, Action.OPEN, Action.START),
-              Choice.by(State.READY, Action.START),
-              Choice.by(State.PAUSED, Action.START)),
-        STOP(Choice.by(State.PAUSED, Action.RESET),
-             Choice.by(State.RUNNING, Action.STOP, Action.RESET)),
-        PAUSE(Choice.by(State.RUNNING, Action.STOP)),
-        OFF(Choice.by(State.READY, Action.CLOSE, Action.RESET),
-            Choice.by(State.RUNNING, Action.CLOSE, Action.RESET),
-            Choice.by(State.PAUSED, Action.CLOSE, Action.RESET));
+        ON(Choice.on(State.OFF).apply(Action.OPEN)),
+        START(Choice.on(State.OFF).apply(Action.OPEN, Action.START),
+              Choice.on(State.READY).apply(Action.START),
+              Choice.on(State.PAUSED).apply(Action.START)),
+        STOP(Choice.on(State.PAUSED).apply(Action.RESET),
+             Choice.on(State.RUNNING).apply(Action.STOP, Action.RESET)),
+        PAUSE(Choice.on(State.RUNNING).apply(Action.STOP)),
+        OFF(Choice.on(State.READY).apply(Action.CLOSE, Action.RESET),
+            Choice.on(State.RUNNING).apply(Action.CLOSE, Action.RESET),
+            Choice.on(State.PAUSED).apply(Action.CLOSE, Action.RESET));
 
         private static final Values<Trigger> VALUES = Values.of(Trigger.class);
         private static final Map<State, Set<Trigger>> effectiveMap = new ConcurrentHashMap<>(0);
@@ -185,8 +185,12 @@ public class MidiPlayer extends Sender<MidiPlayer> {
 
         private record Choice(State state, List<Action> methods) {
 
-            static Choice by(final State state, final Action... methods) {
-                return new Choice(state, Arrays.asList(methods));
+            static Stage on(final State state) {
+                return actions -> new Choice(state, Arrays.asList(actions));
+            }
+
+            private interface Stage {
+                Choice apply(Action... actions);
             }
         }
     }
