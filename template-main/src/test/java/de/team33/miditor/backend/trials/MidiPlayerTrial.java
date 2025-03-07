@@ -36,26 +36,26 @@ class MidiPlayerTrial {
 
     private void run() throws InterruptedException {
         final MidiPlayer player = midiCenter.player();
-        player.act(Trigger.ON);
+        player.push(Trigger.ON);
 
-        player.act(Trigger.START);
+        player.push(Trigger.START);
         Thread.sleep(5000);
 
-        player.act(Trigger.PAUSE);
-        player.setPosition(player.position() + 1);
+        player.push(Trigger.PAUSE);
+        player.setPosition(player.getPosition() + 1);
         Thread.sleep(2500);
 
-        player.act(Trigger.START);
+        player.push(Trigger.START);
         Thread.sleep(5000);
 
-        player.act(Trigger.STOP);
+        player.push(Trigger.STOP);
         Thread.sleep(2500);
 
         player.setPosition(3000);
-        player.act(Trigger.START);
+        player.push(Trigger.START);
         Thread.sleep(5000);
 
-        player.act(Trigger.OFF);
+        player.push(Trigger.OFF);
         System.out.printf("- Quit - - - - - - -%n");
     }
 }

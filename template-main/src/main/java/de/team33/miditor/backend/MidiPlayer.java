@@ -40,9 +40,9 @@ public class MidiPlayer extends Sender<MidiPlayer> {
         this.audience = audience;
         this.sequencer = sequencer;
         this.mapping = Mapping.builder()
-                              .put(Channel.SET_STATE, this::state)
-                              .put(Channel.SET_POSITION, this::position)
-                              .put(Channel.SET_TEMPO, this::tempo)
+                              .put(Channel.SET_STATE, this::getState)
+                              .put(Channel.SET_POSITION, this::getPosition)
+                              .put(Channel.SET_TEMPO, this::getTempo)
                               .build();
         sequencer.addMetaEventListener(this::onMetaEvent);
         audience.add(Channel.SET_STATE, this::onSetState);
@@ -79,7 +79,7 @@ public class MidiPlayer extends Sender<MidiPlayer> {
         return mapping;
     }
 
-    public final int tempo() {
+    public final int getTempo() {
         return Math.round(sequencer.getTempoInBPM());
     }
 
@@ -89,30 +89,30 @@ public class MidiPlayer extends Sender<MidiPlayer> {
         return fire(Channel.SET_TEMPO);
     }
 
-    public final long position() {
+    public final long getPosition() {
         return sequencer.getTickPosition();
     }
 
     public final MidiPlayer setPosition(final long newPosition) {
         final Set<Channel<?>> channels = new HashSet<>(0);
-        final long oldPosition = position();
+        final long oldPosition = getPosition();
         if (newPosition != oldPosition) {
-            final State oldState = state();
+            final State oldState = getState();
             sequencer.setTickPosition(newPosition);
             channels.add(Channel.SET_POSITION);
-            if (oldState != state()) {
+            if (oldState != getState()) {
                 channels.add(Channel.SET_STATE);
             }
         }
         return fire(channels);
     }
 
-    public final State state() {
+    public final State getState() {
         return State.of(sequencer);
     }
 
-    public final MidiPlayer act(final Trigger trigger) {
-        final Set<Channel<?>> results = trigger.apply(sequencer, state());
+    public final MidiPlayer push(final Trigger trigger) {
+        final Set<Channel<?>> results = trigger.apply(sequencer, getState());
         return fire(results);
     }
 

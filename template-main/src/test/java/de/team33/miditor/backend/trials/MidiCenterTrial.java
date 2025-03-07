@@ -25,30 +25,30 @@ class MidiCenterTrial {
 
     private void run() throws InterruptedException {
         final MidiPlayer player = midiCenter.player();
-        System.out.printf("Player state: %s%n", player.state());
+        System.out.printf("Player state: %s%n", player.getState());
 
-        player.act(Trigger.START);
-        System.out.printf("Player state: %s%n", player.state());
+        player.push(Trigger.START);
+        System.out.printf("Player state: %s%n", player.getState());
         Thread.sleep(5000);
 
-        player.act(Trigger.PAUSE);
-        System.out.printf("Player state: %s%n", player.state());
+        player.push(Trigger.PAUSE);
+        System.out.printf("Player state: %s%n", player.getState());
         Thread.sleep(2500);
 
-        player.act(Trigger.START);
-        System.out.printf("Player state: %s%n", player.state());
+        player.push(Trigger.START);
+        System.out.printf("Player state: %s%n", player.getState());
         Thread.sleep(5000);
 
-        player.act(Trigger.STOP);
-        System.out.printf("Player state: %s%n", player.state());
+        player.push(Trigger.STOP);
+        System.out.printf("Player state: %s%n", player.getState());
         Thread.sleep(2500);
 
-        player.act(Trigger.START);
-        System.out.printf("Player state: %s%n", player.state());
+        player.push(Trigger.START);
+        System.out.printf("Player state: %s%n", player.getState());
         Thread.sleep(5000);
 
-        player.act(Trigger.OFF);
-        System.out.printf("Player state: %s%n", player.state());
+        player.push(Trigger.OFF);
+        System.out.printf("Player state: %s%n", player.getState());
         System.out.printf("- Quit - - - - - - -%n");
     }
 }
