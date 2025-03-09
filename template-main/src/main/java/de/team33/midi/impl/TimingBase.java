@@ -1,6 +1,6 @@
 package de.team33.midi.impl;
 
-import de.team33.midi.TimeCode;
+import de.team33.midi.TimeStamp;
 import de.team33.midi.Timing;
 
 import javax.sound.midi.MidiEvent;
@@ -53,7 +53,7 @@ public abstract class TimingBase implements Timing {
         return this.m_TimeBeats;
     }
 
-    public TimeCode getTimeCode(long ticks) {
+    public TimeStamp getTimeCode(long ticks) {
         return new TIME_STAMP(ticks);
     }
 
@@ -61,7 +61,7 @@ public abstract class TimingBase implements Timing {
         return this.getBeatTicks() * this.getBarBeats();
     }
 
-    private class TIME_STAMP extends TimeCodeBase {
+    private class TIME_STAMP extends TimeStampBase {
         public TIME_STAMP(long ticks) {
             super(ticks);
         }

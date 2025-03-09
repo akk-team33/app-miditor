@@ -1,12 +1,12 @@
 package de.team33.midi.impl;
 
-import de.team33.midi.TimeCode;
+import de.team33.midi.TimeStamp;
 import de.team33.midi.Timing;
 
-public abstract class TimeCodeBase implements TimeCode {
+public abstract class TimeStampBase implements TimeStamp {
     private final long m_Ticks;
 
-    public TimeCodeBase(long ticks) {
+    public TimeStampBase(long ticks) {
         this.m_Ticks = ticks;
     }
 

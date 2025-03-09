@@ -15,5 +15,5 @@ public interface Timing {
 
     int getTickUnit();
 
-    TimeCode getTimeCode(long var1);
+    TimeStamp getTimeCode(long var1);
 }

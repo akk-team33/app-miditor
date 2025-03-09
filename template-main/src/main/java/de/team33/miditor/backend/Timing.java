@@ -5,17 +5,17 @@ import javax.sound.midi.Sequence;
 
 import static de.team33.miditor.backend.Util.unsigned;
 
-public record TimeSignature(int barNumerator,   // int getBarBeats();
-                            int barDenominator, // int getBeatUnit();
-                            int tickResolution) {
+public record Timing(int barNumerator,   // int getBarBeats();
+                     int barDenominator, // int getBeatUnit();
+                     int tickResolution) {
 
-    static TimeSignature of(final MidiMessage validMessage, final Sequence sequence) {
+    static Timing of(final MidiMessage validMessage, final Sequence sequence) {
         final byte[] bytes = validMessage.getMessage();
-        return new TimeSignature(unsigned(bytes[3]), (1 << unsigned(bytes[4])), sequence.getResolution());
+        return new Timing(unsigned(bytes[3]), (1 << unsigned(bytes[4])), sequence.getResolution());
     }
 
-    static TimeSignature of(final Sequence sequence) {
-        return new TimeSignature(4, 4, sequence.getResolution());
+    static Timing of(final Sequence sequence) {
+        return new Timing(4, 4, sequence.getResolution());
     }
 
     // int getSubBeatUnit();

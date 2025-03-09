@@ -1,6 +1,6 @@
 package de.team33.midi;
 
-public interface TimeCode {
+public interface TimeStamp {
 
     int getBar();
 
