@@ -1,5 +1,6 @@
 package de.team33.miditor.backend.publics;
 
+import de.team33.miditor.backend.TimeFormat;
 import de.team33.miditor.backend.Timing;
 import de.team33.miditor.backend.TimeStamp;
 import org.junit.jupiter.api.Test;
@@ -8,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class TimingTest {
 
-    private final Timing timing = new Timing(6, 8, 32);
+    private final Timing timing = new Timing(6, 8, 32, 100000);
 
     @Test
     final void barNumerator() {
@@ -52,7 +53,7 @@ class TimingTest {
 
     @Test
     final void timeStampOf() {
-        final TimeStamp expected = new TimeStamp(2, 5, 2, 3, subBeatTicks());
+        final TimeStamp expected = new TimeStamp(2, 5, 2, 3, TimeFormat.of(timing).toString());
         final TimeStamp result = timing.timeStampOf(96 + (4 * 16) + 8 + 3);
         assertEquals(expected, result);
     }
