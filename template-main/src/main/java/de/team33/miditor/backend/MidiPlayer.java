@@ -67,7 +67,7 @@ public class MidiPlayer extends Sender<MidiPlayer> {
     }
 
     private void onMetaEvent(final MetaMessage metaMessage) {
-        if (SET_TEMPO.value() == metaMessage.getType()) {
+        if (SET_TEMPO.isValid(metaMessage)) {
             fire(Channel.SET_TEMPO);
         }
     }

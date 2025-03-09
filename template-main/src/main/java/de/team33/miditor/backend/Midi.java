@@ -67,7 +67,10 @@ interface Midi {
                 if (minLength == maxLength) {
                     isLength = bytes -> bytes.length == minLength;
                 } else {
-                    isLength = bytes -> (minLength <= bytes.length) && (bytes.length <= maxLength);
+                    isLength = bytes -> {
+                        final int length = bytes.length;
+                        return (minLength <= length) && (length <= maxLength);
+                    };
                 }
                 this.identificator = isStatus;
                 this.validator = Variety.joined(isStatus, isLength);
@@ -98,17 +101,63 @@ interface Midi {
 
         enum Type {
 
-            TRACK_NAME(0x03),
-            SET_TEMPO(0x51);
+            TRACK_NAME(0x03, 0, 127),
+            EOF_TRACK(0x2F, 0),
+            SET_TEMPO(0x51, 3),
+            TIME_SIGNATURE(0x58, 4);
 
-            private final int value;
+            private static final String ILLEGAL_MESSAGE = "Not a valid meta message of type %s:%n" +
+                                                          "    status: %02Xh%n" +
+                                                          "    type: %02Xh%n" +
+                                                          "    length: %d%n" +
+                                                          "    bytes:  %s%n";
 
-            Type(final int value) {
-                this.value = value;
+            private final Predicate<byte[]> identificator;
+            private final Variety<byte[]> validator;
+
+            @SuppressWarnings("ParameterNameDiffersFromOverriddenParameter")
+            Type(final int type, final int length) {
+                this(type, length, length);
             }
 
-            final int value() {
-                return value;
+            Type(final int type, final int minLength, final int maxLength) {
+                final Predicate<byte[]> isType = bytes -> (bytes[1] & 0xFF) == type;
+                final Predicate<byte[]> isLength;
+                if (minLength == maxLength) {
+                    isLength = bytes -> (bytes[2] & 0xFF) == minLength;
+                } else {
+                    isLength = bytes -> {
+                        final int length = bytes[2] & 0xFF;
+                        return (minLength <= length) && (length <= maxLength);
+                    };
+                }
+                final Predicate<byte[]> isBytesLength = bytes -> bytes.length == (bytes[2] & 0xFF) + 3;
+                this.identificator = isType;
+                this.validator = Variety.joined(isType, isLength, isBytesLength);
+            }
+
+            final boolean isTypeOf(final MidiMessage message) {
+                return Message.Type.META.isTypeOf(message) && identificator.test(message.getMessage());
+            }
+
+            final boolean isValid(final MidiMessage message) {
+                return Message.Type.META.isValid(message) && isValidContent(message);
+            }
+
+            private boolean isValidContent(final MidiMessage metaMessage) {
+                return 0b111 == validator.apply(metaMessage.getMessage());
+            }
+
+            final MidiMessage valid(final MidiMessage message) {
+                if (isValidContent(Message.Type.META.valid(message))) {
+                    return message;
+                } else {
+                    final byte[] bytes = message.getMessage();
+                    final String text = ILLEGAL_MESSAGE.formatted(name(), bytes[0] & 0xff,
+                                                                  bytes[1] & 0xff, bytes[2] & 0xff,
+                                                                  Arrays.toString(bytes));
+                    throw new IllegalArgumentException(text);
+                }
             }
         }
     }
