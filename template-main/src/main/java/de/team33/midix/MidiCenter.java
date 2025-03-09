@@ -1,4 +1,4 @@
-package de.team33.miditor.backend;
+package de.team33.midix;
 
 import de.team33.patterns.execution.metis.SimpleAsyncExecutor;
 import de.team33.patterns.notes.alpha.Audience;
@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.concurrent.Executor;
 
-import static de.team33.miditor.backend.Util.CNV;
+import static de.team33.midix.Util.CNV;
 
 public class MidiCenter extends Sender<MidiCenter> {
 

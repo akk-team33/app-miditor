@@ -1,13 +1,11 @@
-package de.team33.miditor.backend.trials;
+package de.team33.midix.trials;
 
-import de.team33.miditor.backend.MidiCenter;
-import de.team33.miditor.backend.MidiPlayer;
+import de.team33.midix.MidiCenter;
+import de.team33.midix.MidiPlayer;
 
 import javax.sound.midi.InvalidMidiDataException;
 import java.io.IOException;
 import java.nio.file.Path;
-
-import static de.team33.miditor.backend.MidiPlayer.*;
 
 class MidiPlayerTrial {
 
@@ -19,13 +17,13 @@ class MidiPlayerTrial {
         this.midiCenter = new MidiCenter().load(Path.of("Beatles-Let_it_be-B.mid"));
         this.midiCenter.add(MidiCenter.Channel.SET_PATH,
                             path -> System.out.printf("Center path: %s%n", path));
-        this.midiCenter.player().add(Channel.SET_STATE,
+        this.midiCenter.player().add(MidiPlayer.Channel.SET_STATE,
                                      state -> System.out.printf("Player state: %s%n", state));
-        this.midiCenter.player().add(Channel.SET_STATE,
-                                     state -> System.out.printf("Effective triggers: %s%n", Trigger.allEffectiveOn(state)));
-        this.midiCenter.player().add(Channel.SET_POSITION,
+        this.midiCenter.player().add(MidiPlayer.Channel.SET_STATE,
+                                     state -> System.out.printf("Effective triggers: %s%n", MidiPlayer.Trigger.allEffectiveOn(state)));
+        this.midiCenter.player().add(MidiPlayer.Channel.SET_POSITION,
                                      position -> System.out.printf("Player position: %s%n", position));
-        this.midiCenter.player().add(Channel.SET_TEMPO,
+        this.midiCenter.player().add(MidiPlayer.Channel.SET_TEMPO,
                                      tempo -> System.out.printf("Player tempo: %s%n", tempo));
     }
 
@@ -36,26 +34,26 @@ class MidiPlayerTrial {
 
     private void run() throws InterruptedException {
         final MidiPlayer player = midiCenter.player();
-        player.push(Trigger.ON);
+        player.push(MidiPlayer.Trigger.ON);
 
-        player.push(Trigger.START);
+        player.push(MidiPlayer.Trigger.START);
         Thread.sleep(5000);
 
-        player.push(Trigger.PAUSE);
+        player.push(MidiPlayer.Trigger.PAUSE);
         player.setPosition(player.getPosition() + 1);
         Thread.sleep(2500);
 
-        player.push(Trigger.START);
+        player.push(MidiPlayer.Trigger.START);
         Thread.sleep(5000);
 
-        player.push(Trigger.STOP);
+        player.push(MidiPlayer.Trigger.STOP);
         Thread.sleep(2500);
 
         player.setPosition(3000);
-        player.push(Trigger.START);
+        player.push(MidiPlayer.Trigger.START);
         Thread.sleep(5000);
 
-        player.push(Trigger.OFF);
+        player.push(MidiPlayer.Trigger.OFF);
         System.out.printf("- Quit - - - - - - -%n");
     }
 }

@@ -1,6 +1,6 @@
 package de.team33.miditor.ui.event;
 
-import de.team33.miditor.backend.Timing;
+import de.team33.midix.Timing;
 
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.MidiMessage;

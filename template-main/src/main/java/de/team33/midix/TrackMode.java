@@ -1,4 +1,4 @@
-package de.team33.miditor.backend;
+package de.team33.midix;
 
 public enum TrackMode {
 

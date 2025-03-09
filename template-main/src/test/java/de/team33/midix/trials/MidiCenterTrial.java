@@ -1,8 +1,7 @@
-package de.team33.miditor.backend.trials;
+package de.team33.midix.trials;
 
-import de.team33.miditor.backend.MidiCenter;
-import de.team33.miditor.backend.MidiPlayer;
-import de.team33.miditor.backend.MidiPlayer.Trigger;
+import de.team33.midix.MidiCenter;
+import de.team33.midix.MidiPlayer;
 
 import javax.sound.midi.InvalidMidiDataException;
 import java.io.IOException;
@@ -27,27 +26,27 @@ class MidiCenterTrial {
         final MidiPlayer player = midiCenter.player();
         System.out.printf("Player state: %s%n", player.getState());
 
-        player.push(Trigger.START);
+        player.push(MidiPlayer.Trigger.START);
         System.out.printf("Player state: %s%n", player.getState());
         Thread.sleep(5000);
 
-        player.push(Trigger.PAUSE);
+        player.push(MidiPlayer.Trigger.PAUSE);
         System.out.printf("Player state: %s%n", player.getState());
         Thread.sleep(2500);
 
-        player.push(Trigger.START);
+        player.push(MidiPlayer.Trigger.START);
         System.out.printf("Player state: %s%n", player.getState());
         Thread.sleep(5000);
 
-        player.push(Trigger.STOP);
+        player.push(MidiPlayer.Trigger.STOP);
         System.out.printf("Player state: %s%n", player.getState());
         Thread.sleep(2500);
 
-        player.push(Trigger.START);
+        player.push(MidiPlayer.Trigger.START);
         System.out.printf("Player state: %s%n", player.getState());
         Thread.sleep(5000);
 
-        player.push(Trigger.OFF);
+        player.push(MidiPlayer.Trigger.OFF);
         System.out.printf("Player state: %s%n", player.getState());
         System.out.printf("- Quit - - - - - - -%n");
     }

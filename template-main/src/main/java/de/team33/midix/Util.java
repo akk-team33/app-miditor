@@ -1,4 +1,4 @@
-package de.team33.miditor.backend;
+package de.team33.midix;
 
 import de.team33.patterns.exceptional.dione.Converter;
 import de.team33.patterns.exceptional.dione.Wrapping;

@@ -1,15 +1,13 @@
-package de.team33.miditor.backend.trials;
+package de.team33.midix.trials;
 
-import de.team33.miditor.backend.MidiCenter;
-import de.team33.miditor.backend.MidiPlayer;
-import de.team33.miditor.backend.TrackMode;
+import de.team33.midix.MidiCenter;
+import de.team33.midix.MidiPlayer;
+import de.team33.midix.TrackMode;
 
 import javax.sound.midi.InvalidMidiDataException;
 import java.io.IOException;
 import java.nio.file.Path;
 
-import static de.team33.miditor.backend.MidiPlayer.Channel;
-import static de.team33.miditor.backend.MidiPlayer.Trigger;
 import static java.lang.System.out;
 
 class TrackModeTrial {
@@ -22,10 +20,10 @@ class TrackModeTrial {
         this.midiCenter = new MidiCenter().load(Path.of("Beatles-Let_it_be-B.mid"));
         this.midiCenter.add(MidiCenter.Channel.SET_PATH, path -> out.printf("Center path: %s%n", path))
                        .player()
-                       .add(Channel.SET_STATE, state -> out.printf("Player state: %s%n", state))
-                       .add(Channel.SET_STATE, state -> out.printf("Effective triggers: %s%n",
-                                                                   Trigger.allEffectiveOn(state)))
-                       .add(Channel.SET_TRACK_MODE, modes -> out.printf("Track modes: %s%n", modes));
+                       .add(MidiPlayer.Channel.SET_STATE, state -> out.printf("Player state: %s%n", state))
+                       .add(MidiPlayer.Channel.SET_STATE, state -> out.printf("Effective triggers: %s%n",
+                                                                              MidiPlayer.Trigger.allEffectiveOn(state)))
+                       .add(MidiPlayer.Channel.SET_TRACK_MODE, modes -> out.printf("Track modes: %s%n", modes));
     }
 
     @SuppressWarnings({"OverlyBroadThrowsClause", "ProhibitedExceptionDeclared"})
@@ -35,9 +33,9 @@ class TrackModeTrial {
 
     private void run() throws InterruptedException {
         final MidiPlayer player = midiCenter.player()
-                                            .push(Trigger.ON)
+                                            .push(MidiPlayer.Trigger.ON)
                                             .setPosition(30000)
-                                            .push(Trigger.START);
+                                            .push(MidiPlayer.Trigger.START);
         Thread.sleep(5000);
 
         player.setTrackMode(3, TrackMode.MUTE);
@@ -64,7 +62,7 @@ class TrackModeTrial {
         player.setTrackMode(8, TrackMode.NORMAL);
         Thread.sleep(5000);
 
-        player.push(Trigger.OFF);
+        player.push(MidiPlayer.Trigger.OFF);
         out.printf("- Quit - - - - - - - - - - - - - - - - - - - - - - - - - - - -%n");
     }
 }

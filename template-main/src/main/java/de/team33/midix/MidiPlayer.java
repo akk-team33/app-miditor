@@ -1,4 +1,4 @@
-package de.team33.miditor.backend;
+package de.team33.midix;
 
 import de.team33.patterns.enums.pan.Values;
 import de.team33.patterns.notes.alpha.Audience;
@@ -22,9 +22,9 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static de.team33.miditor.backend.Midi.MetaMessage.Type.SET_TEMPO;
-import static de.team33.miditor.backend.Util.CNV;
-import static de.team33.miditor.backend.Util.sleep;
+import static de.team33.midix.Midi.MetaMessage.Type.SET_TEMPO;
+import static de.team33.midix.Util.CNV;
+import static de.team33.midix.Util.sleep;
 import static java.util.function.Predicate.not;
 
 @SuppressWarnings("UnusedReturnValue")

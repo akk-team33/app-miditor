@@ -3,7 +3,7 @@ package de.team33.miditor.model;
 import de.team33.messaging.Register;
 import de.team33.messaging.sync.Router;
 import de.team33.midi.util.TimingUtil;
-import de.team33.miditor.backend.Timing;
+import de.team33.midix.Timing;
 
 import java.util.Arrays;
 import java.util.List;

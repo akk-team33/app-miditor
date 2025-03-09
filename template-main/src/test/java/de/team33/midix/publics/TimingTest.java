@@ -1,8 +1,8 @@
-package de.team33.miditor.backend.publics;
+package de.team33.midix.publics;
 
-import de.team33.miditor.backend.TimeFormat;
-import de.team33.miditor.backend.Timing;
-import de.team33.miditor.backend.TimeStamp;
+import de.team33.midix.TimeFormat;
+import de.team33.midix.Timing;
+import de.team33.midix.TimeStamp;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

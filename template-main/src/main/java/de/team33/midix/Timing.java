@@ -1,9 +1,7 @@
-package de.team33.miditor.backend;
+package de.team33.midix;
 
 import javax.sound.midi.MidiMessage;
 import javax.sound.midi.Sequence;
-
-import static de.team33.miditor.backend.Util.unsigned;
 
 public record Timing(int barNumerator,   // int getBarBeats();
                      int barDenominator, // int getBeatUnit();
@@ -13,8 +11,8 @@ public record Timing(int barNumerator,   // int getBarBeats();
     // TODO: make package private!
     public static Timing of(final MidiMessage validMessage, final Sequence sequence) {
         final byte[] bytes = validMessage.getMessage();
-        return new Timing(unsigned(bytes[3]),
-                          (1 << unsigned(bytes[4])),
+        return new Timing(Util.unsigned(bytes[3]),
+                          (1 << Util.unsigned(bytes[4])),
                           sequence.getResolution(),
                           sequence.getTickLength());
     }

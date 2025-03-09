@@ -7,7 +7,7 @@ import de.team33.midi.Sequence;
 import de.team33.midi.Track;
 import de.team33.midi.util.TrackUtil;
 import de.team33.miditor.IClickParameter;
-import de.team33.miditor.backend.Timing;
+import de.team33.midix.Timing;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MetaMessage;

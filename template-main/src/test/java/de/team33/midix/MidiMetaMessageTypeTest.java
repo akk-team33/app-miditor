@@ -1,7 +1,7 @@
-package de.team33.miditor.backend;
+package de.team33.midix;
 
-import de.team33.miditor.backend.Midi.MetaMessage.Type;
 import de.team33.miditor.testing.AnyMessage;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
@@ -16,13 +16,13 @@ class MidiMetaMessageTypeTest {
     @ParameterizedTest
     @EnumSource
     void isTypeOf(final Case given) {
-        assertEquals(given.isTypeOf, given.type.isTypeOf(given.midiMessage));
+        Assertions.assertEquals(given.isTypeOf, given.type.isTypeOf(given.midiMessage));
     }
 
     @ParameterizedTest
     @EnumSource
     void isValid(final Case given) {
-        assertEquals(given.isValid, given.type.isValid(given.midiMessage));
+        Assertions.assertEquals(given.isValid, given.type.isValid(given.midiMessage));
     }
 
     @ParameterizedTest
@@ -42,19 +42,19 @@ class MidiMetaMessageTypeTest {
     @SuppressWarnings("unused")
     enum Case {
 
-        TRACK_NAME(Type.TRACK_NAME, true, true, 0xFF, 0x03, 3, 65, 66, 67),
-        TRACK_NAME_TF_LONG(Type.TRACK_NAME, true, false, 0xFF, 0x03, 3, 65, 66, 67, 68),
-        TRACK_NAME_TF_SHORT(Type.TRACK_NAME, true, false, 0xFF, 0x03, 3, 65, 66),
-        EOF_TRACK(Type.EOF_TRACK, true, true, 0xFF, 0x2F, 0),
-        EOF_TRACK_TF_SHORT(Type.EOF_TRACK, true, false, 0xFF, 0x2F),
-        EOF_TRACK_FF_TYPE(Type.EOF_TRACK, false, false, 0xFF, 0x2E, 0);
+        TRACK_NAME(Midi.MetaMessage.Type.TRACK_NAME, true, true, 0xFF, 0x03, 3, 65, 66, 67),
+        TRACK_NAME_TF_LONG(Midi.MetaMessage.Type.TRACK_NAME, true, false, 0xFF, 0x03, 3, 65, 66, 67, 68),
+        TRACK_NAME_TF_SHORT(Midi.MetaMessage.Type.TRACK_NAME, true, false, 0xFF, 0x03, 3, 65, 66),
+        EOF_TRACK(Midi.MetaMessage.Type.EOF_TRACK, true, true, 0xFF, 0x2F, 0),
+        EOF_TRACK_TF_SHORT(Midi.MetaMessage.Type.EOF_TRACK, true, false, 0xFF, 0x2F),
+        EOF_TRACK_FF_TYPE(Midi.MetaMessage.Type.EOF_TRACK, false, false, 0xFF, 0x2E, 0);
 
-        private final Type type;
+        private final Midi.MetaMessage.Type type;
         private final boolean isTypeOf;
         private final boolean isValid;
         private final MidiMessage midiMessage;
 
-        Case(final Type type, boolean isTypeOf, boolean isValid, final int... values) {
+        Case(final Midi.MetaMessage.Type type, boolean isTypeOf, boolean isValid, final int... values) {
             this.type = type;
             this.isTypeOf = isTypeOf;
             this.isValid = isValid;
