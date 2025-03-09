@@ -39,6 +39,10 @@
             <groupId>de.team33.patterns</groupId>
             <artifactId>execution-metis</artifactId>
         </dependency>
+        <dependency>
+            <groupId>de.team33.patterns</groupId>
+            <artifactId>decision-carpo</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>org.junit.jupiter</groupId>
