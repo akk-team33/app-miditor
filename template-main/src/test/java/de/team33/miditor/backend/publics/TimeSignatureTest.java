@@ -4,7 +4,7 @@ import de.team33.miditor.backend.TimeSignature;
 import de.team33.miditor.backend.TimeStamp;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class TimeSignatureTest {
 
@@ -52,8 +52,8 @@ class TimeSignatureTest {
 
     @Test
     final void timeStampOf() {
-        final TimeStamp expected = new TimeStamp(2, 2, 2, 3);
-        final TimeStamp result = timeSignature.timeStampOf(96 + 16 + 8 + 3);
+        final TimeStamp expected = new TimeStamp(2, 5, 2, 3);
+        final TimeStamp result = timeSignature.timeStampOf(96 + (4 * 16) + 8 + 3);
         assertEquals(expected, result);
     }
 }
