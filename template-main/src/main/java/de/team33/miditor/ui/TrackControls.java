@@ -2,7 +2,7 @@ package de.team33.miditor.ui;
 
 import de.team33.midi.Player;
 import de.team33.midi.Player.Mode;
-import de.team33.midi.Track;
+import de.team33.midi.MidiTrack;
 import de.team33.miditor.ui.track.Context;
 import de.team33.selection.Selection;
 import de.team33.swing.XTextField;
@@ -38,17 +38,17 @@ public abstract class TrackControls {
     private class CHANNEL_PANE extends JPanel {
         public CHANNEL_PANE() {
             super(new BorderLayout());
-            TrackControls.this.getContext().getTrack().getRegister(Track.SetChannels.class).add(new CLIENT());
+            TrackControls.this.getContext().getTrack().getRegister(MidiTrack.SetChannels.class).add(new CLIENT());
         }
 
-        private class CLIENT implements Consumer<Track.SetChannels> {
+        private class CLIENT implements Consumer<MidiTrack.SetChannels> {
             private CLIENT() {
             }
 
-            public void accept(Track.SetChannels message) {
+            public void accept(MidiTrack.SetChannels message) {
                 CHANNEL_PANE.this.setVisible(false);
                 CHANNEL_PANE.this.removeAll();
-                int[] channels = ((Track) message.getSender()).getChannels();
+                int[] channels = ((MidiTrack) message.getSender()).getChannels();
                 if (channels.length == 0) {
                     CHANNEL_PANE.this.add(TrackControls.this.new LABEL("--"), "Center");
                 } else if (channels.length == 1) {
@@ -76,7 +76,7 @@ public abstract class TrackControls {
     private class INDEX_PANE extends JCheckBox {
         public INDEX_PANE() {
             super(TrackControls.this.getContext().getTrack().getPrefix());
-            TrackControls.this.getContext().getTrack().getRegister(Track.SetModified.class).add(new PRT_CLNT());
+            TrackControls.this.getContext().getTrack().getRegister(MidiTrack.SetModified.class).add(new PRT_CLNT());
             TrackControls.this.getContext().getSelection().getRegister().add(new PRT_SEL_CLNT());
             this.addActionListener(new LISTENER());
         }
@@ -95,20 +95,20 @@ public abstract class TrackControls {
             }
         }
 
-        private class PRT_CLNT implements Consumer<Track.SetModified> {
+        private class PRT_CLNT implements Consumer<MidiTrack.SetModified> {
             private PRT_CLNT() {
             }
 
-            public void accept(Track.SetModified message) {
-                INDEX_PANE.this.setForeground(((Track) message.getSender()).isModified() ? Color.BLUE : Color.BLACK);
+            public void accept(MidiTrack.SetModified message) {
+                INDEX_PANE.this.setForeground(((MidiTrack) message.getSender()).isModified() ? Color.BLUE : Color.BLACK);
             }
         }
 
-        private class PRT_SEL_CLNT implements Consumer<Selection.Message<Track>> {
+        private class PRT_SEL_CLNT implements Consumer<Selection.Message<MidiTrack>> {
             private PRT_SEL_CLNT() {
             }
 
-            public void accept(Selection.Message<Track> message) {
+            public void accept(Selection.Message<MidiTrack> message) {
                 INDEX_PANE.this.setSelected(((Selection) message.getSender()).contains(TrackControls.this.getContext().getTrack()));
             }
         }
@@ -152,15 +152,15 @@ public abstract class TrackControls {
     private class NAME_PANE extends XTextField {
         public NAME_PANE() {
             super(12);
-            TrackControls.this.getContext().getTrack().getRegister(Track.SetName.class).add(new CLIENT());
+            TrackControls.this.getContext().getTrack().getRegister(MidiTrack.SetName.class).add(new CLIENT());
         }
 
-        private class CLIENT implements Consumer<Track.SetName> {
+        private class CLIENT implements Consumer<MidiTrack.SetName> {
             private CLIENT() {
             }
 
-            public void accept(Track.SetName message) {
-                NAME_PANE.this.setText(((Track) message.getSender()).getName());
+            public void accept(MidiTrack.SetName message) {
+                NAME_PANE.this.setText(((MidiTrack) message.getSender()).getName());
             }
         }
     }

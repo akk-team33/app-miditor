@@ -4,7 +4,7 @@ import de.team33.messaging.Register;
 import de.team33.messaging.sync.Router;
 import de.team33.messaging.util.ListenerUtil;
 import de.team33.midi.Sequence;
-import de.team33.midi.Track;
+import de.team33.midi.MidiTrack;
 import de.team33.midi.util.TrackUtil;
 import de.team33.miditor.IClickParameter;
 import de.team33.midix.Timing;
@@ -92,7 +92,7 @@ public class SequenceImpl implements Sequence {
         }
     }
 
-    private static MidiEvent getMetaEvent(Track p, int type, long latestTick) {
+    private static MidiEvent getMetaEvent(MidiTrack p, int type, long latestTick) {
         MidiEvent ret = null;
         int i = 0;
 
@@ -114,11 +114,11 @@ public class SequenceImpl implements Sequence {
         return ret;
     }
 
-    private static MidiEvent getTempoEvent(Track p, long latestTick) {
+    private static MidiEvent getTempoEvent(MidiTrack p, long latestTick) {
         return getMetaEvent(p, 81, latestTick);
     }
 
-    private static MidiEvent getTimingEvent(Track p, long latestTick) {
+    private static MidiEvent getTimingEvent(MidiTrack p, long latestTick) {
         return getMetaEvent(p, 88, latestTick);
     }
 
@@ -162,17 +162,17 @@ public class SequenceImpl implements Sequence {
 
     }
 
-    private Track core_create(Set<Sequence.Message> messages) {
+    private MidiTrack core_create(Set<Sequence.Message> messages) {
         javax.sound.midi.Track rawTrack = this.m_Sequence.createTrack();
         if (rawTrack != null) {
             this.core_clear(messages);
             this.m_PartMap.put(rawTrack, new PART(rawTrack));
         }
 
-        return (Track) this.m_PartMap.get(rawTrack);
+        return (MidiTrack) this.m_PartMap.get(rawTrack);
     }
 
-    private boolean core_delete(Track p, Set<Sequence.Message> messages) {
+    private boolean core_delete(MidiTrack p, Set<Sequence.Message> messages) {
         boolean ret = false;
         if (p instanceof PART) {
             javax.sound.midi.Track tRaw = ((PART) p).getTrack();
@@ -213,16 +213,16 @@ public class SequenceImpl implements Sequence {
 
     }
 
-    public Track create() {
+    public MidiTrack create() {
         Set<Sequence.Message> messages = new HashSet();
-        Track ret = this.core_create(messages);
+        MidiTrack ret = this.core_create(messages);
         ListenerUtil.pass(this.router, messages);
         return ret;
     }
 
-    public Track create(IClickParameter cp) {
+    public MidiTrack create(IClickParameter cp) {
         Set<Sequence.Message> messages = new HashSet();
-        Track ret = this.core_create(messages);
+        MidiTrack ret = this.core_create(messages);
         MetaMessage msg0 = new MetaMessage();
         byte[] bytes = "Metronom".getBytes();
 
@@ -253,19 +253,19 @@ public class SequenceImpl implements Sequence {
         return ret;
     }
 
-    public void delete(Iterable<Track> tracks) {
+    public void delete(Iterable<MidiTrack> tracks) {
         Set<Sequence.Message> messages = new HashSet();
         Iterator var4 = tracks.iterator();
 
         while (var4.hasNext()) {
-            Track p = (Track) var4.next();
+            MidiTrack p = (MidiTrack) var4.next();
             this.core_delete(p, messages);
         }
 
         ListenerUtil.pass(this.router, messages);
     }
 
-    public boolean delete(Track track) {
+    public boolean delete(MidiTrack track) {
         Set<Sequence.Message> messages = new HashSet();
         boolean ret = this.core_delete(track, messages);
         ListenerUtil.pass(this.router, messages);
@@ -276,14 +276,14 @@ public class SequenceImpl implements Sequence {
         return this.m_File;
     }
 
-    public Track[] getTracks() {
+    public MidiTrack[] getTracks() {
         if (this.m_Parts == null) {
             javax.sound.midi.Track[] rawTracks = this.m_Sequence.getTracks();
             this.m_Parts = new PART[rawTracks.length];
 
             for (int i = 0; i < rawTracks.length; ++i) {
                 this.m_Parts[i] = (PART) this.m_PartMap.get(rawTracks[i]);
-                this.m_Parts[i].getRegister(Track.SetModified.class).add(new PART_CLIENT());
+                this.m_Parts[i].getRegister(MidiTrack.SetModified.class).add(new PART_CLIENT());
             }
         }
 
@@ -314,7 +314,7 @@ public class SequenceImpl implements Sequence {
     }
 
     public void setTempo(int tempo) {
-        Track p0;
+        MidiTrack p0;
         if (this.getTracks().length > 0) {
             p0 = this.getTracks()[0];
         } else {
@@ -360,13 +360,13 @@ public class SequenceImpl implements Sequence {
         return this.m_Modified;
     }
 
-    public void join(Iterable<Track> tracks) {
+    public void join(Iterable<MidiTrack> tracks) {
         Set<Sequence.Message> messages = new HashSet();
-        Track newTrack = this.core_create(messages);
+        MidiTrack newTrack = this.core_create(messages);
         Iterator var5 = tracks.iterator();
 
         while (var5.hasNext()) {
-            Track t = (Track) var5.next();
+            MidiTrack t = (MidiTrack) var5.next();
             newTrack.add(t.getAll());
             this.core_delete(t, messages);
         }
@@ -389,14 +389,14 @@ public class SequenceImpl implements Sequence {
         this._save_and_relay(messages);
     }
 
-    public void split(Track track) {
+    public void split(MidiTrack track) {
         Set<Sequence.Message> messages = new HashSet();
         Map<Integer, List<MidiEvent>> extract = track.extractChannels();
         Iterator var5 = extract.keySet().iterator();
 
         while (var5.hasNext()) {
             Integer channel = (Integer) var5.next();
-            Track newTrack = this.core_create(messages);
+            MidiTrack newTrack = this.core_create(messages);
             TrackUtil.add(newTrack, (Collection) extract.get(channel));
         }
 
@@ -429,7 +429,7 @@ public class SequenceImpl implements Sequence {
         }
     }
 
-    private class PART extends TrackBase {
+    private class PART extends MidiTrackBase {
         public PART(javax.sound.midi.Track t) {
             super(t);
         }
@@ -459,12 +459,12 @@ public class SequenceImpl implements Sequence {
         }
     }
 
-    private class PART_CLIENT implements Consumer<Track.SetModified> {
+    private class PART_CLIENT implements Consumer<MidiTrack.SetModified> {
         private PART_CLIENT() {
         }
 
-        public void accept(Track.SetModified message) {
-            if (((Track) message.getSender()).isModified()) {
+        public void accept(MidiTrack.SetModified message) {
+            if (((MidiTrack) message.getSender()).isModified()) {
                 Set<Sequence.Message> messages = new HashSet();
                 SequenceImpl.this.core_setModified(true, messages);
                 ListenerUtil.pass(SequenceImpl.this.router, messages);

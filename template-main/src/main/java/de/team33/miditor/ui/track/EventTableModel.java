@@ -1,6 +1,6 @@
 package de.team33.miditor.ui.track;
 
-import de.team33.midi.Track;
+import de.team33.midi.MidiTrack;
 import de.team33.miditor.controller.UIController;
 
 import javax.swing.event.TableModelEvent;
@@ -9,7 +9,7 @@ import java.util.function.Consumer;
 
 public abstract class EventTableModel extends AbstractTableModel {
     private static String[] m_ColumnNames = new String[]{"Position", "Kanal", "Typ", "d1", "d2", "Rohdaten"};
-    private Track m_Track = null;
+    private MidiTrack m_Track = null;
     private TRCK_CLIENT m_TrckClient = null;
 
     public EventTableModel() {
@@ -43,10 +43,10 @@ public abstract class EventTableModel extends AbstractTableModel {
         }
 
         public void accept(UIController.SetTrack message) {
-            Track track = ((UIController) message.getSender()).getTrack();
+            MidiTrack track = ((UIController) message.getSender()).getTrack();
             if (EventTableModel.this.m_Track != track) {
                 if (EventTableModel.this.m_Track != null) {
-                    EventTableModel.this.m_Track.getRegister(Track.SetEvents.class).remove(EventTableModel.this.m_TrckClient);
+                    EventTableModel.this.m_Track.getRegister(MidiTrack.SetEvents.class).remove(EventTableModel.this.m_TrckClient);
                     EventTableModel.this.m_TrckClient = null;
                 }
 
@@ -55,18 +55,18 @@ public abstract class EventTableModel extends AbstractTableModel {
                     EventTableModel.this._fireTableChanged();
                 } else {
                     EventTableModel.this.m_TrckClient = EventTableModel.this.new TRCK_CLIENT();
-                    EventTableModel.this.m_Track.getRegister(Track.SetEvents.class).add(EventTableModel.this.m_TrckClient);
+                    EventTableModel.this.m_Track.getRegister(MidiTrack.SetEvents.class).add(EventTableModel.this.m_TrckClient);
                 }
             }
 
         }
     }
 
-    private class TRCK_CLIENT implements Consumer<Track.SetEvents> {
+    private class TRCK_CLIENT implements Consumer<MidiTrack.SetEvents> {
         private TRCK_CLIENT() {
         }
 
-        public void accept(Track.SetEvents message) {
+        public void accept(MidiTrack.SetEvents message) {
             EventTableModel.this._fireTableChanged();
         }
     }

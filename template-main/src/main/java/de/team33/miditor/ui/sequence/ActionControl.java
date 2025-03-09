@@ -1,6 +1,6 @@
 package de.team33.miditor.ui.sequence;
 
-import de.team33.midi.Track;
+import de.team33.midi.MidiTrack;
 import de.team33.miditor.IClickParameter;
 import de.team33.miditor.ui.Rsrc;
 import de.team33.swing.XButton;
@@ -121,11 +121,11 @@ public abstract class ActionControl extends JPanel {
         protected abstract long getDelta();
 
         public void actionPerformed(ActionEvent e) {
-            Track[] var5;
+            MidiTrack[] var5;
             int var4 = (var5 = ActionControl.this.getContext().getSequence().getTracks()).length;
 
             for (int var3 = 0; var3 < var4; ++var3) {
-                Track t = var5[var3];
+                MidiTrack t = var5[var3];
                 t.shift(this.getDelta());
             }
 

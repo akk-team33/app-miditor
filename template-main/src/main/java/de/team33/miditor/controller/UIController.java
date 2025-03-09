@@ -1,12 +1,12 @@
 package de.team33.miditor.controller;
 
 import de.team33.messaging.Registry;
-import de.team33.midi.Track;
+import de.team33.midi.MidiTrack;
 
 public interface UIController extends Registry<UIController.Message> {
-    Track getTrack();
+    MidiTrack getTrack();
 
-    void setTrack(Track var1);
+    void setTrack(MidiTrack var1);
 
     int[] getTrackSelection();
 

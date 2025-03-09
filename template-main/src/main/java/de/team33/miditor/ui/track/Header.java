@@ -1,6 +1,6 @@
 package de.team33.miditor.ui.track;
 
-import de.team33.midi.Track;
+import de.team33.midi.MidiTrack;
 import de.team33.miditor.controller.UIController;
 
 import javax.swing.*;
@@ -16,18 +16,18 @@ public class Header extends JLabel {
         uiController.getRegister(UIController.SetTrack.class).add(new UICTRL_LSTNR());
     }
 
-    private class TRACK_LSTNR implements Consumer<Track.SetName> {
+    private class TRACK_LSTNR implements Consumer<MidiTrack.SetName> {
         private TRACK_LSTNR(UIController ctrl) {
-            Track track = ctrl.getTrack();
+            MidiTrack track = ctrl.getTrack();
             if (track != null) {
                 ctrl.getRegister(UIController.UnsetTrack.class).add(new UNSET_LSTNR());
-                track.getRegister(Track.SetName.class).add(this);
+                track.getRegister(MidiTrack.SetName.class).add(this);
             }
 
         }
 
-        public void accept(Track.SetName message) {
-            Header.this.setText(String.format("%s - %s", ((Track) message.getSender()).getPrefix(), ((Track) message.getSender()).getName()));
+        public void accept(MidiTrack.SetName message) {
+            Header.this.setText(String.format("%s - %s", ((MidiTrack) message.getSender()).getPrefix(), ((MidiTrack) message.getSender()).getName()));
         }
 
         private class UNSET_LSTNR implements Consumer<UIController.UnsetTrack> {
@@ -36,9 +36,9 @@ public class Header extends JLabel {
 
             public void accept(UIController.UnsetTrack message) {
                 UIController ctrl = (UIController) message.getSender();
-                Track track = ctrl.getTrack();
+                MidiTrack track = ctrl.getTrack();
                 if (track != null) {
-                    track.getRegister(Track.SetName.class).remove(TRACK_LSTNR.this);
+                    track.getRegister(MidiTrack.SetName.class).remove(TRACK_LSTNR.this);
                     ctrl.getRegister(UIController.UnsetTrack.class).remove(this);
                 }
 

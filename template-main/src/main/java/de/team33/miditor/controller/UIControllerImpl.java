@@ -2,7 +2,7 @@ package de.team33.miditor.controller;
 
 import de.team33.messaging.Register;
 import de.team33.messaging.sync.Router;
-import de.team33.midi.Track;
+import de.team33.midi.MidiTrack;
 
 import java.util.Arrays;
 
@@ -12,7 +12,7 @@ public class UIControllerImpl implements UIController {
     private final MESSAGE msgSetSelection = new SET_TRACK_SELECTION();
     private final ROUTER router = new ROUTER();
     private int[] m_Selection = new int[0];
-    private Track m_Track = null;
+    private MidiTrack m_Track = null;
 
     public UIControllerImpl() {
         this.router.addInitials(Arrays.asList(this.msgSetTrack, this.msgSetSelection));
@@ -22,11 +22,11 @@ public class UIControllerImpl implements UIController {
         return this.router.getRegister(msgClass);
     }
 
-    public Track getTrack() {
+    public MidiTrack getTrack() {
         return this.m_Track;
     }
 
-    public void setTrack(Track track) {
+    public void setTrack(MidiTrack track) {
         this.router.accept(this.msgUnsetTrack);
         this.m_Track = track;
         this.router.accept(this.msgSetTrack);

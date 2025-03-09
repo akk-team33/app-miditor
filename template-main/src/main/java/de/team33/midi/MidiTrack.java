@@ -7,7 +7,7 @@ import javax.sound.midi.MidiEvent;
 import java.util.List;
 import java.util.Map;
 
-public interface Track extends Registry<Message<Track>> {
+public interface MidiTrack extends Registry<Message<MidiTrack>> {
     void add(MidiEvent... var1);
 
     Map<Integer, List<MidiEvent>> extractChannels();
@@ -30,18 +30,18 @@ public interface Track extends Registry<Message<Track>> {
 
     int size();
 
-    public interface Released extends Message<Track> {
+    public interface Released extends Message<MidiTrack> {
     }
 
-    public interface SetChannels extends Message<Track> {
+    public interface SetChannels extends Message<MidiTrack> {
     }
 
-    public interface SetEvents extends Message<Track> {
+    public interface SetEvents extends Message<MidiTrack> {
     }
 
-    public interface SetModified extends Message<Track> {
+    public interface SetModified extends Message<MidiTrack> {
     }
 
-    public interface SetName extends Message<Track> {
+    public interface SetName extends Message<MidiTrack> {
     }
 }

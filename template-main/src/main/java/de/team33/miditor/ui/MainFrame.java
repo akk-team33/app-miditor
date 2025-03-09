@@ -3,7 +3,7 @@ package de.team33.miditor.ui;
 import de.team33.midi.Player;
 import de.team33.midi.Player.State;
 import de.team33.midi.Sequence;
-import de.team33.midi.Track;
+import de.team33.midi.MidiTrack;
 import de.team33.midi.impl.PlayerImpl;
 import de.team33.miditor.controller.UIController;
 import de.team33.miditor.model.PartSelection;
@@ -46,7 +46,7 @@ public class MainFrame extends XFrame {
         GBC_TRCK_EDIT = new GridBagConstraints(4, 1, 2, 1, 0.0, 1.0, 10, 1, GBC_INSETS, 0, 0);
     }
 
-    private final Selection<Track> selection;
+    private final Selection<MidiTrack> selection;
     private final Sequence sequence;
     private final Player player;
     private final EventEditor m_EventEditor;
@@ -95,7 +95,7 @@ public class MainFrame extends XFrame {
             return MainFrame.this.player;
         }
 
-        public Selection<Track> getSelection() {
+        public Selection<MidiTrack> getSelection() {
             return MainFrame.this.selection;
         }
 
@@ -107,7 +107,7 @@ public class MainFrame extends XFrame {
             return MainFrame.this.m_EventEditor;
         }
 
-        public Selection<Track> getTrackSelection() {
+        public Selection<MidiTrack> getTrackSelection() {
             return MainFrame.this.selection;
         }
 

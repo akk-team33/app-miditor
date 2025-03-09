@@ -1,7 +1,7 @@
 package de.team33.miditor.ui.sequence;
 
 import de.team33.midi.Sequence;
-import de.team33.midi.Track;
+import de.team33.midi.MidiTrack;
 import de.team33.midix.Timing;
 import de.team33.miditor.model.TimeShift;
 import de.team33.miditor.model.TimeShiftBase;
@@ -28,7 +28,7 @@ public abstract class TimeShiftControl extends JPanel {
 
     protected abstract Sequence getSequence();
 
-    protected abstract Selection<Track> getSelection();
+    protected abstract Selection<MidiTrack> getSelection();
 
     public class DIVIDEND_INPUT extends XSpinner {
         DIVIDEND_INPUT() {
@@ -139,16 +139,16 @@ public abstract class TimeShiftControl extends JPanel {
         }
 
         public void actionPerformed(ActionEvent e) {
-            for (final Track p : TimeShiftControl.this.getSelection()) {
+            for (final MidiTrack p : TimeShiftControl.this.getSelection()) {
                 p.shift(((long) TimeShiftControl.this.m_TimeShift.getTicks() * this.m_Factor));
             }
         }
 
-        private class PRT_SEL_CLNT implements Consumer<Selection.Message<Track>> {
+        private class PRT_SEL_CLNT implements Consumer<Selection.Message<MidiTrack>> {
             private PRT_SEL_CLNT() {
             }
 
-            public void accept(Selection.Message<Track> message) {
+            public void accept(Selection.Message<MidiTrack> message) {
                 SHIFT_BTTN.this.setEnabled(1 <= message.getSender().size());
             }
         }
