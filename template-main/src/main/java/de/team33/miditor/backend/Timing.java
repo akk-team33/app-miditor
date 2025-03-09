@@ -49,6 +49,7 @@ public record Timing(int barNumerator,   // int getBarBeats();
         return tickDenominator() / subBeatDenominator();
     }
 
+    @SuppressWarnings("NumericCastThatLosesPrecision")
     public final TimeStamp timeStampOf(final long tickPosition) {
         final int bar = (int) ((tickPosition / barTicks()) + 1);
         final int beat = (int) (((tickPosition / beatTicks()) % barNumerator) + 1);
