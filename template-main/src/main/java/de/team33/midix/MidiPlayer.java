@@ -289,7 +289,7 @@ public class MidiPlayer extends Sender<MidiPlayer> {
 
     @SuppressWarnings("ClassNameSameAsAncestorName")
     @FunctionalInterface
-    interface Key<R> extends de.team33.patterns.features.alpha.Features.Key<MidiPlayer, R> {
+    private interface Key<R> extends de.team33.patterns.features.alpha.Features.Key<MidiPlayer, R> {
 
         Key<List<TrackMode>> TRACK_MODES = MidiPlayer::newTrackModes;
     }
