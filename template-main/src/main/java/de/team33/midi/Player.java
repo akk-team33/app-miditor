@@ -1,6 +1,7 @@
 package de.team33.midi;
 
 import de.team33.messaging.Registry;
+import de.team33.miditor.backend.Timing;
 
 public interface Player extends Registry<Player.Message> {
     Mode getMode(int var1);

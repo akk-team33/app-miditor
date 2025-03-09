@@ -9,12 +9,14 @@ public record Timing(int barNumerator,   // int getBarBeats();
                      int barDenominator, // int getBeatUnit();
                      int tickResolution) {
 
-    static Timing of(final MidiMessage validMessage, final Sequence sequence) {
+    // TODO: make package private!
+    public static Timing of(final MidiMessage validMessage, final Sequence sequence) {
         final byte[] bytes = validMessage.getMessage();
         return new Timing(unsigned(bytes[3]), (1 << unsigned(bytes[4])), sequence.getResolution());
     }
 
-    static Timing of(final Sequence sequence) {
+    // TODO: make package private!
+    public static Timing of(final Sequence sequence) {
         return new Timing(4, 4, sequence.getResolution());
     }
 
@@ -48,6 +50,6 @@ public record Timing(int barNumerator,   // int getBarBeats();
         final int beat = (int) (((tickPosition / beatTicks()) % barNumerator) + 1);
         final int subBeat = (int) ((tickPosition / subBeatTicks()) % (subBeatDenominator() / barDenominator) + 1);
         final int moreTicks = (int) (tickPosition % subBeatTicks());
-        return new TimeStamp(bar, beat, subBeat, moreTicks);
+        return new TimeStamp(bar, beat, subBeat, moreTicks, subBeatTicks());
     }
 }

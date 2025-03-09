@@ -6,7 +6,7 @@ import de.team33.messaging.util.ClassUtil;
 import de.team33.messaging.util.ListenerUtil;
 import de.team33.midi.Player;
 import de.team33.midi.Sequence;
-import de.team33.midi.Timing;
+import de.team33.miditor.backend.Timing;
 
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiSystem;

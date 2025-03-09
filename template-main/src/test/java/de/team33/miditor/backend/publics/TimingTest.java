@@ -52,7 +52,7 @@ class TimingTest {
 
     @Test
     final void timeStampOf() {
-        final TimeStamp expected = new TimeStamp(2, 5, 2, 3);
+        final TimeStamp expected = new TimeStamp(2, 5, 2, 3, subBeatTicks());
         final TimeStamp result = timing.timeStampOf(96 + (4 * 16) + 8 + 3);
         assertEquals(expected, result);
     }

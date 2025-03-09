@@ -4,10 +4,10 @@ import de.team33.messaging.Register;
 import de.team33.messaging.sync.Router;
 import de.team33.messaging.util.ListenerUtil;
 import de.team33.midi.Sequence;
-import de.team33.midi.Timing;
 import de.team33.midi.Track;
 import de.team33.midi.util.TrackUtil;
 import de.team33.miditor.IClickParameter;
+import de.team33.miditor.backend.Timing;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MetaMessage;
@@ -58,9 +58,9 @@ public class SequenceImpl implements Sequence {
         }
 
         if (this.getTracks().length > 0) {
-            this.m_Timing = new TIMING(getTimingEvent(this.getTracks()[0], 0L));
+            this.m_Timing = Timing.of(getTimingEvent(this.getTracks()[0], 0L).getMessage(), m_Sequence);
         } else {
-            this.m_Timing = new TIMING((MidiEvent) null);
+            this.m_Timing = Timing.of(m_Sequence);
         }
 
     }
@@ -488,16 +488,6 @@ public class SequenceImpl implements Sequence {
     private class SET_PARTS extends MESSAGE implements Sequence.SetParts {
         private SET_PARTS() {
             super();
-        }
-    }
-
-    private class TIMING extends TimingBase {
-        TIMING(MidiEvent timing) {
-            super(timing);
-        }
-
-        protected javax.sound.midi.Sequence getSequence() {
-            return SequenceImpl.this.m_Sequence;
         }
     }
 }

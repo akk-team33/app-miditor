@@ -2,8 +2,8 @@ package de.team33.miditor.model;
 
 import de.team33.messaging.Register;
 import de.team33.messaging.sync.Router;
-import de.team33.midi.Timing;
 import de.team33.midi.util.TimingUtil;
+import de.team33.miditor.backend.Timing;
 
 import java.util.Arrays;
 import java.util.List;
@@ -12,8 +12,8 @@ public abstract class TimeShiftBase implements TimeShift {
     private final SET_DIVIDEND msgSetDividend = new SET_DIVIDEND();
     private final SET_DIVISOR msgSetDivisor = new SET_DIVISOR();
     private final Router<TimeShift.Message> router = new Router();
-    private long dividend = (long) this.getTiming().getBarBeats();
-    private long divisor = (long) this.getTiming().getBeatUnit();
+    private long dividend = (long) this.getTiming().barNumerator();
+    private long divisor = (long) this.getTiming().barDenominator();
     private List<Integer> divisors = null;
 
     public TimeShiftBase() {
@@ -79,7 +79,7 @@ public abstract class TimeShiftBase implements TimeShift {
     }
 
     public final int getTickUnit() {
-        return this.getTiming().getTickUnit();
+        return this.getTiming().tickDenominator();
     }
 
     protected abstract Timing getTiming();

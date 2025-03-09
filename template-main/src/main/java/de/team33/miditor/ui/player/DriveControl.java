@@ -37,7 +37,7 @@ public abstract class DriveControl extends JPanel {
         }
 
         protected void relocate() {
-            long ticksPerMeasure = DriveControl.this.getContext().getPlayer().getSequence().getTiming().getBarTicks();
+            long ticksPerMeasure = DriveControl.this.getContext().getPlayer().getSequence().getTiming().barTicks();
             long threshold = 1L;
             threshold *= ticksPerMeasure;
             threshold /= 4L;
@@ -74,7 +74,7 @@ public abstract class DriveControl extends JPanel {
         }
 
         protected void relocate() {
-            long ticksPerMeasure = DriveControl.this.getContext().getPlayer().getSequence().getTiming().getBarTicks();
+            long ticksPerMeasure = DriveControl.this.getContext().getPlayer().getSequence().getTiming().barTicks();
             long threshold = 1L;
             threshold *= ticksPerMeasure;
             threshold *= 3L;
