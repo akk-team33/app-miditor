@@ -10,6 +10,8 @@ final class Util {
 
     static final Converter CNV = Converter.using(Wrapping.method(IllegalStateException::new));
 
+    private static final int U_MASK = 0xff;
+
     private Util() {
     }
 
@@ -27,5 +29,9 @@ final class Util {
 
     static int tracksSize(final Sequence sequence) {
         return sequence.getTracks().length;
+    }
+
+    static int unsigned(final byte value) {
+        return value & U_MASK;
     }
 }

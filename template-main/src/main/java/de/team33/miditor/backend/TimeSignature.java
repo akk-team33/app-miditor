@@ -3,16 +3,15 @@ package de.team33.miditor.backend;
 import javax.sound.midi.MidiMessage;
 import javax.sound.midi.Sequence;
 
-// tickResolution // int getTickUnit() / 4
-// barDenominator // int getBeatUnit();
-// barNumerator   // int getBarBeats();
-public record TimeSignature(int barNumerator, int barDenominator, int tickResolution) {
+import static de.team33.miditor.backend.Util.unsigned;
 
-    private static final int U_MASK = 0xFF;
+public record TimeSignature(int barNumerator,   // int getBarBeats();
+                            int barDenominator, // int getBeatUnit();
+                            int tickResolution) {
 
     static TimeSignature of(final MidiMessage validMessage, final Sequence sequence) {
         final byte[] bytes = validMessage.getMessage();
-        return new TimeSignature(bytes[3] & U_MASK, (1 << (bytes[4] & U_MASK)), sequence.getResolution());
+        return new TimeSignature(unsigned(bytes[3]), (1 << unsigned(bytes[4])), sequence.getResolution());
     }
 
     static TimeSignature of(final Sequence sequence) {
@@ -24,6 +23,11 @@ public record TimeSignature(int barNumerator, int barDenominator, int tickResolu
         return Math.max(16, barDenominator << 1);
     }
 
+    // int getTickUnit()
+    public final int tickDenominator() {
+        return tickResolution << 2;
+    }
+
     // int getBarTicks()
     public final int barTicks() {
         return barNumerator * beatTicks();
@@ -31,13 +35,19 @@ public record TimeSignature(int barNumerator, int barDenominator, int tickResolu
 
     // int getBeatTicks()
     public final int beatTicks() {
-        return (tickResolution << 2) / barDenominator;
+        return tickDenominator() / barDenominator;
     }
 
     // int getSubBeatTicks(); // -> xxx : tickResolution * 4 / subBeatDenominator // int getSubBeatTicks()
     public final int subBeatTicks() {
-        return (tickResolution << 2) / subBeatDenominator();
+        return tickDenominator() / subBeatDenominator();
     }
 
-    // TODO: TimeCode getTimeCode(long var1);
+    public final TimeStamp timeStampOf(final long tickPosition) {
+        final int bar = (int) ((tickPosition / barTicks()) + 1);
+        final int beat = (int) (((tickPosition / beatTicks()) % barNumerator) + 1);
+        final int subBeat = (int) ((tickPosition / subBeatTicks()) % (subBeatDenominator() / barDenominator) + 1);
+        final int moreTicks = (int) (tickPosition % subBeatTicks());
+        return new TimeStamp(bar, beat, subBeat, moreTicks);
+    }
 }
