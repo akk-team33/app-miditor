@@ -386,7 +386,8 @@ public class SequenceImpl implements Sequence {
         }
     }
 
-    private class PART extends TrackBase {
+    private class PART extends Track {
+
         public PART(final javax.sound.midi.Track t) {
             super(t);
         }
