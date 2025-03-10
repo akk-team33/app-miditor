@@ -3,11 +3,12 @@ package de.team33.midix;
 import de.team33.patterns.decision.carpo.Variety;
 
 import javax.sound.midi.MidiMessage;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.function.Predicate;
 
 @SuppressWarnings({"InterfaceNeverImplemented", "MarkerInterface", "unused"})
-interface Midi {
+public interface Midi {
 
     interface Message {
 
@@ -76,15 +77,15 @@ interface Midi {
                 this.validator = Variety.joined(isStatus, isLength);
             }
 
-            final boolean isTypeOf(final MidiMessage message) {
+            public final boolean isTypeOf(final MidiMessage message) {
                 return identificator.test(message.getMessage());
             }
 
-            final boolean isValid(final MidiMessage message) {
+            public final boolean isValid(final MidiMessage message) {
                 return 0b11 == validator.apply(message.getMessage());
             }
 
-            final MidiMessage valid(final MidiMessage message) {
+            public final MidiMessage valid(final MidiMessage message) {
                 if (isValid(message)) {
                     return message;
                 } else {
@@ -98,6 +99,11 @@ interface Midi {
     }
 
     interface MetaMessage {
+
+        static String trackName(final MidiMessage validMessage) {
+            final byte[] bytes = validMessage.getMessage();
+            return new String(bytes, 3, bytes.length - 3, StandardCharsets.UTF_8);
+        }
 
         enum Type {
 
@@ -136,11 +142,11 @@ interface Midi {
                 this.validator = Variety.joined(isType, isLength, isBytesLength);
             }
 
-            final boolean isTypeOf(final MidiMessage message) {
+            public final boolean isTypeOf(final MidiMessage message) {
                 return Message.Type.META.isTypeOf(message) && identificator.test(message.getMessage());
             }
 
-            final boolean isValid(final MidiMessage message) {
+            public final boolean isValid(final MidiMessage message) {
                 return Message.Type.META.isValid(message) && isValidContent(message);
             }
 
@@ -148,7 +154,7 @@ interface Midi {
                 return 0b111 == validator.apply(metaMessage.getMessage());
             }
 
-            final MidiMessage valid(final MidiMessage message) {
+            public final MidiMessage valid(final MidiMessage message) {
                 if (isValidContent(Message.Type.META.valid(message))) {
                     return message;
                 } else {
