@@ -5,6 +5,7 @@ import de.team33.midi.Player;
 import de.team33.midi.Sequence;
 import de.team33.midi.Timing;
 import de.team33.patterns.notes.eris.Audience;
+import de.team33.midix.Timing;
 
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiSystem;

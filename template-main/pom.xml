@@ -21,6 +21,14 @@
     <dependencies>
         <dependency>
             <groupId>de.team33.patterns</groupId>
+            <artifactId>exceptional-dione</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>de.team33.patterns</groupId>
+            <artifactId>building-elara</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>de.team33.patterns</groupId>
             <artifactId>io-deimos</artifactId>
         </dependency>
         <dependency>
@@ -28,12 +36,16 @@
             <artifactId>enums-pan</artifactId>
         </dependency>
         <dependency>
-            <groupId>de.team33.patterns</groupId>
-            <artifactId>notes-eris</artifactId>
-        </dependency>
-        <dependency>
             <groupId>de.team33.sphinx</groupId>
             <artifactId>sphinx-alpha</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>de.team33.patterns</groupId>
+            <artifactId>execution-metis</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>de.team33.patterns</groupId>
+            <artifactId>decision-carpo</artifactId>
         </dependency>
 
         <dependency>

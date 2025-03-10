@@ -60,11 +60,11 @@ public abstract class ActionControl extends JPanel {
         }
 
         public int getNoteNo(long pos) {
-            return pos % (long) ActionControl.this.getContext().getSequence().getTiming().getBarTicks() == 0L ? 76 : 77;
+            return pos % (long) ActionControl.this.getContext().getSequence().getTiming().barTicks() == 0L ? 76 : 77;
         }
 
         public int getRes() {
-            return ActionControl.this.getContext().getSequence().getTiming().getBeatTicks();
+            return ActionControl.this.getContext().getSequence().getTiming().beatTicks();
         }
     }
 
@@ -75,7 +75,7 @@ public abstract class ActionControl extends JPanel {
         }
 
         protected long getDelta() {
-            return ActionControl.this.getContext().getSequence().getTiming().getBeatTicks();
+            return ActionControl.this.getContext().getSequence().getTiming().beatTicks();
         }
     }
 
@@ -86,7 +86,7 @@ public abstract class ActionControl extends JPanel {
         }
 
         protected long getDelta() {
-            return ActionControl.this.getContext().getSequence().getTiming().getBarTicks();
+            return ActionControl.this.getContext().getSequence().getTiming().barTicks();
         }
     }
 
@@ -97,7 +97,7 @@ public abstract class ActionControl extends JPanel {
         }
 
         protected long getDelta() {
-            return -(long) ActionControl.this.getContext().getSequence().getTiming().getBeatTicks();
+            return -(long) ActionControl.this.getContext().getSequence().getTiming().beatTicks();
         }
     }
 
@@ -108,7 +108,7 @@ public abstract class ActionControl extends JPanel {
         }
 
         protected long getDelta() {
-            return -(long) ActionControl.this.getContext().getSequence().getTiming().getBarTicks();
+            return -(long) ActionControl.this.getContext().getSequence().getTiming().barTicks();
         }
     }
 

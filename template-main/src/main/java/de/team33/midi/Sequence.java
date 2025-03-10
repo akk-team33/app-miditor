@@ -2,6 +2,7 @@ package de.team33.midi;
 
 import de.team33.miditor.IClickParameter;
 import de.team33.patterns.notes.eris.Channel;
+import de.team33.midix.Timing;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.Sequencer;

@@ -1,11 +1,11 @@
 package de.team33.midi.impl;
 
 import de.team33.midi.Sequence;
-import de.team33.midi.Timing;
 import de.team33.midi.Track;
 import de.team33.midi.util.TrackUtil;
 import de.team33.miditor.IClickParameter;
 import de.team33.patterns.notes.eris.Audience;
+import de.team33.midix.Timing;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MetaMessage;
@@ -53,9 +53,9 @@ public class SequenceImpl implements Sequence {
         }
 
         if (0 < getTracks().length) {
-            m_Timing = new TIMING(getTimingEvent(getTracks()[0], 0L));
+            this.m_Timing = Timing.of(getTimingEvent(this.getTracks()[0], 0L).getMessage(), m_Sequence);
         } else {
-            m_Timing = new TIMING(null);
+            this.m_Timing = Timing.of(m_Sequence);
         }
 
     }
@@ -417,16 +417,6 @@ public class SequenceImpl implements Sequence {
             final Set<Event> events = EnumSet.noneOf(Event.class);
             core_setModified(true, events);
             events.forEach(event -> audience.send(event, this));
-        }
-    }
-
-    private class TIMING extends TimingBase {
-        TIMING(final MidiEvent timing) {
-            super(timing);
-        }
-
-        protected final javax.sound.midi.Sequence getSequence() {
-            return m_Sequence;
         }
     }
 }

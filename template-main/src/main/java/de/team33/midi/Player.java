@@ -3,6 +3,8 @@ package de.team33.midi;
 import de.team33.patterns.notes.eris.Channel;
 
 import java.util.function.Consumer;
+import de.team33.messaging.Registry;
+import de.team33.midix.Timing;
 
 public interface Player {
 

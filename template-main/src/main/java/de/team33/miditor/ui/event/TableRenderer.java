@@ -1,6 +1,6 @@
 package de.team33.miditor.ui.event;
 
-import de.team33.midi.Timing;
+import de.team33.midix.Timing;
 
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.MidiMessage;
@@ -27,7 +27,7 @@ public abstract class TableRenderer extends DefaultTableCellRenderer {
     protected abstract Timing getTiming();
 
     private Object getValue(MidiEvent event, int col) {
-        return col == 0 ? this.getTiming().getTimeCode(event.getTick()) : this.getValue(event.getMessage(), col);
+        return col == 0 ? this.getTiming().timeStampOf(event.getTick()) : this.getValue(event.getMessage(), col);
     }
 
     private Object getValue(MidiMessage message, int col) {

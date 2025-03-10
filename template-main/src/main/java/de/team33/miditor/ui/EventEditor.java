@@ -1,8 +1,8 @@
 package de.team33.miditor.ui;
 
 import de.team33.midi.Sequence;
-import de.team33.midi.Timing;
 import de.team33.midi.Track;
+import de.team33.midix.Timing;
 import de.team33.miditor.controller.UIController;
 import de.team33.miditor.controller.UIControllerImpl;
 import de.team33.miditor.ui.event.TableRenderer;

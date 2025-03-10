@@ -1,7 +1,10 @@
 package de.team33.miditor.model;
 
 import de.team33.midi.Timing;
+import de.team33.messaging.Register;
+import de.team33.messaging.sync.Router;
 import de.team33.midi.util.TimingUtil;
+import de.team33.midix.Timing;
 import de.team33.patterns.notes.eris.Audience;
 
 import java.util.List;
@@ -13,8 +16,8 @@ public abstract class TimeShiftBase implements TimeShift {
     private static final Set<Event> INITIAL_EVENTS = Set.of(Event.SetDivisor, Event.SetDividend);
 
     private final Audience audience = new Audience();
-    private long dividend = getTiming().getBarBeats();
-    private long divisor = getTiming().getBeatUnit();
+    private long dividend = getTiming().barNumerator();
+    private long divisor = getTiming().barDenominator();
     private List<Integer> divisors = null;
 
     @Override
@@ -77,7 +80,7 @@ public abstract class TimeShiftBase implements TimeShift {
     }
 
     public final int getTickUnit() {
-        return getTiming().getTickUnit();
+        return getTiming().tickDenominator();
     }
 
     protected abstract Timing getTiming();

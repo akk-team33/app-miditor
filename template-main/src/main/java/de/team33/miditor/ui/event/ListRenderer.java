@@ -1,6 +1,6 @@
 package de.team33.miditor.ui.event;
 
-import de.team33.midi.Timing;
+import de.team33.midix.Timing;
 
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.MidiMessage;
@@ -26,7 +26,7 @@ public abstract class ListRenderer extends DefaultListCellRenderer {
     protected abstract Timing getTiming();
 
     private String getValue(MidiEvent event) {
-        return String.format("%s : %s", this.getTiming().getTimeCode(event.getTick()), this.getValue(event.getMessage()));
+        return String.format("%s : %s", this.getTiming().timeStampOf(event.getTick()), this.getValue(event.getMessage()));
     }
 
     private String getValue(MidiMessage message) {
