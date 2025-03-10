@@ -5,6 +5,7 @@ import de.team33.patterns.notes.alpha.Channel;
 
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.MidiMessage;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
@@ -14,7 +15,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 
-public abstract class Track {
+public class Track {
 
     private static final String FMT_PREFIX =
             "Track %02d";
@@ -25,12 +26,14 @@ public abstract class Track {
 
     private final Audience audience = new Audience();
     private final javax.sound.midi.Track backing;
+    private final int index;
     private int[] channels = new int[0];
     private String name = "";
     private boolean modified = false;
 
-    public Track(final javax.sound.midi.Track backing) {
+    public Track(final javax.sound.midi.Track backing, final int index) {
         this.backing = backing;
+        this.index = index;
         addListener(Event.SetEvents, this::onSetEvents);
     }
 
@@ -44,11 +47,9 @@ public abstract class Track {
     public final void add(final MidiEvent... midiEvents) {
         synchronized (backing) {
             final Set<Event> events = EnumSet.noneOf(Event.class);
-            final int length = midiEvents.length;
             for (final MidiEvent midiEvent : midiEvents) {
                 core_add(midiEvent, events);
             }
-
             relay(events);
         }
     }
@@ -137,18 +138,21 @@ public abstract class Track {
         return channels.clone();
     }
 
-    protected abstract int getIndex();
+    // TODO: make package private!
+    public final int getIndex() {
+        return index;
+    }
 
     public final String getName() {
         return name;
     }
 
     public final String getPrefix() {
-        return String.format("Track %02d", getIndex());
+        return String.format("Track %02d", index);
     }
 
-    @SuppressWarnings("DesignForExtension")
-    protected javax.sound.midi.Track getMidiTrack() {
+    // TODO: make package private!
+    public final javax.sound.midi.Track getMidiTrack() {
         return backing;
     }
 
@@ -156,8 +160,9 @@ public abstract class Track {
         return modified;
     }
 
+    // TODO: make private!
     @SuppressWarnings("DesignForExtension")
-    protected void setModified(final boolean isModified) {
+    public final void setModified(final boolean isModified) {
         final Set<Event> events = EnumSet.noneOf(Event.class);
         core_modify(isModified, events);
         relay(events);
@@ -206,13 +211,14 @@ public abstract class Track {
                 final int status = mssg.getStatus();
                 if (128 <= status && 240 > status) {
                     final int channel = status & 15;
-                    if (1 == ++nPerChannel[channel]) {
+                    ++nPerChannel[channel];
+                    if (1 == nPerChannel[channel]) {
                         ++nChannels;
                     }
                 } else if ("- Kein Name -" == newName && 255 == status) {
                     final byte[] b = mssg.getMessage();
                     if (2 < b.length && 3 == b[1] && b[2] == b.length - 3) {
-                        newName = new String(b, 3, b.length - 3);
+                        newName = new String(b, 3, b.length - 3, StandardCharsets.UTF_8);
                     }
                 }
             }
@@ -222,7 +228,8 @@ public abstract class Track {
 
             for (int k = 0; ix < nPerChannel.length; ++ix) {
                 if (0 < nPerChannel[ix]) {
-                    newChannels[k++] = ix;
+                    newChannels[k] = ix;
+                    k++;
                 }
             }
 
