@@ -1,12 +1,12 @@
 package de.team33.miditor.ui.track;
 
-import de.team33.midi.Track;
+import de.team33.midi.MidiTrack;
 import de.team33.miditor.controller.UIController;
 
 import javax.swing.*;
 
 public abstract class EventListModel extends AbstractListModel {
-    private Track m_Track = null;
+    private MidiTrack m_Track = null;
 
     public EventListModel() {
         getTrackHandler().addListener(UIController.Event.SetTrack, this::onSetTrack);
@@ -27,18 +27,18 @@ public abstract class EventListModel extends AbstractListModel {
     protected abstract UIController getTrackHandler();
 
     public void onSetTrack(final UIController controller) {
-        final Track track = controller.getTrack();
+        final MidiTrack track = controller.getTrack();
         if (m_Track != track) {
             m_Track = track;
             if (track == null) {
                 _fireContentsChanged();
             } else {
-                m_Track.addListener(Track.Event.SetEvents, this::onSetEvents);
+                m_Track.addListener(MidiTrack.Event.SetEvents, this::onSetEvents);
             }
         }
     }
 
-    private void onSetEvents(final Track track) {
+    private void onSetEvents(final MidiTrack track) {
         _fireContentsChanged();
     }
 }

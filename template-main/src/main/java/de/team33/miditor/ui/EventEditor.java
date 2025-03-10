@@ -1,7 +1,7 @@
 package de.team33.miditor.ui;
 
 import de.team33.midi.Sequence;
-import de.team33.midi.Track;
+import de.team33.midi.MidiTrack;
 import de.team33.midix.Timing;
 import de.team33.miditor.controller.UIController;
 import de.team33.miditor.controller.UIControllerImpl;
@@ -100,19 +100,19 @@ public abstract class EventEditor extends UIControllerImpl {
     }
 
     private void onSetParts(final Sequence sequence) {
-        final Track[] parts = sequence.getTracks();
-        final Track[] var6 = parts;
+        final MidiTrack[] parts = sequence.getTracks();
+        final MidiTrack[] var6 = parts;
         final int var5 = parts.length;
 
         for (int var4 = 0; var4 < var5; ++var4) {
-            final Track track = var6[var4];
+            final MidiTrack track = var6[var4];
             if (track == getTrack()) {
                 return;
             }
         }
 
         if (parts.length == 0) {
-            setTrack((Track) null);
+            setTrack((MidiTrack) null);
         } else {
             setTrack(parts[0]);
         }

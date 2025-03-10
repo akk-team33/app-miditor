@@ -1,6 +1,6 @@
 package de.team33.miditor.ui.track;
 
-import de.team33.midi.Track;
+import de.team33.midi.MidiTrack;
 import de.team33.miditor.controller.UIController;
 
 import javax.swing.event.TableModelEvent;
@@ -9,7 +9,7 @@ import javax.swing.table.AbstractTableModel;
 public abstract class EventTableModel extends AbstractTableModel {
     private static String[] m_ColumnNames = {"Position", "Kanal", "Typ", "d1", "d2", "Rohdaten"};
 
-    private Track m_Track = null;
+    private MidiTrack m_Track = null;
 
     protected EventTableModel() {
         getTrackHandler().addListener(UIController.Event.SetTrack, this::onSetTrack);
@@ -38,18 +38,18 @@ public abstract class EventTableModel extends AbstractTableModel {
     }
 
     private void onSetTrack(final UIController controller) {
-        final Track track = controller.getTrack();
+        final MidiTrack track = controller.getTrack();
         if (m_Track != track) {
             m_Track = track;
             if (null == track) {
                 _fireTableChanged();
             } else {
-                m_Track.addListener(Track.Event.SetEvents, this::onSetEvents);
+                m_Track.addListener(MidiTrack.Event.SetEvents, this::onSetEvents);
             }
         }
     }
 
-    private void onSetEvents(final Track track) {
+    private void onSetEvents(final MidiTrack track) {
         _fireTableChanged();
     }
 }

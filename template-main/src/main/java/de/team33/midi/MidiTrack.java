@@ -15,12 +15,10 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 
-public class Track {
+public class MidiTrack {
 
-    private static final String FMT_PREFIX =
-            "Track %02d";
-    private static final String NO_NAME =
-            "- Kein Name -";
+    private static final String FMT_PREFIX = "Track %02d";
+    private static final String NO_NAME = "- No Name -";
     private static final Set<Event> INITIAL_EVENTS =
             Set.of(Event.SetChannels, Event.SetEvents, Event.SetModified, Event.SetName);
 
@@ -31,13 +29,13 @@ public class Track {
     private String name = "";
     private boolean modified = false;
 
-    public Track(final javax.sound.midi.Track backing, final int index) {
+    public MidiTrack(final javax.sound.midi.Track backing, final int index) {
         this.backing = backing;
         this.index = index;
         addListener(Event.SetEvents, this::onSetEvents);
     }
 
-    public final void addListener(final Event event, final Consumer<? super Track> listener) {
+    public final void addListener(final Event event, final Consumer<? super MidiTrack> listener) {
         audience.add(event, listener);
         if (INITIAL_EVENTS.contains(event)) {
             listener.accept(this);
@@ -148,11 +146,11 @@ public class Track {
     }
 
     public final String getPrefix() {
-        return String.format("Track %02d", index);
+        return String.format(FMT_PREFIX, index);
     }
 
     // TODO: make package private!
-    public final javax.sound.midi.Track getMidiTrack() {
+    public final javax.sound.midi.Track getJTrack() {
         return backing;
     }
 
@@ -196,10 +194,10 @@ public class Track {
         }
     }
 
-    private void onSetEvents(final Track track) {
+    private void onSetEvents(final MidiTrack track) {
         synchronized (backing) {
             final Set<Event> events = EnumSet.noneOf(Event.class);
-            String newName = "- Kein Name -";
+            String newName = NO_NAME;
             int nChannels = 0;
             final int[] nPerChannel = new int[16];
             int i = 0;
@@ -215,7 +213,7 @@ public class Track {
                     if (1 == nPerChannel[channel]) {
                         ++nChannels;
                     }
-                } else if ("- Kein Name -" == newName && 255 == status) {
+                } else if (NO_NAME.equals(newName) && 255 == status) {
                     final byte[] b = mssg.getMessage();
                     if (2 < b.length && 3 == b[1] && b[2] == b.length - 3) {
                         newName = new String(b, 3, b.length - 3, StandardCharsets.UTF_8);
@@ -247,7 +245,7 @@ public class Track {
         }
     }
 
-    public enum Event implements Channel<Track> {
+    public enum Event implements Channel<MidiTrack> {
         // TODO?: Released,
         SetChannels,
         SetEvents,
