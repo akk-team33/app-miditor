@@ -1,7 +1,7 @@
 package de.team33.miditor.controller;
 
 import de.team33.midi.Track;
-import de.team33.patterns.notes.eris.Channel;
+import de.team33.patterns.notes.alpha.Channel;
 
 import java.util.function.Consumer;
 

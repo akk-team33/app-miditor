@@ -1,6 +1,6 @@
 package de.team33.selection;
 
-import de.team33.patterns.notes.eris.Audience;
+import de.team33.patterns.notes.alpha.Audience;
 
 import java.util.AbstractSet;
 import java.util.Collection;

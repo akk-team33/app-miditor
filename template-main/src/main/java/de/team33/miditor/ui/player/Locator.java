@@ -23,7 +23,7 @@ public abstract class Locator extends JPanel {
         add(new LABEL1(":"), new GBC(6, 0));
         add(new TICK_PANE(), new GBC(7, 0));
         add(new LABEL1(" "), new GBC(8, 0));
-        add(new LABEL2("Takt " + getContext().getPlayer().getTiming().barNumerator() + "/" + getContext().getPlayer().getTiming().getBeatUnit()), new GBC(0, 1, 3));
+        add(new LABEL2("Takt " + getContext().getPlayer().getTiming().barNumerator() + "/" + getContext().getPlayer().getTiming().barDenominator()), new GBC(0, 1, 3));
         add(new LABEL2("1/" + getContext().getPlayer().getTiming().barDenominator()), new GBC(2, 1, 3));
         add(new LABEL2("1/" + getContext().getPlayer().getTiming().subBeatDenominator()), new GBC(4, 1, 3));
         add(new LABEL2("1/" + getContext().getPlayer().getTiming().tickDenominator()), new GBC(6, 1, 3));
@@ -164,7 +164,7 @@ public abstract class Locator extends JPanel {
         }
 
         protected void setDisplay(long ticks) {
-            final int beatQuantization = getContext().getPlayer().getTiming().subBeatDenominator() / getContext().getPlayer().getTiming().getBeatUnit();
+            final int beatQuantization = getContext().getPlayer().getTiming().subBeatDenominator() / getContext().getPlayer().getTiming().barDenominator();
             ticks /= (long) getDelta();
             ticks %= (long) beatQuantization;
             ++ticks;

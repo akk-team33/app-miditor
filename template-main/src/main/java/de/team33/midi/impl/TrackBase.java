@@ -1,7 +1,7 @@
 package de.team33.midi.impl;
 
 import de.team33.midi.Track;
-import de.team33.patterns.notes.eris.Audience;
+import de.team33.patterns.notes.alpha.Audience;
 
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.MidiMessage;

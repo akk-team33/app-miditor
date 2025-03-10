@@ -1,6 +1,6 @@
 package de.team33.midi;
 
-import de.team33.patterns.notes.eris.Channel;
+import de.team33.patterns.notes.alpha.Channel;
 
 import javax.sound.midi.MidiEvent;
 import java.util.List;

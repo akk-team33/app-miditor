@@ -1,6 +1,6 @@
 package de.team33.selection;
 
-import de.team33.patterns.notes.eris.Channel;
+import de.team33.patterns.notes.alpha.Channel;
 
 import java.util.Set;
 import java.util.function.Consumer;

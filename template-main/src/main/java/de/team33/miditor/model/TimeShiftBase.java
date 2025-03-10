@@ -1,11 +1,8 @@
 package de.team33.miditor.model;
 
-import de.team33.midi.Timing;
-import de.team33.messaging.Register;
-import de.team33.messaging.sync.Router;
 import de.team33.midi.util.TimingUtil;
 import de.team33.midix.Timing;
-import de.team33.patterns.notes.eris.Audience;
+import de.team33.patterns.notes.alpha.Audience;
 
 import java.util.List;
 import java.util.Set;

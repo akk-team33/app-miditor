@@ -4,7 +4,7 @@ import de.team33.midi.Sequence;
 import de.team33.midi.Track;
 import de.team33.midi.util.TrackUtil;
 import de.team33.miditor.IClickParameter;
-import de.team33.patterns.notes.eris.Audience;
+import de.team33.patterns.notes.alpha.Audience;
 import de.team33.midix.Timing;
 
 import javax.sound.midi.InvalidMidiDataException;
