@@ -1,8 +1,8 @@
 package de.team33.miditor.ui;
 
+import de.team33.midi.MidiTrack;
 import de.team33.midi.Player;
 import de.team33.midi.Player.Mode;
-import de.team33.midi.MidiTrack;
 import de.team33.miditor.ui.track.Context;
 import de.team33.selection.Selection;
 import de.team33.swing.XTextField;
@@ -35,13 +35,13 @@ public abstract class TrackControls {
     private class CHANNEL_PANE extends JPanel {
         CHANNEL_PANE() {
             super(new BorderLayout());
-            getContext().getTrack().addListener(MidiTrack.Event.SetChannels, this::onSetChannels);
+            getContext().getTrack().add(MidiTrack.Channel.SetChannels, this::onSetChannels);
         }
 
         private void onSetChannels(final MidiTrack track) {
             setVisible(false);
             removeAll();
-            final int[] channels = track.getChannels();
+            final int[] channels = track.midiChannels();
             if (channels.length == 0) {
                 add(TrackControls.this.new LABEL("--"), "Center");
             } else if (channels.length == 1) {
@@ -68,7 +68,7 @@ public abstract class TrackControls {
     private class INDEX_PANE extends JCheckBox {
         public INDEX_PANE() {
             super(getContext().getTrack().getPrefix());
-            getContext().getTrack().addListener(MidiTrack.Event.SetModified, this::onSetModified);
+            getContext().getTrack().add(MidiTrack.Channel.SetModified, this::onSetModified);
             getContext().getSelection().addListener(Selection.Event.UPDATE, this::onSelection);
             addActionListener(this::onAction);
         }
@@ -124,11 +124,11 @@ public abstract class TrackControls {
     private class NAME_PANE extends XTextField {
         public NAME_PANE() {
             super(12);
-            getContext().getTrack().addListener(MidiTrack.Event.SetName, this::onSetName);
+            getContext().getTrack().add(MidiTrack.Channel.SetName, this::onSetName);
         }
 
         private void onSetName(final MidiTrack track) {
-            setText(track.getName());
+            setText(track.name());
         }
     }
 

@@ -18,11 +18,11 @@ public class Header extends JLabel {
     }
 
     private void onSetName(final MidiTrack track) {
-        setText(String.format("%s - %s", track.getPrefix(), track.getName()));
+        setText(String.format("%s - %s", track.getPrefix(), track.name()));
     }
 
     private void onSetTrack(final UIController controller) {
         Optional.ofNullable(controller.getTrack())
-                .ifPresent(track -> track.addListener(MidiTrack.Event.SetName, this::onSetName));
+                .ifPresent(track -> track.add(MidiTrack.Channel.SetName, this::onSetName));
     }
 }

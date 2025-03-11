@@ -44,7 +44,7 @@ public abstract class EventTableModel extends AbstractTableModel {
             if (null == track) {
                 _fireTableChanged();
             } else {
-                m_Track.addListener(MidiTrack.Event.SetEvents, this::onSetEvents);
+                m_Track.add(MidiTrack.Channel.SetEvents, this::onSetEvents);
             }
         }
     }

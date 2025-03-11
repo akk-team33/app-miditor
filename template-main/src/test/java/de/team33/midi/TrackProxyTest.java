@@ -76,14 +76,29 @@ class TrackProxyTest {
 
     @Test
     final void add() throws InterruptedException {
-        final AtomicBoolean modified = new AtomicBoolean(false);
         final MidiEvent[] events = newEvents();
-        trackProxy.add(TrackProxy.Channel.SetModified, t -> modified.set(t.isModified()))
+        trackProxy.add(events);
+        assertEquals(Arrays.asList(events), trackProxy.list().subList(0, events.length));
+    }
+
+    @Test
+    final void setModified() throws InterruptedException {
+        final AtomicBoolean setModified = new AtomicBoolean(false);
+        final AtomicBoolean setEvents = new AtomicBoolean(false);
+        final AtomicBoolean setChannels = new AtomicBoolean(false);
+        final AtomicBoolean setName = new AtomicBoolean(false);
+        final MidiEvent[] events = newEvents();
+        trackProxy.add(TrackProxy.Channel.SetEvents, t -> setEvents.set(t.isModified()))
+                  .add(TrackProxy.Channel.SetChannels, t -> setChannels.set(t.isModified()))
+                  .add(TrackProxy.Channel.SetModified, t -> setModified.set(t.isModified()))
+                  .add(TrackProxy.Channel.SetName, t -> setName.set(t.isModified()))
                   .add(events);
 
-        Thread.sleep(1);
-        assertTrue(modified.get());
-        assertEquals(Arrays.asList(events), trackProxy.list().subList(0, events.length));
+        Thread.sleep(5);
+        assertTrue(setModified.get());
+        assertTrue(setEvents.get());
+        assertTrue(setChannels.get());
+        assertTrue(setName.get());
     }
 
     @Test
@@ -92,7 +107,6 @@ class TrackProxyTest {
         final MidiEvent[] events = newEvents();
         trackProxy.add(events);
         trackProxy.remove(events);
-
         assertEquals(expected, trackProxy.list());
     }
 

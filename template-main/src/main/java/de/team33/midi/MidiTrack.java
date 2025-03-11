@@ -1,10 +1,10 @@
 package de.team33.midi;
 
 import de.team33.patterns.notes.alpha.Audience;
-import de.team33.patterns.notes.alpha.Channel;
 
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.MidiMessage;
+import javax.sound.midi.Track;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,8 +19,8 @@ public class MidiTrack {
 
     private static final String FMT_PREFIX = "Track %02d";
     private static final String NO_NAME = "- No Name -";
-    private static final Set<Event> INITIAL_EVENTS =
-            Set.of(Event.SetChannels, Event.SetEvents, Event.SetModified, Event.SetName);
+    private static final Set<Channel> INITIAL_CHANNELS =
+            Set.of(Channel.SetChannels, Channel.SetEvents, Channel.SetModified, Channel.SetName);
 
     private final Audience audience = new Audience();
     private final javax.sound.midi.Track backing;
@@ -29,57 +29,57 @@ public class MidiTrack {
     private String name = "";
     private boolean modified = false;
 
-    public MidiTrack(final javax.sound.midi.Track backing, final int index) {
+    public MidiTrack(final int index, final Track backing) {
         this.backing = backing;
         this.index = index;
-        addListener(Event.SetEvents, this::onSetEvents);
+        add(Channel.SetEvents, this::onSetEvents);
     }
 
-    public final void addListener(final Event event, final Consumer<? super MidiTrack> listener) {
-        audience.add(event, listener);
-        if (INITIAL_EVENTS.contains(event)) {
+    public final void add(final Channel channel, final Consumer<? super MidiTrack> listener) {
+        audience.add(channel, listener);
+        if (INITIAL_CHANNELS.contains(channel)) {
             listener.accept(this);
         }
     }
 
     public final void add(final MidiEvent... midiEvents) {
         synchronized (backing) {
-            final Set<Event> events = EnumSet.noneOf(Event.class);
+            final Set<Channel> channels = EnumSet.noneOf(Channel.class);
             for (final MidiEvent midiEvent : midiEvents) {
-                core_add(midiEvent, events);
+                core_add(midiEvent, channels);
             }
-            relay(events);
+            relay(channels);
         }
     }
 
-    private boolean core_add(final MidiEvent midiEvent, final Set<Event> events) {
+    private boolean core_add(final MidiEvent midiEvent, final Set<Channel> channels) {
         if (backing.add(midiEvent)) {
-            core_clear(events);
+            core_clear(channels);
             return true;
         } else {
             return false;
         }
     }
 
-    private void core_clear(final Set<Event> events) {
-        core_modify(true, events);
-        events.add(Event.SetEvents);
+    private void core_clear(final Set<Channel> channels) {
+        core_modify(true, channels);
+        channels.add(Channel.SetEvents);
     }
 
-    private void core_modify(final boolean isModified, final Set<? super Event> events) {
+    private void core_modify(final boolean isModified, final Set<? super Channel> events) {
         if (modified != isModified) {
             modified = isModified;
-            events.add(Event.SetModified);
+            events.add(Channel.SetModified);
         }
     }
 
-    private void core_remove(final MidiEvent midiEvent, final Set<Event> events) {
+    private void core_remove(final MidiEvent midiEvent, final Set<Channel> channels) {
         if (backing.remove(midiEvent)) {
-            core_clear(events);
+            core_clear(channels);
         }
     }
 
-    private void core_shift(final MidiEvent oldMidiEvent, final long delta, final Set<Event> events) {
+    private void core_shift(final MidiEvent oldMidiEvent, final long delta, final Set<Channel> channels) {
         final long oldTime = oldMidiEvent.getTick();
         long newTime = oldTime + delta;
         if (0L > newTime) {
@@ -88,28 +88,28 @@ public class MidiTrack {
 
         if (newTime != oldTime) {
             final MidiEvent newEvent = new MidiEvent(oldMidiEvent.getMessage(), newTime);
-            core_remove(oldMidiEvent, events);
-            core_add(newEvent, events);
+            core_remove(oldMidiEvent, channels);
+            core_add(newEvent, channels);
         }
     }
 
     public final Map<Integer, List<MidiEvent>> extractChannels() {
         synchronized (backing) {
-            final Set<Event> events = EnumSet.noneOf(Event.class);
+            final Set<Channel> channels = EnumSet.noneOf(Channel.class);
             final Map<Integer, List<MidiEvent>> result = new TreeMap<>();
 
-            for (final MidiEvent midiEvent : getAll()) {
+            for (final MidiEvent midiEvent : list()) {
                 final MidiMessage midiMessage = midiEvent.getMessage();
                 final int status = midiMessage.getStatus();
                 if (128 <= status && 240 > status) {
                     final int channel = status & 15;
                     result.computeIfAbsent(channel, key -> new ArrayList<>(0))
                           .add(midiEvent);
-                    core_remove(midiEvent, events);
+                    core_remove(midiEvent, channels);
                 }
             }
 
-            relay(events);
+            relay(channels);
             return result;
         }
     }
@@ -120,7 +120,7 @@ public class MidiTrack {
         }
     }
 
-    public final MidiEvent[] getAll() {
+    public final MidiEvent[] list() {
         synchronized (backing) {
             final MidiEvent[] ret = new MidiEvent[size()];
 
@@ -132,16 +132,16 @@ public class MidiTrack {
         }
     }
 
-    public final int[] getChannels() {
+    public final int[] midiChannels() {
         return channels.clone();
     }
 
     // TODO: make package private!
-    public final int getIndex() {
+    public final int index() {
         return index;
     }
 
-    public final String getName() {
+    public final String name() {
         return name;
     }
 
@@ -150,7 +150,7 @@ public class MidiTrack {
     }
 
     // TODO: make package private!
-    public final javax.sound.midi.Track getJTrack() {
+    public final javax.sound.midi.Track backing() {
         return backing;
     }
 
@@ -161,28 +161,28 @@ public class MidiTrack {
     // TODO: make private!
     @SuppressWarnings("DesignForExtension")
     public final void setModified(final boolean isModified) {
-        final Set<Event> events = EnumSet.noneOf(Event.class);
-        core_modify(isModified, events);
-        relay(events);
+        final Set<Channel> channels = EnumSet.noneOf(Channel.class);
+        core_modify(isModified, channels);
+        relay(channels);
     }
 
-    private void relay(final Set<Event> events) {
-        events.forEach(event -> audience.send(event, this));
+    private void relay(final Set<Channel> channels) {
+        channels.forEach(event -> audience.send(event, this));
     }
 
     public final void remove(final MidiEvent... midiEvents) {
         synchronized (backing) {
-            final Set<Event> events = EnumSet.noneOf(Event.class);
+            final Set<Channel> channels = EnumSet.noneOf(Channel.class);
             Arrays.stream(midiEvents)
-                  .forEach(event -> core_remove(event, events));
-            relay(events);
+                  .forEach(event -> core_remove(event, channels));
+            relay(channels);
         }
     }
 
     public final void shift(final long delta) {
         synchronized (backing) {
-            final Set<Event> messages = EnumSet.noneOf(Event.class);
-            Arrays.stream(getAll())
+            final Set<Channel> messages = EnumSet.noneOf(Channel.class);
+            Arrays.stream(list())
                   .forEach(event -> core_shift(event, delta, messages));
             relay(messages);
         }
@@ -196,7 +196,7 @@ public class MidiTrack {
 
     private void onSetEvents(final MidiTrack track) {
         synchronized (backing) {
-            final Set<Event> events = EnumSet.noneOf(Event.class);
+            final Set<Channel> channels = EnumSet.noneOf(Channel.class);
             String newName = NO_NAME;
             int nChannels = 0;
             final int[] nPerChannel = new int[16];
@@ -233,19 +233,19 @@ public class MidiTrack {
 
             if (!newName.equals(name)) {
                 name = newName;
-                events.add(Event.SetName);
+                channels.add(Channel.SetName);
             }
 
-            if (!Arrays.equals(newChannels, channels)) {
-                channels = newChannels;
-                events.add(Event.SetChannels);
+            if (!Arrays.equals(newChannels, this.channels)) {
+                this.channels = newChannels;
+                channels.add(Channel.SetChannels);
             }
 
-            relay(events);
+            relay(channels);
         }
     }
 
-    public enum Event implements Channel<MidiTrack> {
+    public enum Channel implements de.team33.patterns.notes.alpha.Channel<MidiTrack> {
         // TODO?: Released,
         SetChannels,
         SetEvents,

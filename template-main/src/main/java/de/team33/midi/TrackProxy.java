@@ -39,18 +39,17 @@ public class TrackProxy extends Sender<TrackProxy> {
         super(TrackProxy.class);
         this.audience = new Audience(new SimpleAsyncExecutor());
         this.mapping = Mapping.builder()
+                              .put(Internal.SetModified, () -> this)
                               .put(Channel.SetEvents, () -> this)
-                              .put(Internal.ResetFeatures, () -> this)
                               .put(Channel.SetModified, () -> this)
                               .put(Channel.SetChannels, () -> this)
                               .put(Channel.SetName, () -> this)
                               .build();
         this.index = index;
         this.backing = backing;
-        addPlain(Channel.SetEvents, TrackProxy::onSetEvents);
-        addPlain(Internal.ResetFeatures, new SetModified());
-        addPlain(Internal.ResetFeatures, new SetName());
-        addPlain(Internal.ResetFeatures, new SetMidiChannels());
+        addPlain(Internal.SetModified, new SetModified());
+        addPlain(Internal.SetModified, new SetName());
+        addPlain(Internal.SetModified, new SetMidiChannels());
     }
 
     private static boolean isChannelEvent(final MidiEvent midiEvent) {
@@ -65,10 +64,6 @@ public class TrackProxy extends Sender<TrackProxy> {
         return midiEvent.getMessage().getStatus() & 0x0f;
     }
 
-    private void onSetEvents() {
-        fire(Internal.ResetFeatures);
-    }
-
     @Override
     protected final Audience audience() {
         return audience;
@@ -79,14 +74,14 @@ public class TrackProxy extends Sender<TrackProxy> {
         return mapping;
     }
 
-    private TrackProxy postUpdate() {
-        return postUpdate(true);
+    private TrackProxy setModified() {
+        return setModified(true);
     }
 
-    private TrackProxy postUpdate(final boolean modified) {
+    private TrackProxy setModified(final boolean modified) {
         modification.set(modified);
         features.reset();
-        return fire(Channel.SetEvents);
+        return fire(Internal.SetModified, Channel.SetEvents);
     }
 
     private Stream<MidiEvent> stream() {
@@ -114,7 +109,7 @@ public class TrackProxy extends Sender<TrackProxy> {
         synchronized (backing) {
             events.forEach(backing::add);
         }
-        return postUpdate();
+        return setModified();
     }
 
     public final TrackProxy remove(final MidiEvent... events) {
@@ -125,7 +120,7 @@ public class TrackProxy extends Sender<TrackProxy> {
         synchronized (backing) {
             events.forEach(backing::remove);
         }
-        return postUpdate();
+        return setModified();
     }
 
     public final MidiEvent get(final int index) {
@@ -156,12 +151,17 @@ public class TrackProxy extends Sender<TrackProxy> {
         return String.format("Track %02d", index);
     }
 
+    @Deprecated // may stay as package private (?)
+    public final Track backing() {
+        return backing;
+    }
+
     public final boolean isModified() {
         return modification.get();
     }
 
     final TrackProxy resetModified() {
-        return postUpdate(false);
+        return setModified(false);
     }
 
     public final Map<Integer, List<MidiEvent>> extractChannels() {
@@ -173,7 +173,7 @@ public class TrackProxy extends Sender<TrackProxy> {
                   .flatMap(List::stream)
                   .forEach(backing::remove);
         }
-        postUpdate();
+        setModified();
         return result;
     }
 
@@ -187,7 +187,7 @@ public class TrackProxy extends Sender<TrackProxy> {
 
     private interface Internal extends de.team33.patterns.notes.alpha.Channel<TrackProxy> {
 
-        Internal ResetFeatures = () -> "ResetFeatures";
+        Internal SetModified = () -> "Internal:SetModified";
     }
 
     @SuppressWarnings("ClassNameSameAsAncestorName")

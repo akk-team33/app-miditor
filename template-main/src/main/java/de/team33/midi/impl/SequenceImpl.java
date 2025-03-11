@@ -1,11 +1,11 @@
 package de.team33.midi.impl;
 
-import de.team33.midi.Sequence;
 import de.team33.midi.MidiTrack;
+import de.team33.midi.Sequence;
 import de.team33.midi.util.TrackUtil;
 import de.team33.miditor.IClickParameter;
-import de.team33.patterns.notes.alpha.Audience;
 import de.team33.midix.Timing;
+import de.team33.patterns.notes.alpha.Audience;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MetaMessage;
@@ -50,7 +50,7 @@ public class SequenceImpl implements Sequence {
 
         for (int index = 0; index < length; ++index) {
             final javax.sound.midi.Track tRaw = var5[index];
-            m_PartMap.put(tRaw, new MidiTrack(tRaw, index));
+            m_PartMap.put(tRaw, new MidiTrack(index, tRaw));
         }
 
         if (0 < getTracks().length) {
@@ -158,7 +158,7 @@ public class SequenceImpl implements Sequence {
         final javax.sound.midi.Track rawTrack = m_Sequence.createTrack();
         if (null != rawTrack) {
             core_clear(events);
-            m_PartMap.put(rawTrack, new MidiTrack(rawTrack, Arrays.asList(m_Sequence.getTracks()).indexOf(rawTrack)));
+            m_PartMap.put(rawTrack, new MidiTrack(Arrays.asList(m_Sequence.getTracks()).indexOf(rawTrack), rawTrack));
         }
 
         return m_PartMap.get(rawTrack);
@@ -166,7 +166,7 @@ public class SequenceImpl implements Sequence {
 
     private boolean core_delete(final MidiTrack p, final Set<Event> events) {
         boolean ret = false;
-        final javax.sound.midi.Track tRaw = p.getJTrack();
+        final javax.sound.midi.Track tRaw = p.backing();
         if (m_PartMap.containsKey(tRaw)) {
             ret = m_Sequence.deleteTrack(tRaw);
             if (ret) {
@@ -262,7 +262,7 @@ public class SequenceImpl implements Sequence {
             m_Parts = new MidiTrack[rawTracks.length];
             for (int i = 0; i < rawTracks.length; ++i) {
                 m_Parts[i] = m_PartMap.get(rawTracks[i]);
-                m_Parts[i].addListener(MidiTrack.Event.SetModified, this::onSetModified);
+                m_Parts[i].add(MidiTrack.Channel.SetModified, this::onSetModified);
             }
         }
         return m_Parts;
@@ -336,7 +336,7 @@ public class SequenceImpl implements Sequence {
         final Set<Event> events = EnumSet.noneOf(Event.class);
         final MidiTrack newTrack = core_create(events);
         for (final MidiTrack t : tracks) {
-            newTrack.add(t.getAll());
+            newTrack.add(t.list());
             core_delete(t, events);
         }
         events.forEach(event -> audience.send(event, this));
