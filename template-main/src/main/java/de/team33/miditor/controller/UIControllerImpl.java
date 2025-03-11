@@ -1,6 +1,6 @@
 package de.team33.miditor.controller;
 
-import de.team33.midi.Track;
+import de.team33.midi.MidiTrack;
 import de.team33.patterns.notes.alpha.Audience;
 
 import java.util.Arrays;
@@ -13,7 +13,7 @@ public class UIControllerImpl implements UIController {
 
     private final Audience audience = new Audience();
     private int[] m_Selection = new int[0];
-    private Track m_Track = null;
+    private MidiTrack m_Track = null;
 
     @Override
     public final void addListener(final Event event, final Consumer<? super UIController> listener) {
@@ -23,11 +23,11 @@ public class UIControllerImpl implements UIController {
         }
     }
 
-    public Track getTrack() {
+    public MidiTrack getTrack() {
         return this.m_Track;
     }
 
-    public void setTrack(final Track track) {
+    public void setTrack(final MidiTrack track) {
         audience.send(Event.UnsetTrack, this);
         this.m_Track = track;
         audience.send(Event.SetTrack, this);

@@ -2,7 +2,7 @@ package de.team33.miditor.ui.sequence;
 
 import de.team33.midi.Player;
 import de.team33.midi.Sequence;
-import de.team33.midi.Track;
+import de.team33.midi.MidiTrack;
 import de.team33.miditor.controller.UIController;
 import de.team33.miditor.ui.SmallButton;
 import de.team33.miditor.ui.TrackControls;
@@ -15,7 +15,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.Serial;
 import java.util.Set;
-import java.util.function.Consumer;
 
 public abstract class TrackList extends JScrollPane {
     public TrackList() {
@@ -56,7 +55,7 @@ public abstract class TrackList extends JScrollPane {
             setSelected(false);
         }
 
-        protected abstract void doActionWith(Iterable<Track> var1);
+        protected abstract void doActionWith(Iterable<MidiTrack> var1);
 
         private void onUpdate(final Set<?> selection) {
             final boolean superMin = min <= selection.size();
@@ -70,7 +69,7 @@ public abstract class TrackList extends JScrollPane {
             super("del", 1);
         }
 
-        protected void doActionWith(final Iterable<Track> trcks) {
+        protected void doActionWith(final Iterable<MidiTrack> trcks) {
             getContext().getSequence().delete(trcks);
         }
     }
@@ -80,7 +79,7 @@ public abstract class TrackList extends JScrollPane {
             super("join", 2);
         }
 
-        protected void doActionWith(final Iterable<Track> trcks) {
+        protected void doActionWith(final Iterable<MidiTrack> trcks) {
             getContext().getSequence().join(trcks);
         }
     }
@@ -126,7 +125,7 @@ public abstract class TrackList extends JScrollPane {
         private SHIFTERS() {
         }
 
-        protected Selection<Track> getSelection() {
+        protected Selection<MidiTrack> getSelection() {
             return getContext().getSelection();
         }
 
@@ -146,7 +145,7 @@ public abstract class TrackList extends JScrollPane {
         }
 
         private void onSetParts(final Sequence sequence) {
-            final Track[] parts = sequence.getTracks();
+            final MidiTrack[] parts = sequence.getTracks();
             setVisible(false);
             removeAll();
             int k = parts.length;
@@ -169,9 +168,9 @@ public abstract class TrackList extends JScrollPane {
 
     private class TRCK_CONTEXT implements de.team33.miditor.ui.track.Context {
         private final int m_Index;
-        private final Track m_Track;
+        private final MidiTrack m_Track;
 
-        TRCK_CONTEXT(final Track p, final int index) {
+        TRCK_CONTEXT(final MidiTrack p, final int index) {
             m_Index = index;
             m_Track = p;
         }
@@ -184,7 +183,7 @@ public abstract class TrackList extends JScrollPane {
             return getContext().getPlayer();
         }
 
-        public Selection<Track> getSelection() {
+        public Selection<MidiTrack> getSelection() {
             return getContext().getSelection();
         }
 
@@ -192,7 +191,7 @@ public abstract class TrackList extends JScrollPane {
             return getContext().getSequence();
         }
 
-        public Track getTrack() {
+        public MidiTrack getTrack() {
             return m_Track;
         }
 
@@ -204,7 +203,7 @@ public abstract class TrackList extends JScrollPane {
     private class TRCK_CTRL extends TrackControls {
         private final de.team33.miditor.ui.track.Context m_Context;
 
-        public TRCK_CTRL(final Track p, final int index) {
+        public TRCK_CTRL(final MidiTrack p, final int index) {
             m_Context = TrackList.this.new TRCK_CONTEXT(p, index);
         }
 

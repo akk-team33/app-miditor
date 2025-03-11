@@ -14,13 +14,13 @@ public interface Sequence {
 
     void associate(Sequencer sequencer) throws InvalidMidiDataException;
 
-    Track create();
+    MidiTrack create();
 
-    Track create(IClickParameter cp);
+    MidiTrack create(IClickParameter cp);
 
-    void delete(Iterable<Track> tracks);
+    void delete(Iterable<MidiTrack> tracks);
 
-    boolean delete(Track track);
+    boolean delete(MidiTrack track);
 
     boolean equals(Object obj);
 
@@ -34,17 +34,17 @@ public interface Sequence {
 
     Timing getTiming();
 
-    Track[] getTracks();
+    MidiTrack[] getTracks();
 
     boolean isModified();
 
-    void join(Iterable<Track> tracks);
+    void join(Iterable<MidiTrack> tracks);
 
     void save() throws IOException;
 
     void save_as(File file) throws IOException;
 
-    void split(Track track);
+    void split(MidiTrack track);
 
     void addListener(Event event, Consumer<? super Sequence> listener);
 
