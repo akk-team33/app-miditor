@@ -1,6 +1,5 @@
-package de.team33.midi.publics;
+package de.team33.midi;
 
-import de.team33.midi.TrackProxy;
 import org.junit.jupiter.api.Test;
 
 import javax.sound.midi.InvalidMidiDataException;
@@ -14,6 +13,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -75,10 +75,14 @@ class TrackProxyTest {
     }
 
     @Test
-    final void add() {
+    final void add() throws InterruptedException {
+        final AtomicBoolean modified = new AtomicBoolean(false);
         final MidiEvent[] events = newEvents();
-        trackProxy.add(events);
+        trackProxy.add(TrackProxy.Channel.SetModified, t -> modified.set(t.isModified()))
+                  .add(events);
 
+        Thread.sleep(1);
+        assertTrue(modified.get());
         assertEquals(Arrays.asList(events), trackProxy.list().subList(0, events.length));
     }
 
@@ -97,6 +101,8 @@ class TrackProxyTest {
         assertFalse(trackProxy.isModified());
         trackProxy.add(newEvents());
         assertTrue(trackProxy.isModified());
+        trackProxy.resetModified();
+        assertFalse(trackProxy.isModified());
     }
 
     @Test

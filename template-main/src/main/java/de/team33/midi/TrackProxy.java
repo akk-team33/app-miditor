@@ -1,6 +1,10 @@
 package de.team33.midi;
 
 import de.team33.midix.Midi;
+import de.team33.patterns.execution.metis.SimpleAsyncExecutor;
+import de.team33.patterns.notes.alpha.Audience;
+import de.team33.patterns.notes.alpha.Mapping;
+import de.team33.patterns.notes.alpha.Sender;
 
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.MidiMessage;
@@ -10,26 +14,43 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.groupingBy;
 
-public class TrackProxy {
+public class TrackProxy extends Sender<TrackProxy> {
 
+    private final Audience audience;
+    private final Mapping mapping;
     private final int index;
     private final Track backing;
-    private AtomicBoolean modification = new AtomicBoolean(false);
+    private final AtomicBoolean modification = new AtomicBoolean(false);
     private final Features features = new Features();
 
     public TrackProxy(final int index, final Track backing) {
+        super(TrackProxy.class);
+        this.audience = new Audience(new SimpleAsyncExecutor());
+        this.mapping = Mapping.builder()
+                              .put(Channel.SetEvents, () -> this)
+                              .put(Internal.ResetFeatures, () -> this)
+                              .put(Channel.SetModified, () -> this)
+                              .put(Channel.SetChannels, () -> this)
+                              .put(Channel.SetName, () -> this)
+                              .build();
         this.index = index;
         this.backing = backing;
+        addPlain(Channel.SetEvents, TrackProxy::onSetEvents);
+        addPlain(Internal.ResetFeatures, new SetModified());
+        addPlain(Internal.ResetFeatures, new SetName());
+        addPlain(Internal.ResetFeatures, new SetMidiChannels());
     }
 
     private static boolean isChannelEvent(final MidiEvent midiEvent) {
@@ -44,6 +65,20 @@ public class TrackProxy {
         return midiEvent.getMessage().getStatus() & 0x0f;
     }
 
+    private void onSetEvents() {
+        fire(Internal.ResetFeatures);
+    }
+
+    @Override
+    protected final Audience audience() {
+        return audience;
+    }
+
+    @Override
+    protected final Mapping mapping() {
+        return mapping;
+    }
+
     private TrackProxy postUpdate() {
         return postUpdate(true);
     }
@@ -51,7 +86,7 @@ public class TrackProxy {
     private TrackProxy postUpdate(final boolean modified) {
         modification.set(modified);
         features.reset();
-        return this;
+        return fire(Channel.SetEvents);
     }
 
     private Stream<MidiEvent> stream() {
@@ -78,8 +113,8 @@ public class TrackProxy {
     public final TrackProxy add(final Collection<? extends MidiEvent> events) {
         synchronized (backing) {
             events.forEach(backing::add);
-            return postUpdate();
         }
+        return postUpdate();
     }
 
     public final TrackProxy remove(final MidiEvent... events) {
@@ -89,8 +124,8 @@ public class TrackProxy {
     public final TrackProxy remove(final Collection<? extends MidiEvent> events) {
         synchronized (backing) {
             events.forEach(backing::remove);
-            return postUpdate();
         }
+        return postUpdate();
     }
 
     public final MidiEvent get(final int index) {
@@ -130,15 +165,29 @@ public class TrackProxy {
     }
 
     public final Map<Integer, List<MidiEvent>> extractChannels() {
+        final Map<Integer, List<MidiEvent>> result;
         synchronized (backing) {
-            final Map<Integer, List<MidiEvent>> result = stream().filter(TrackProxy::isChannelEvent)
-                                                                 .collect(groupingBy(TrackProxy::channelOf));
+            result = stream().filter(TrackProxy::isChannelEvent)
+                             .collect(groupingBy(TrackProxy::channelOf));
             result.values().stream()
                   .flatMap(List::stream)
                   .forEach(backing::remove);
-            postUpdate();
-            return result;
         }
+        postUpdate();
+        return result;
+    }
+
+    public enum Channel implements de.team33.patterns.notes.alpha.Channel<TrackProxy> {
+        // TODO?: Released,
+        SetChannels,
+        SetEvents,
+        SetModified,
+        SetName
+    }
+
+    private interface Internal extends de.team33.patterns.notes.alpha.Channel<TrackProxy> {
+
+        Internal ResetFeatures = () -> "ResetFeatures";
     }
 
     @SuppressWarnings("ClassNameSameAsAncestorName")
@@ -148,6 +197,48 @@ public class TrackProxy {
         Key<List<MidiEvent>> LIST = host -> host.features.newList();
         Key<SortedSet<Integer>> MIDI_CHANNELS = host -> host.features.newMidiChannels();
         Key<String> NAME = host -> host.features.newName();
+    }
+
+    private static final class SetMidiChannels implements Consumer<TrackProxy> {
+
+        private Set<Integer> lastMidiChannels = null;
+
+        @Override
+        public void accept(final TrackProxy track) {
+            final Set<Integer> newMidiChannels = track.features.get(Key.MIDI_CHANNELS);
+            if (!newMidiChannels.equals(lastMidiChannels)) {
+                lastMidiChannels = newMidiChannels;
+                track.fire(Channel.SetChannels);
+            }
+        }
+    }
+
+    private static final class SetName implements Consumer<TrackProxy> {
+
+        private String lastName = null;
+
+        @Override
+        public final void accept(final TrackProxy track) {
+            final String newName = track.features.get(Key.NAME);
+            if (!newName.equals(lastName)) {
+                lastName = newName;
+                track.fire(Channel.SetName);
+            }
+        }
+    }
+
+    private static final class SetModified implements Consumer<TrackProxy> {
+
+        private boolean lastModified = false;
+
+        @Override
+        public final void accept(final TrackProxy track) {
+            final boolean newModified = track.modification.get();
+            if (newModified != lastModified) {
+                lastModified = newModified;
+                track.fire(Channel.SetModified);
+            }
+        }
     }
 
     @SuppressWarnings("ClassNameSameAsAncestorName")
