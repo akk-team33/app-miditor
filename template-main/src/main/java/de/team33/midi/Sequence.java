@@ -1,7 +1,6 @@
 package de.team33.midi;
 
 import de.team33.miditor.IClickParameter;
-import de.team33.patterns.notes.alpha.Channel;
 import de.team33.midix.Timing;
 
 import javax.sound.midi.InvalidMidiDataException;
@@ -46,9 +45,10 @@ public interface Sequence {
 
     void split(MidiTrack track);
 
-    void addListener(Event event, Consumer<? super Sequence> listener);
+    void addListener(Channel channel, Consumer<? super Sequence> listener);
 
-    enum Event implements Channel<Sequence> {
+    @SuppressWarnings("ClassNameSameAsAncestorName")
+    enum Channel implements de.team33.patterns.notes.alpha.Channel<Sequence> {
         SetFile,
         SetModified,
         SetParts

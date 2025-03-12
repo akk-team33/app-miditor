@@ -62,8 +62,8 @@ public class SequenceImpl implements Sequence {
     }
 
     @Override
-    public final void addListener(final Event event, final Consumer<? super Sequence> listener) {
-        audience.add(event, listener);
+    public final void addListener(final Channel channel, final Consumer<? super Sequence> listener) {
+        audience.add(channel, listener);
         listener.accept(this);
     }
 
@@ -135,58 +135,58 @@ public class SequenceImpl implements Sequence {
         return MidiSystem.getSequence(file);
     }
 
-    private void _save_and_relay(final Set<Event> events) throws IOException {
+    private void _save_and_relay(final Set<Channel> channels) throws IOException {
         _save(m_Sequence, m_File, !m_isSessionFile);
         m_isSessionFile = true;
-        core_setModified(false, events);
-        events.forEach(event -> audience.send(event, this));
+        core_setModified(false, channels);
+        channels.forEach(event -> audience.send(event, this));
     }
 
     public final void associate(final Sequencer sequencer) throws InvalidMidiDataException {
         sequencer.setSequence(m_Sequence);
     }
 
-    private void core_clear(final Set<Event> events) {
+    private void core_clear(final Set<Channel> channels) {
         if (null != m_Parts) {
             m_Parts = null;
-            events.add(Event.SetParts);
-            core_setModified(true, events);
+            channels.add(Channel.SetParts);
+            core_setModified(true, channels);
         }
     }
 
-    private MidiTrack core_create(final Set<Event> events) {
+    private MidiTrack core_create(final Set<Channel> channels) {
         final javax.sound.midi.Track rawTrack = m_Sequence.createTrack();
         if (null != rawTrack) {
-            core_clear(events);
+            core_clear(channels);
             m_PartMap.put(rawTrack, new MidiTrack(Arrays.asList(m_Sequence.getTracks()).indexOf(rawTrack), rawTrack));
         }
 
         return m_PartMap.get(rawTrack);
     }
 
-    private boolean core_delete(final MidiTrack p, final Set<Event> events) {
+    private boolean core_delete(final MidiTrack p, final Set<Channel> channels) {
         boolean ret = false;
         final javax.sound.midi.Track tRaw = p.backing();
         if (m_PartMap.containsKey(tRaw)) {
             ret = m_Sequence.deleteTrack(tRaw);
             if (ret) {
-                core_clear(events);
+                core_clear(channels);
                 m_PartMap.remove(tRaw);
             }
         }
         return ret;
     }
 
-    private void core_setFile(File f, final Set<Event> events) {
+    private void core_setFile(File f, final Set<Channel> channels) {
         f = initialFile(f);
         if (!m_File.equals(f)) {
             m_File = f;
-            events.add(Event.SetFile);
+            channels.add(Channel.SetFile);
         }
 
     }
 
-    private void core_setModified(final boolean b, final Set<Event> events) {
+    private void core_setModified(final boolean b, final Set<Channel> channels) {
         if (m_Modified != b) {
             m_Modified = b;
             if (!m_Modified) {
@@ -194,20 +194,20 @@ public class SequenceImpl implements Sequence {
                     part.resetModified();
                 }
             }
-            events.add(Event.SetModified);
+            channels.add(Channel.SetModified);
         }
     }
 
     public final MidiTrack create() {
-        final Set<Event> events = EnumSet.noneOf(Event.class);
-        final MidiTrack ret = core_create(events);
-        events.forEach(event -> audience.send(event, this));
+        final Set<Channel> channels = EnumSet.noneOf(Channel.class);
+        final MidiTrack ret = core_create(channels);
+        channels.forEach(event -> audience.send(event, this));
         return ret;
     }
 
     public final MidiTrack create(final IClickParameter cp) {
-        final Set<Event> events = EnumSet.noneOf(Event.class);
-        final MidiTrack ret = core_create(events);
+        final Set<Channel> channels = EnumSet.noneOf(Channel.class);
+        final MidiTrack ret = core_create(channels);
         final MetaMessage msg0 = new MetaMessage();
         final byte[] bytes = "Metronom".getBytes();
 
@@ -233,22 +233,22 @@ public class SequenceImpl implements Sequence {
                 Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), var13);
             }
         }
-        events.forEach(event -> audience.send(event, this));
+        channels.forEach(event -> audience.send(event, this));
         return ret;
     }
 
     public final void delete(final Iterable<MidiTrack> tracks) {
-        final Set<Event> events = EnumSet.noneOf(Event.class);
+        final Set<Channel> channels = EnumSet.noneOf(Channel.class);
         for (final MidiTrack p : tracks) {
-            core_delete(p, events);
+            core_delete(p, channels);
         }
-        events.forEach(event -> audience.send(event, this));
+        channels.forEach(event -> audience.send(event, this));
     }
 
     public final boolean delete(final MidiTrack track) {
-        final Set<Event> events = EnumSet.noneOf(Event.class);
-        final boolean ret = core_delete(track, events);
-        events.forEach(event -> audience.send(event, this));
+        final Set<Channel> channels = EnumSet.noneOf(Channel.class);
+        final boolean ret = core_delete(track, channels);
+        channels.forEach(event -> audience.send(event, this));
         return ret;
     }
 
@@ -333,13 +333,13 @@ public class SequenceImpl implements Sequence {
     }
 
     public final void join(final Iterable<MidiTrack> tracks) {
-        final Set<Event> events = EnumSet.noneOf(Event.class);
-        final MidiTrack newTrack = core_create(events);
+        final Set<Channel> channels = EnumSet.noneOf(Channel.class);
+        final MidiTrack newTrack = core_create(channels);
         for (final MidiTrack t : tracks) {
             newTrack.add(t.list());
-            core_delete(t, events);
+            core_delete(t, channels);
         }
-        events.forEach(event -> audience.send(event, this));
+        channels.forEach(event -> audience.send(event, this));
     }
 
     public final void save() throws IOException {
@@ -347,23 +347,23 @@ public class SequenceImpl implements Sequence {
     }
 
     public final void save_as(File file) throws IOException {
-        final Set<Event> events = EnumSet.noneOf(Event.class);
+        final Set<Channel> channels = EnumSet.noneOf(Channel.class);
         file = initialFile(file);
         if (!file.equals(m_File)) {
             m_isSessionFile = false;
-            core_setFile(file, events);
+            core_setFile(file, channels);
         }
-        _save_and_relay(events);
+        _save_and_relay(channels);
     }
 
     public final void split(final MidiTrack track) {
-        final Set<Event> events = EnumSet.noneOf(Event.class);
+        final Set<Channel> channels = EnumSet.noneOf(Channel.class);
         final Map<Integer, List<MidiEvent>> extract = track.extractChannels();
         for (final List<MidiEvent> midiEvents : extract.values()) {
-            final MidiTrack newTrack = core_create(events);
+            final MidiTrack newTrack = core_create(channels);
             TrackUtil.add(newTrack, midiEvents);
         }
-        events.forEach(event -> audience.send(event, this));
+        channels.forEach(event -> audience.send(event, this));
     }
 
     private static class BACKUP_OVERFLOW extends IOException {
@@ -385,9 +385,9 @@ public class SequenceImpl implements Sequence {
 
     public final void onSetModified(final MidiTrack track) {
         if (track.isModified()) {
-            final Set<Event> events = EnumSet.noneOf(Event.class);
-            core_setModified(true, events);
-            events.forEach(event -> audience.send(event, this));
+            final Set<Channel> channels = EnumSet.noneOf(Channel.class);
+            core_setModified(true, channels);
+            channels.forEach(event -> audience.send(event, this));
         }
     }
 }

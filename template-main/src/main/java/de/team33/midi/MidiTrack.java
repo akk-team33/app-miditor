@@ -26,6 +26,7 @@ import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.groupingBy;
 
+@SuppressWarnings({"ClassNamePrefixedWithPackageName", "ClassWithTooManyMethods"})
 public class MidiTrack extends Sender<MidiTrack> {
 
     private final Audience audience;

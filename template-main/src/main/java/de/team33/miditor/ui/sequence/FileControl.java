@@ -10,7 +10,6 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
-import java.util.function.Consumer;
 
 public abstract class FileControl extends JPanel {
     public FileControl() {
@@ -33,7 +32,7 @@ public abstract class FileControl extends JPanel {
         public SAVE_BTTN() {
             super(Rsrc.SAVEICON);
             setToolTipText("MIDI-Sequenz speichern");
-            getContext().getSequence().addListener(Sequence.Event.SetModified, this::onSetModified);
+            getContext().getSequence().addListener(Sequence.Channel.SetModified, this::onSetModified);
         }
 
         public void actionPerformed(final ActionEvent e) {

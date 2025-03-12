@@ -1,8 +1,8 @@
 package de.team33.miditor.ui.sequence;
 
+import de.team33.midi.MidiTrack;
 import de.team33.midi.Player;
 import de.team33.midi.Sequence;
-import de.team33.midi.MidiTrack;
 import de.team33.miditor.controller.UIController;
 import de.team33.miditor.ui.SmallButton;
 import de.team33.miditor.ui.TrackControls;
@@ -141,7 +141,7 @@ public abstract class TrackList extends JScrollPane {
 
         TABLE() {
             super(new GridBagLayout());
-            getContext().getSequence().addListener(Sequence.Event.SetParts, this::onSetParts);
+            getContext().getSequence().addListener(Sequence.Channel.SetParts, this::onSetParts);
         }
 
         private void onSetParts(final Sequence sequence) {

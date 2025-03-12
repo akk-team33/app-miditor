@@ -1,8 +1,7 @@
 package de.team33.miditor.ui;
 
-import de.team33.midi.Sequence;
 import de.team33.midi.MidiTrack;
-import de.team33.midix.Timing;
+import de.team33.midi.Sequence;
 import de.team33.miditor.controller.UIController;
 import de.team33.miditor.controller.UIControllerImpl;
 import de.team33.miditor.ui.event.TableRenderer;
@@ -10,6 +9,7 @@ import de.team33.miditor.ui.track.EventActions;
 import de.team33.miditor.ui.track.EventTable;
 import de.team33.miditor.ui.track.EventTableModel;
 import de.team33.miditor.ui.track.Header;
+import de.team33.midix.Timing;
 
 import javax.swing.*;
 import javax.swing.table.TableModel;
@@ -33,7 +33,7 @@ public abstract class EventEditor extends UIControllerImpl {
     private JComponent m_RootComponent = null;
 
     protected EventEditor() {
-        getSequence().addListener(Sequence.Event.SetParts, this::onSetParts);
+        getSequence().addListener(Sequence.Channel.SetParts, this::onSetParts);
     }
 
     private EventEditor _EventEditor() {

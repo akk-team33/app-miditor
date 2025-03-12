@@ -1,10 +1,10 @@
 package de.team33.midi.impl;
 
-import de.team33.midi.util.ClassUtil;
 import de.team33.midi.Player;
 import de.team33.midi.Sequence;
-import de.team33.patterns.notes.alpha.Audience;
+import de.team33.midi.util.ClassUtil;
 import de.team33.midix.Timing;
+import de.team33.patterns.notes.alpha.Audience;
 
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiSystem;
@@ -31,7 +31,7 @@ public class PlayerImpl implements Player {
     public PlayerImpl(final Sequence sequence) throws MidiUnavailableException {
         sequencer = MidiSystem.getSequencer(false);
         this.sequence = sequence;
-        this.sequence.addListener(Sequence.Event.SetParts, this::onSetParts);
+        this.sequence.addListener(Sequence.Channel.SetParts, this::onSetParts);
         audience.add(Event.SetState, new STARTER());
     }
 

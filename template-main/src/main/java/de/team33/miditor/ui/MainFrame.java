@@ -1,9 +1,9 @@
 package de.team33.miditor.ui;
 
+import de.team33.midi.MidiTrack;
 import de.team33.midi.Player;
 import de.team33.midi.Player.State;
 import de.team33.midi.Sequence;
-import de.team33.midi.MidiTrack;
 import de.team33.midi.impl.PlayerImpl;
 import de.team33.miditor.controller.UIController;
 import de.team33.miditor.model.PartSelection;
@@ -64,7 +64,7 @@ public class MainFrame extends XFrame {
         setContentPane(new MAIN_PANE());
         setLocationByPlatform(true);
         addWindowListener(m_WindowListener);
-        player.getSequence().addListener(Sequence.Event.SetFile, this::onSetFile);
+        player.getSequence().addListener(Sequence.Channel.SetFile, this::onSetFile);
     }
 
 //    protected void finalize() throws Throwable {
