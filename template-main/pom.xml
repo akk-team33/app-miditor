@@ -57,6 +57,10 @@
             <groupId>de.team33.testing</groupId>
             <artifactId>stdio-ersa</artifactId>
         </dependency>
+        <dependency>
+            <groupId>de.team33.testing</groupId>
+            <artifactId>io-hydra</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -70,6 +74,18 @@
             <testResource>
                 <directory>${basedir}/src/test/resources</directory>
                 <filtering>true</filtering>
+                <excludes>
+                    <exclude>**/*.mid</exclude>
+                    <exclude>**/*.zip</exclude>
+                </excludes>
+            </testResource>
+            <testResource>
+                <directory>${basedir}/src/test/resources</directory>
+                <filtering>false</filtering>
+                <includes>
+                    <include>**/*.mid</include>
+                    <include>**/*.zip</include>
+                </includes>
             </testResource>
         </testResources>
     </build>
