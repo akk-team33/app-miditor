@@ -74,10 +74,6 @@ public class TrackProxy extends Sender<TrackProxy> {
         return mapping;
     }
 
-    private TrackProxy setModified() {
-        return setModified(true);
-    }
-
     private TrackProxy setModified(final boolean modified) {
         modification.set(modified);
         features.reset();
@@ -109,7 +105,7 @@ public class TrackProxy extends Sender<TrackProxy> {
         synchronized (backing) {
             events.forEach(backing::add);
         }
-        return setModified();
+        return setModified(true);
     }
 
     public final TrackProxy remove(final MidiEvent... events) {
@@ -120,7 +116,7 @@ public class TrackProxy extends Sender<TrackProxy> {
         synchronized (backing) {
             events.forEach(backing::remove);
         }
-        return setModified();
+        return setModified(true);
     }
 
     public final MidiEvent get(final int index) {
@@ -164,6 +160,24 @@ public class TrackProxy extends Sender<TrackProxy> {
         return setModified(false);
     }
 
+    public final TrackProxy shift(final long delta) {
+        synchronized (backing) {
+            stream().toList()
+                    .forEach(midiEvent -> shift(midiEvent, delta));
+        }
+        return setModified(true);
+    }
+
+    private void shift(final MidiEvent midiEvent, final long delta) {
+        final long oldTime = midiEvent.getTick();
+        if ((0L == oldTime) && Midi.Message.Type.META.isTypeOf(midiEvent.getMessage())) {
+            // keep it in place -> nothing to do!
+        } else {
+            final long newTime = Math.max(0L, oldTime + delta);
+            midiEvent.setTick(newTime);
+        }
+    }
+
     public final Map<Integer, List<MidiEvent>> extractChannels() {
         final Map<Integer, List<MidiEvent>> result;
         synchronized (backing) {
@@ -173,7 +187,7 @@ public class TrackProxy extends Sender<TrackProxy> {
                   .flatMap(List::stream)
                   .forEach(backing::remove);
         }
-        setModified();
+        setModified(true);
         return result;
     }
 

@@ -120,6 +120,15 @@ class TrackProxyTest {
     }
 
     @Test
+    final void shift() {
+        final MidiEvent[] events = newEvents();
+        trackProxy.add(events)
+                  .shift(10000);
+        trackProxy.list()
+                  .forEach(midiEvent -> assertTrue(10000 <= midiEvent.getTick()));
+    }
+
+    @Test
     final void extractChannels() {
         assertFalse(trackProxy.isModified());
         final Set<Integer> expected = trackProxy.add(newEvents())
