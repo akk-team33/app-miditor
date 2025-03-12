@@ -11,6 +11,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.Set;
+import java.util.SortedSet;
 
 public abstract class TrackControls {
 
@@ -41,15 +42,14 @@ public abstract class TrackControls {
         private void onSetChannels(final MidiTrack track) {
             setVisible(false);
             removeAll();
-            final int[] channels = track.midiChannels();
-            if (channels.length == 0) {
+            final SortedSet<Integer> channels = track.midiChannels();
+            if (channels.isEmpty()) {
                 add(TrackControls.this.new LABEL("--"), "Center");
-            } else if (channels.length == 1) {
-                add(TrackControls.this.new LABEL(String.format("Kanal %02d", channels[0] + 1)), "Center");
+            } else if (channels.size() == 1) {
+                add(TrackControls.this.new LABEL(String.format("Kanal %02d", channels.first() + 1)), "Center");
             } else {
                 add(TrackControls.this.new SPLIT_BUTTON(), "Center");
             }
-
             setVisible(true);
         }
     }

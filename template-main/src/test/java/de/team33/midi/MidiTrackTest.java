@@ -20,14 +20,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class TrackProxyTest {
+class MidiTrackTest {
 
     private final Sequence sequence;
-    private final TrackProxy trackProxy;
+    private final MidiTrack midiTrack;
 
-    TrackProxyTest() throws InvalidMidiDataException {
+    MidiTrackTest() throws InvalidMidiDataException {
         sequence = new Sequence(Sequence.PPQ, 96, 3);
-        trackProxy = new TrackProxy(1, sequence.getTracks()[0]);
+        midiTrack = new MidiTrack(1, sequence.getTracks()[0]);
     }
 
     @SuppressWarnings("SameParameterValue")
@@ -49,36 +49,36 @@ class TrackProxyTest {
     @Test
     final void list() {
         final List<MidiEvent> expected = List.of(sequence.getTracks()[0].get(0));
-        final List<MidiEvent> result = trackProxy.list();
+        final List<MidiEvent> result = midiTrack.list();
         assertEquals(expected, result);
     }
 
     @Test
     final void midiChannels() {
-        assertEquals(Set.of(), trackProxy.midiChannels());
+        assertEquals(Set.of(), midiTrack.midiChannels());
 
         final Set<Integer> expected = Set.of(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
-        trackProxy.add(newEvents());
+        midiTrack.add(newEvents());
 
-        assertEquals(expected, trackProxy.midiChannels());
+        assertEquals(expected, midiTrack.midiChannels());
     }
 
     @Test
     final void name() throws InvalidMidiDataException {
-        assertEquals("[undefined]", trackProxy.name());
+        assertEquals("[undefined]", midiTrack.name());
 
         final String expected = "track 01";
         final byte[] bytes = expected.getBytes(StandardCharsets.UTF_8);
-        trackProxy.add(new MidiEvent(new MetaMessage(0x03, bytes, 8), 0L));
+        midiTrack.add(new MidiEvent(new MetaMessage(0x03, bytes, 8), 0L));
 
-        assertEquals(expected, trackProxy.name());
+        assertEquals(expected, midiTrack.name());
     }
 
     @Test
     final void add() throws InterruptedException {
         final MidiEvent[] events = newEvents();
-        trackProxy.add(events);
-        assertEquals(Arrays.asList(events), trackProxy.list().subList(0, events.length));
+        midiTrack.add(events);
+        assertEquals(Arrays.asList(events), midiTrack.list().subList(0, events.length));
     }
 
     @Test
@@ -88,11 +88,11 @@ class TrackProxyTest {
         final AtomicBoolean setChannels = new AtomicBoolean(false);
         final AtomicBoolean setName = new AtomicBoolean(false);
         final MidiEvent[] events = newEvents();
-        trackProxy.add(TrackProxy.Channel.SetEvents, t -> setEvents.set(t.isModified()))
-                  .add(TrackProxy.Channel.SetChannels, t -> setChannels.set(t.isModified()))
-                  .add(TrackProxy.Channel.SetModified, t -> setModified.set(t.isModified()))
-                  .add(TrackProxy.Channel.SetName, t -> setName.set(t.isModified()))
-                  .add(events);
+        midiTrack.add(MidiTrack.Channel.SetEvents, t -> setEvents.set(t.isModified()))
+                 .add(MidiTrack.Channel.SetChannels, t -> setChannels.set(t.isModified()))
+                 .add(MidiTrack.Channel.SetModified, t -> setModified.set(t.isModified()))
+                 .add(MidiTrack.Channel.SetName, t -> setName.set(t.isModified()))
+                 .add(events);
 
         Thread.sleep(5);
         assertTrue(setModified.get());
@@ -105,36 +105,36 @@ class TrackProxyTest {
     final void remove() {
         final List<MidiEvent> expected = List.of(sequence.getTracks()[0].get(0));
         final MidiEvent[] events = newEvents();
-        trackProxy.add(events);
-        trackProxy.remove(events);
-        assertEquals(expected, trackProxy.list());
+        midiTrack.add(events);
+        midiTrack.remove(events);
+        assertEquals(expected, midiTrack.list());
     }
 
     @Test
     final void isModified() {
-        assertFalse(trackProxy.isModified());
-        trackProxy.add(newEvents());
-        assertTrue(trackProxy.isModified());
-        trackProxy.resetModified();
-        assertFalse(trackProxy.isModified());
+        assertFalse(midiTrack.isModified());
+        midiTrack.add(newEvents());
+        assertTrue(midiTrack.isModified());
+        midiTrack.resetModified();
+        assertFalse(midiTrack.isModified());
     }
 
     @Test
     final void shift() {
         final MidiEvent[] events = newEvents();
-        trackProxy.add(events)
-                  .shift(10000);
-        trackProxy.list()
-                  .forEach(midiEvent -> assertTrue(10000 <= midiEvent.getTick()));
+        midiTrack.add(events)
+                 .shift(10000);
+        midiTrack.list()
+                 .forEach(midiEvent -> assertTrue(10000 <= midiEvent.getTick()));
     }
 
     @Test
     final void extractChannels() {
-        assertFalse(trackProxy.isModified());
-        final Set<Integer> expected = trackProxy.add(newEvents())
-                                                .midiChannels();
-        final Map<Integer, List<MidiEvent>> result = trackProxy.extractChannels();
+        assertFalse(midiTrack.isModified());
+        final Set<Integer> expected = midiTrack.add(newEvents())
+                                               .midiChannels();
+        final Map<Integer, List<MidiEvent>> result = midiTrack.extractChannels();
         assertEquals(expected, result.keySet());
-        assertTrue(trackProxy.isModified());
+        assertTrue(midiTrack.isModified());
     }
 }

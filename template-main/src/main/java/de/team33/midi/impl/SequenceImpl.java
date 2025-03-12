@@ -191,7 +191,7 @@ public class SequenceImpl implements Sequence {
             m_Modified = b;
             if (!m_Modified) {
                 for (final MidiTrack part : m_PartMap.values()) {
-                    part.setModified(false);
+                    part.resetModified();
                 }
             }
             events.add(Event.SetModified);

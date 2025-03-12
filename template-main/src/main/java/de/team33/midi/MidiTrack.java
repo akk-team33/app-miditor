@@ -1,190 +1,127 @@
 package de.team33.midi;
 
+import de.team33.midix.Midi;
+import de.team33.patterns.execution.metis.SimpleAsyncExecutor;
 import de.team33.patterns.notes.alpha.Audience;
+import de.team33.patterns.notes.alpha.Mapping;
+import de.team33.patterns.notes.alpha.Sender;
 
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.MidiMessage;
 import javax.sound.midi.Track;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.EnumSet;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
-public class MidiTrack {
+import static java.util.stream.Collectors.groupingBy;
 
-    private static final String FMT_PREFIX = "Track %02d";
-    private static final String NO_NAME = "- No Name -";
-    private static final Set<Channel> INITIAL_CHANNELS =
-            Set.of(Channel.SetChannels, Channel.SetEvents, Channel.SetModified, Channel.SetName);
+public class MidiTrack extends Sender<MidiTrack> {
 
-    private final Audience audience = new Audience();
-    private final javax.sound.midi.Track backing;
+    private final Audience audience;
+    private final Mapping mapping;
     private final int index;
-    private int[] channels = new int[0];
-    private String name = "";
-    private boolean modified = false;
+    private final Track backing;
+    private final AtomicBoolean modification = new AtomicBoolean(false);
+    private final Features features = new Features();
 
     public MidiTrack(final int index, final Track backing) {
-        this.backing = backing;
+        super(MidiTrack.class);
+        this.audience = new Audience(new SimpleAsyncExecutor());
+        this.mapping = Mapping.builder()
+                              .put(Internal.SetModified, () -> this)
+                              .put(Channel.SetEvents, () -> this)
+                              .put(Channel.SetModified, () -> this)
+                              .put(Channel.SetChannels, () -> this)
+                              .put(Channel.SetName, () -> this)
+                              .build();
         this.index = index;
-        add(Channel.SetEvents, this::onSetEvents);
+        this.backing = backing;
+        addPlain(Internal.SetModified, new SetModified());
+        addPlain(Internal.SetModified, new SetName());
+        addPlain(Internal.SetModified, new SetMidiChannels());
     }
 
-    public final void add(final Channel channel, final Consumer<? super MidiTrack> listener) {
-        audience.add(channel, listener);
-        if (INITIAL_CHANNELS.contains(channel)) {
-            listener.accept(this);
-        }
+    private static boolean isChannelEvent(final MidiEvent midiEvent) {
+        return isChannelStatus(midiEvent.getMessage().getStatus());
     }
 
-    public final void add(final MidiEvent... midiEvents) {
+    private static boolean isChannelStatus(final Integer status) {
+        return (127 < status) && (status < 240);
+    }
+
+    private static int channelOf(final MidiEvent midiEvent) {
+        return midiEvent.getMessage().getStatus() & 0x0f;
+    }
+
+    @Override
+    protected final Audience audience() {
+        return audience;
+    }
+
+    @Override
+    protected final Mapping mapping() {
+        return mapping;
+    }
+
+    private MidiTrack setModified(final boolean modified) {
+        modification.set(modified);
+        features.reset();
+        return fire(Internal.SetModified, Channel.SetEvents);
+    }
+
+    private Stream<MidiEvent> stream() {
+        return IntStream.range(0, backing.size())
+                        .mapToObj(backing::get);
+    }
+
+    public final List<MidiEvent> list() {
+        return features.get(Key.LIST);
+    }
+
+    public final SortedSet<Integer> midiChannels() {
+        return features.get(Key.MIDI_CHANNELS);
+    }
+
+    public final String name() {
+        return features.get(Key.NAME);
+    }
+
+    public final MidiTrack add(final MidiEvent... events) {
+        return add(Arrays.asList(events));
+    }
+
+    public final MidiTrack add(final Collection<? extends MidiEvent> events) {
         synchronized (backing) {
-            final Set<Channel> channels = EnumSet.noneOf(Channel.class);
-            for (final MidiEvent midiEvent : midiEvents) {
-                core_add(midiEvent, channels);
-            }
-            relay(channels);
+            events.forEach(backing::add);
         }
+        return setModified(true);
     }
 
-    private boolean core_add(final MidiEvent midiEvent, final Set<Channel> channels) {
-        if (backing.add(midiEvent)) {
-            core_clear(channels);
-            return true;
-        } else {
-            return false;
-        }
+    public final MidiTrack remove(final MidiEvent... events) {
+        return remove(Arrays.asList(events));
     }
 
-    private void core_clear(final Set<Channel> channels) {
-        core_modify(true, channels);
-        channels.add(Channel.SetEvents);
-    }
-
-    private void core_modify(final boolean isModified, final Set<? super Channel> events) {
-        if (modified != isModified) {
-            modified = isModified;
-            events.add(Channel.SetModified);
-        }
-    }
-
-    private void core_remove(final MidiEvent midiEvent, final Set<Channel> channels) {
-        if (backing.remove(midiEvent)) {
-            core_clear(channels);
-        }
-    }
-
-    private void core_shift(final MidiEvent oldMidiEvent, final long delta, final Set<Channel> channels) {
-        final long oldTime = oldMidiEvent.getTick();
-        long newTime = oldTime + delta;
-        if (0L > newTime) {
-            newTime = 0L;
-        }
-
-        if (newTime != oldTime) {
-            final MidiEvent newEvent = new MidiEvent(oldMidiEvent.getMessage(), newTime);
-            core_remove(oldMidiEvent, channels);
-            core_add(newEvent, channels);
-        }
-    }
-
-    public final Map<Integer, List<MidiEvent>> extractChannels() {
+    public final MidiTrack remove(final Collection<? extends MidiEvent> events) {
         synchronized (backing) {
-            final Set<Channel> channels = EnumSet.noneOf(Channel.class);
-            final Map<Integer, List<MidiEvent>> result = new TreeMap<>();
-
-            for (final MidiEvent midiEvent : list()) {
-                final MidiMessage midiMessage = midiEvent.getMessage();
-                final int status = midiMessage.getStatus();
-                if (128 <= status && 240 > status) {
-                    final int channel = status & 15;
-                    result.computeIfAbsent(channel, key -> new ArrayList<>(0))
-                          .add(midiEvent);
-                    core_remove(midiEvent, channels);
-                }
-            }
-
-            relay(channels);
-            return result;
+            events.forEach(backing::remove);
         }
+        return setModified(true);
     }
 
     public final MidiEvent get(final int index) {
         synchronized (backing) {
             return backing.get(index);
-        }
-    }
-
-    public final MidiEvent[] list() {
-        synchronized (backing) {
-            final MidiEvent[] ret = new MidiEvent[size()];
-
-            for (int i = 0; i < ret.length; ++i) {
-                ret[i] = backing.get(i);
-            }
-
-            return ret;
-        }
-    }
-
-    public final int[] midiChannels() {
-        return channels.clone();
-    }
-
-    // TODO: make package private!
-    public final int index() {
-        return index;
-    }
-
-    public final String name() {
-        return name;
-    }
-
-    public final String getPrefix() {
-        return String.format(FMT_PREFIX, index);
-    }
-
-    // TODO: make package private!
-    public final javax.sound.midi.Track backing() {
-        return backing;
-    }
-
-    public final boolean isModified() {
-        return modified;
-    }
-
-    // TODO: make private!
-    @SuppressWarnings("DesignForExtension")
-    public final void setModified(final boolean isModified) {
-        final Set<Channel> channels = EnumSet.noneOf(Channel.class);
-        core_modify(isModified, channels);
-        relay(channels);
-    }
-
-    private void relay(final Set<Channel> channels) {
-        channels.forEach(event -> audience.send(event, this));
-    }
-
-    public final void remove(final MidiEvent... midiEvents) {
-        synchronized (backing) {
-            final Set<Channel> channels = EnumSet.noneOf(Channel.class);
-            Arrays.stream(midiEvents)
-                  .forEach(event -> core_remove(event, channels));
-            relay(channels);
-        }
-    }
-
-    public final void shift(final long delta) {
-        synchronized (backing) {
-            final Set<Channel> messages = EnumSet.noneOf(Channel.class);
-            Arrays.stream(list())
-                  .forEach(event -> core_shift(event, delta, messages));
-            relay(messages);
         }
     }
 
@@ -194,55 +131,65 @@ public class MidiTrack {
         }
     }
 
-    private void onSetEvents(final MidiTrack track) {
+    public final long ticks() {
         synchronized (backing) {
-            final Set<Channel> channels = EnumSet.noneOf(Channel.class);
-            String newName = NO_NAME;
-            int nChannels = 0;
-            final int[] nPerChannel = new int[16];
-            int i = 0;
-
-            int ix;
-            for (ix = backing.size(); i < ix; ++i) {
-                final MidiEvent evnt = backing.get(i);
-                final MidiMessage mssg = evnt.getMessage();
-                final int status = mssg.getStatus();
-                if (128 <= status && 240 > status) {
-                    final int channel = status & 15;
-                    ++nPerChannel[channel];
-                    if (1 == nPerChannel[channel]) {
-                        ++nChannels;
-                    }
-                } else if (NO_NAME.equals(newName) && 255 == status) {
-                    final byte[] b = mssg.getMessage();
-                    if (2 < b.length && 3 == b[1] && b[2] == b.length - 3) {
-                        newName = new String(b, 3, b.length - 3, StandardCharsets.UTF_8);
-                    }
-                }
-            }
-
-            final int[] newChannels = new int[nChannels];
-            ix = 0;
-
-            for (int k = 0; ix < nPerChannel.length; ++ix) {
-                if (0 < nPerChannel[ix]) {
-                    newChannels[k] = ix;
-                    k++;
-                }
-            }
-
-            if (!newName.equals(name)) {
-                name = newName;
-                channels.add(Channel.SetName);
-            }
-
-            if (!Arrays.equals(newChannels, this.channels)) {
-                this.channels = newChannels;
-                channels.add(Channel.SetChannels);
-            }
-
-            relay(channels);
+            return backing.ticks();
         }
+    }
+
+    @Deprecated // may stay as private (?)
+    public final int index() {
+        return index;
+    }
+
+    @Deprecated // may be better somewhere else (?)
+    public final String getPrefix() {
+        return String.format("Track %02d", index);
+    }
+
+    @Deprecated // may stay as package private (?)
+    public final Track backing() {
+        return backing;
+    }
+
+    public final boolean isModified() {
+        return modification.get();
+    }
+
+    @Deprecated // should stay as package private
+    public final MidiTrack resetModified() {
+        return setModified(false);
+    }
+
+    public final MidiTrack shift(final long delta) {
+        synchronized (backing) {
+            stream().toList()
+                    .forEach(midiEvent -> shift(midiEvent, delta));
+        }
+        return setModified(true);
+    }
+
+    private void shift(final MidiEvent midiEvent, final long delta) {
+        final long oldTime = midiEvent.getTick();
+        if ((0L == oldTime) && Midi.Message.Type.META.isTypeOf(midiEvent.getMessage())) {
+            // keep it in place -> nothing to do!
+        } else {
+            final long newTime = Math.max(0L, oldTime + delta);
+            midiEvent.setTick(newTime);
+        }
+    }
+
+    public final Map<Integer, List<MidiEvent>> extractChannels() {
+        final Map<Integer, List<MidiEvent>> result;
+        synchronized (backing) {
+            result = stream().filter(MidiTrack::isChannelEvent)
+                             .collect(groupingBy(MidiTrack::channelOf));
+            result.values().stream()
+                  .flatMap(List::stream)
+                  .forEach(backing::remove);
+        }
+        setModified(true);
+        return result;
     }
 
     public enum Channel implements de.team33.patterns.notes.alpha.Channel<MidiTrack> {
@@ -251,5 +198,102 @@ public class MidiTrack {
         SetEvents,
         SetModified,
         SetName
+    }
+
+    private interface Internal extends de.team33.patterns.notes.alpha.Channel<MidiTrack> {
+
+        Internal SetModified = () -> "Internal:SetModified";
+    }
+
+    @SuppressWarnings("ClassNameSameAsAncestorName")
+    @FunctionalInterface
+    private interface Key<R> extends de.team33.patterns.features.alpha.Features.Key<MidiTrack, R> {
+
+        Key<List<MidiEvent>> LIST = host -> host.features.newList();
+        Key<SortedSet<Integer>> MIDI_CHANNELS = host -> host.features.newMidiChannels();
+        Key<String> NAME = host -> host.features.newName();
+    }
+
+    private static final class SetMidiChannels implements Consumer<MidiTrack> {
+
+        private Set<Integer> lastMidiChannels = null;
+
+        @Override
+        public void accept(final MidiTrack track) {
+            final Set<Integer> newMidiChannels = track.features.get(Key.MIDI_CHANNELS);
+            if (!newMidiChannels.equals(lastMidiChannels)) {
+                lastMidiChannels = newMidiChannels;
+                track.fire(Channel.SetChannels);
+            }
+        }
+    }
+
+    private static final class SetName implements Consumer<MidiTrack> {
+
+        private String lastName = null;
+
+        @Override
+        public final void accept(final MidiTrack track) {
+            final String newName = track.features.get(Key.NAME);
+            if (!newName.equals(lastName)) {
+                lastName = newName;
+                track.fire(Channel.SetName);
+            }
+        }
+    }
+
+    private static final class SetModified implements Consumer<MidiTrack> {
+
+        private boolean lastModified = false;
+
+        @Override
+        public final void accept(final MidiTrack track) {
+            final boolean newModified = track.modification.get();
+            if (newModified != lastModified) {
+                lastModified = newModified;
+                track.fire(Channel.SetModified);
+            }
+        }
+    }
+
+    @SuppressWarnings("ClassNameSameAsAncestorName")
+    private final class Features extends de.team33.patterns.features.alpha.Features<MidiTrack> {
+
+        private Features() {
+            super(ConcurrentHashMap::new);
+        }
+
+        @Override
+        protected final MidiTrack host() {
+            return MidiTrack.this;
+        }
+
+        private List<MidiEvent> newList() {
+            synchronized (backing) {
+                return stream().toList();
+            }
+        }
+
+        private SortedSet<Integer> newMidiChannels() {
+            synchronized (backing) {
+                final SortedSet<Integer> result =
+                        stream().map(MidiEvent::getMessage)
+                                .map(MidiMessage::getStatus)
+                                .filter(status -> isChannelStatus(status)) // <-> isChannelMessage
+                                .map(status -> status & 0x0f)
+                                .collect(Collectors.toCollection(TreeSet::new));
+                return Collections.unmodifiableSortedSet(result);
+            }
+        }
+
+        private String newName() {
+            synchronized (backing) {
+                return stream().map(MidiEvent::getMessage)
+                               .filter(Midi.MetaMessage.Type.TRACK_NAME::isValid)
+                               .map(Midi.MetaMessage::trackName)
+                               .findFirst()
+                               .orElse("[undefined]");
+            }
+        }
     }
 }
