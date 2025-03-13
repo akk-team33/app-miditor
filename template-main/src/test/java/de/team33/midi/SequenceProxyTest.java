@@ -23,12 +23,12 @@ class SequenceProxyTest extends MidiTestBase {
     }
 
     @Test
-    final void tracks() {
+    final void getTracks() {
         final List<Integer> expected = Stream.of(sequence().getTracks()).map(Track::size).toList();
 
-        final List<MidiTrack> result = sequenceProxy.tracks();
+        final List<MidiTrack> result = sequenceProxy.getTracks();
         assertEquals(14, result.size());
-        assertSame(result, sequenceProxy.tracks(), "two subsequent calls should return the same list");
+        assertSame(result, sequenceProxy.getTracks(), "two subsequent calls should return the same list");
 
         final List<Integer> sizes = result.stream().map(MidiTrack::size).toList();
         assertEquals(expected, sizes);
@@ -40,7 +40,7 @@ class SequenceProxyTest extends MidiTestBase {
                 Stream.of(sequence().getTracks()).map(Track::size),
                 Stream.of(1)).toList(); // 1 <-> EOT
 
-        final List<MidiTrack> result = sequenceProxy.create().tracks();
+        final List<MidiTrack> result = sequenceProxy.create().getTracks();
         assertEquals(15, result.size());
 
         final List<Integer> sizes = result.stream().map(MidiTrack::size).toList();
@@ -53,9 +53,9 @@ class SequenceProxyTest extends MidiTestBase {
                 Stream.of(sequence().getTracks()).map(Track::size),
                 Stream.of(sequence().getTracks()[0]).map(Track::size)).toList();
 
-        final List<MidiEvent> events = sequenceProxy.tracks().get(0).list();
+        final List<MidiEvent> events = sequenceProxy.getTracks().get(0).list();
         final List<MidiTrack> result = sequenceProxy.create(events)
-                                                    .tracks();
+                                                    .getTracks();
         assertEquals(15, result.size());
 
         final List<Integer> sizes = result.stream().map(MidiTrack::size).toList();
@@ -64,18 +64,18 @@ class SequenceProxyTest extends MidiTestBase {
 
     @Test
     final void delete_single() {
-        delete(4, () -> sequenceProxy.tracks().stream().skip(4)
+        delete(4, () -> sequenceProxy.getTracks().stream().skip(4)
                                      .forEach(sequenceProxy::delete));
     }
 
     @Test
     final void delete_array() {
-        delete(5, () -> sequenceProxy.delete(sequenceProxy.tracks().stream().skip(5).toArray(MidiTrack[]::new)));
+        delete(5, () -> sequenceProxy.delete(sequenceProxy.getTracks().stream().skip(5).toArray(MidiTrack[]::new)));
     }
 
     @Test
     final void delete_list() {
-        delete(6, () -> sequenceProxy.delete(sequenceProxy.tracks().stream().skip(6).toList()));
+        delete(6, () -> sequenceProxy.delete(sequenceProxy.getTracks().stream().skip(6).toList()));
     }
 
     private void delete(final int keep, final Runnable deletion) {
@@ -83,7 +83,7 @@ class SequenceProxyTest extends MidiTestBase {
 
         deletion.run();
 
-        final List<MidiTrack> result = sequenceProxy.tracks();
+        final List<MidiTrack> result = sequenceProxy.getTracks();
         assertEquals(keep, result.size());
         final List<Integer> sizes = result.stream().map(MidiTrack::size).toList();
         assertEquals(expected, sizes);
@@ -102,5 +102,12 @@ class SequenceProxyTest extends MidiTestBase {
     @Test
     final void getTiming() {
         assertEquals(new Timing(4, 4, 192, 59230), sequenceProxy.getTiming());
+    }
+
+    @Test
+    final void isModified() {
+        assertEquals(false, sequenceProxy.isModified());
+        sequenceProxy.delete(sequenceProxy.getTracks().get(3));
+        assertEquals(true, sequenceProxy.isModified());
     }
 }

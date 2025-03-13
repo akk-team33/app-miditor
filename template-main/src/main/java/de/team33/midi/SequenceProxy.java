@@ -57,8 +57,12 @@ public class SequenceProxy {
         return setModified(true);
     }
 
-    public final List<MidiTrack> tracks() {
+    public final List<MidiTrack> getTracks() {
         return features.get(Key.TRACKS);
+    }
+
+    public final boolean isModified() {
+        return modification.get();
     }
 
     public final int getTempo() {
