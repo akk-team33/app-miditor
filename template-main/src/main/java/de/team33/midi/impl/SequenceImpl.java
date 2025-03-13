@@ -56,7 +56,6 @@ public class SequenceImpl implements Sequence {
         } else {
             this.m_Timing = Timing.of(m_Sequence);
         }
-
     }
 
     @Override

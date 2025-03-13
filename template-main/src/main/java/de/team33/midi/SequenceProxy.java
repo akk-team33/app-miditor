@@ -71,13 +71,17 @@ public class SequenceProxy {
         }
     }
 
+    public final Timing getTiming() {
+        return features.get(Key.TIMING);
+    }
+
     @SuppressWarnings("ClassNameSameAsAncestorName")
     @FunctionalInterface
     private interface Key<R> extends de.team33.patterns.features.alpha.Features.Key<Features, R> {
 
         Key<List<MidiTrack>> TRACKS = Features::newTrackList;
-        Key<Timing> TIMING = Features::newTiming;
         Key<Integer> TEMPO = Features::newTempo;
+        Key<Timing> TIMING = Features::newTiming;
     }
 
     @SuppressWarnings("ClassNameSameAsAncestorName")
@@ -101,10 +105,6 @@ public class SequenceProxy {
             }
         }
 
-        private Timing newTiming() {
-            throw new UnsupportedOperationException("not yet implemented");
-        }
-
         @SuppressWarnings("NumericCastThatLosesPrecision")
         private int newTempo() {
             synchronized (backing) {
@@ -123,6 +123,15 @@ public class SequenceProxy {
                     }
                 }
                 return 0;
+            }
+        }
+
+        private Timing newTiming() {
+            synchronized (backing) {
+                return Util.firstTimeSignature(backing.getTracks()[0])
+                           .map(MidiEvent::getMessage)
+                           .map(message -> Timing.of(message, backing))
+                           .orElseGet(() -> Timing.of(backing));
             }
         }
     }

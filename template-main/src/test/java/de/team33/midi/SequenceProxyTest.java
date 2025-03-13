@@ -1,6 +1,7 @@
 package de.team33.midi;
 
 import de.team33.midi.testing.MidiTestBase;
+import de.team33.midix.Timing;
 import org.junit.jupiter.api.Test;
 
 import javax.sound.midi.InvalidMidiDataException;
@@ -96,5 +97,10 @@ class SequenceProxyTest extends MidiTestBase {
     @Test
     final void getTempo() {
         assertEquals(116, sequenceProxy.getTempo());
+    }
+
+    @Test
+    final void getTiming() {
+        assertEquals(new Timing(4, 4, 192, 59230), sequenceProxy.getTiming());
     }
 }

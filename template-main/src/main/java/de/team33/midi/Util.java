@@ -8,6 +8,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static de.team33.midix.Midi.MetaMessage.Type.SET_TEMPO;
+import static de.team33.midix.Midi.MetaMessage.Type.TIME_SIGNATURE;
 
 final class Util {
 
@@ -31,6 +32,11 @@ final class Util {
 
     static Optional<MidiEvent> firstTempoEvent(final Track track) {
         return stream(track).filter(event -> SET_TEMPO.isValid(event.getMessage()))
+                            .findFirst();
+    }
+
+    static Optional<MidiEvent> firstTimeSignature(final Track track) {
+        return stream(track).filter(event -> TIME_SIGNATURE.isValid(event.getMessage()))
                             .findFirst();
     }
 }
