@@ -7,6 +7,7 @@ import javax.sound.midi.Sequence;
 import javax.sound.midi.Track;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.IntStream;
@@ -36,12 +37,16 @@ public class SequenceProxy {
 
     public final SequenceProxy create(final Iterable<? extends MidiEvent> events) {
         synchronized (backing) {
-            final Track track = backing.createTrack();
-            for (final MidiEvent event : events) {
-                track.add(event);
-            }
+            createTrack(events);
         }
         return setModified(true);
+    }
+
+    private void createTrack(final Iterable<? extends MidiEvent> events) {
+        final Track track = backing.createTrack();
+        for (final MidiEvent event : events) {
+            track.add(event);
+        }
     }
 
     @SuppressWarnings("OverloadedVarargsMethod")
@@ -66,6 +71,20 @@ public class SequenceProxy {
             streamOf(tracks).forEach(backing::deleteTrack);
         }
         return setModified(true);
+    }
+
+    public final SequenceProxy split(final MidiTrack track) {
+        if (getTracks().contains(track)) {
+            final Map<Integer, List<MidiEvent>> extracted = track.extractChannels();
+            synchronized (backing) {
+                for (final List<MidiEvent> events : extracted.values()) {
+                    createTrack(events);
+                }
+            }
+            return setModified(true);
+        } else {
+            throw new IllegalArgumentException("<track> is not part of this sequence");
+        }
     }
 
     public final List<MidiTrack> getTracks() {
