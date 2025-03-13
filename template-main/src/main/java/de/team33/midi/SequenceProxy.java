@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 @SuppressWarnings({"WeakerAccess", "UnusedReturnValue"})
 public class SequenceProxy {
@@ -22,11 +24,9 @@ public class SequenceProxy {
         this.backing = backing;
     }
 
-    private SequenceProxy setModified(final boolean modified) {
-        modification.set(modified);
-        features.reset();
-        // TODO!: return fire(MidiTrack.Internal.SetModified, MidiTrack.Channel.SetEvents);
-        return this;
+    private static Stream<Track> streamOf(final Iterable<? extends MidiTrack> tracks) {
+        return StreamSupport.stream(tracks.spliterator(), false)
+                            .map(MidiTrack::backing);
     }
 
     @SuppressWarnings("OverloadedVarargsMethod")
@@ -44,6 +44,7 @@ public class SequenceProxy {
         return setModified(true);
     }
 
+    @SuppressWarnings("OverloadedVarargsMethod")
     public final SequenceProxy delete(final MidiTrack... tracks) {
         return delete(Arrays.asList(tracks));
     }
@@ -57,12 +58,29 @@ public class SequenceProxy {
         return setModified(true);
     }
 
+    public final SequenceProxy join(final Iterable<? extends MidiTrack> tracks) {
+        synchronized (backing) {
+            final Track newTrack = backing.createTrack();
+            streamOf(tracks).flatMap(Util::stream)
+                            .forEach(newTrack::add);
+            streamOf(tracks).forEach(backing::deleteTrack);
+        }
+        return setModified(true);
+    }
+
     public final List<MidiTrack> getTracks() {
         return features.get(Key.TRACKS);
     }
 
     public final boolean isModified() {
         return modification.get();
+    }
+
+    private SequenceProxy setModified(final boolean modified) {
+        modification.set(modified);
+        features.reset();
+        // TODO!: return fire(MidiTrack.Internal.SetModified, MidiTrack.Channel.SetEvents);
+        return this;
     }
 
     public final int getTempo() {

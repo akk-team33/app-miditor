@@ -90,6 +90,16 @@ class SequenceProxyTest extends MidiTestBase {
     }
 
     @Test
+    final void join() {
+        final int expected = Stream.of(sequence().getTracks())
+                                   .mapToInt(Track::size).map(size -> size -1)
+                                   .sum() + 1;
+        sequenceProxy.join(sequenceProxy.getTracks());
+        assertEquals(1, sequenceProxy.getTracks().size());
+        assertEquals(expected, sequenceProxy.getTracks().get(0).size());
+    }
+
+    @Test
     final void getTickLength() {
         assertEquals(sequence().getTickLength(), sequenceProxy.getTickLength());
     }
