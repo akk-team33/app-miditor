@@ -1,7 +1,7 @@
 package de.team33.miditor.ui.sequence;
 
+import de.team33.midi.Metronome;
 import de.team33.midi.MidiTrack;
-import de.team33.miditor.IClickParameter;
 import de.team33.miditor.ui.Rsrc;
 import de.team33.swing.XButton;
 
@@ -39,7 +39,7 @@ public abstract class ActionControl extends JPanel {
         }
     }
 
-    private class CP implements IClickParameter {
+    private class CP implements Metronome.Parameter {
         private CP() {
         }
 

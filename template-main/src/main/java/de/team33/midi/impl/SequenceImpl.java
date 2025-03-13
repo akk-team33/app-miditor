@@ -1,9 +1,9 @@
 package de.team33.midi.impl;
 
+import de.team33.midi.Metronome;
 import de.team33.midi.MidiTrack;
 import de.team33.midi.Sequence;
 import de.team33.midi.util.TrackUtil;
-import de.team33.miditor.IClickParameter;
 import de.team33.midix.Timing;
 import de.team33.patterns.notes.alpha.Audience;
 
@@ -205,7 +205,7 @@ public class SequenceImpl implements Sequence {
         return ret;
     }
 
-    public final MidiTrack create(final IClickParameter cp) {
+    public final MidiTrack create(final Metronome.Parameter cp) {
         final Set<Channel> channels = EnumSet.noneOf(Channel.class);
         final MidiTrack ret = core_create(channels);
         final MetaMessage msg0 = new MetaMessage();

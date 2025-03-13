@@ -1,6 +1,5 @@
 package de.team33.midi;
 
-import de.team33.miditor.IClickParameter;
 import de.team33.midix.Timing;
 
 import javax.sound.midi.InvalidMidiDataException;
@@ -15,7 +14,7 @@ public interface Sequence {
 
     MidiTrack create();
 
-    MidiTrack create(IClickParameter cp);
+    MidiTrack create(Metronome.Parameter cp);
 
     void delete(Iterable<MidiTrack> tracks);
 

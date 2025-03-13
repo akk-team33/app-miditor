@@ -29,6 +29,7 @@ public class SequenceProxy {
         return this;
     }
 
+    @SuppressWarnings("OverloadedVarargsMethod")
     public final SequenceProxy create(final MidiEvent... events) {
         return create(Arrays.asList(events));
     }

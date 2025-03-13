@@ -3,8 +3,10 @@ package de.team33.midix;
 import de.team33.patterns.decision.carpo.Variety;
 
 import javax.sound.midi.MidiMessage;
+import javax.sound.midi.ShortMessage;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.function.IntUnaryOperator;
 import java.util.function.Predicate;
 
 @SuppressWarnings({"InterfaceNeverImplemented", "MarkerInterface", "unused"})
@@ -54,8 +56,10 @@ public interface Midi {
                                                           "    length: %d%n" +
                                                           "    bytes:  %s%n";
 
+            private final int status;
             private final Predicate<byte[]> identificator;
             private final Variety<byte[]> validator;
+            private final IntUnaryOperator combiner;
 
             @SuppressWarnings("ParameterNameDiffersFromOverriddenParameter")
             Type(final Group group, final int status, final int length) {
@@ -63,6 +67,7 @@ public interface Midi {
             }
 
             Type(final Group group, final int status, final int minLength, final int maxLength) {
+                this.status = status;
                 final Predicate<byte[]> isStatus = bytes -> (bytes[0] & group.statusMask) == status;
                 final Predicate<byte[]> isLength;
                 if (minLength == maxLength) {
@@ -75,6 +80,9 @@ public interface Midi {
                 }
                 this.identificator = isStatus;
                 this.validator = Variety.joined(isStatus, isLength);
+                this.combiner = (Group.CHANEL == group)
+                        ? (midiChannel -> status | midiChannel)
+                        : (midiChannel -> status);
             }
 
             public final boolean isTypeOf(final MidiMessage message) {
@@ -85,7 +93,7 @@ public interface Midi {
                 return 0b11 == validator.apply(message.getMessage());
             }
 
-            public final MidiMessage valid(final MidiMessage message) {
+            public final <M extends MidiMessage> M valid(final M message) {
                 if (isValid(message)) {
                     return message;
                 } else {
@@ -94,6 +102,26 @@ public interface Midi {
                                                                   Arrays.toString(bytes));
                     throw new IllegalArgumentException(text);
                 }
+            }
+
+            public ShortMessage newChnMessage(final int channel, final int p1) {
+                return newChnMessage(channel, p1, 0);
+            }
+
+            public ShortMessage newChnMessage(final int channel, final int p1, final int p2) {
+                return valid(Util.CNV.get(() -> new ShortMessage(combiner.applyAsInt(channel), p1, p2)));
+            }
+
+            public ShortMessage newSysMessage() {
+                return newSysMessage(0, 0);
+            }
+
+            public ShortMessage newSysMessage(final int p1) {
+                return newSysMessage(p1, 0);
+            }
+
+            public ShortMessage newSysMessage(final int p1, final int p2) {
+                return valid(Util.CNV.get(() -> new ShortMessage(status, p1, p2)));
             }
         }
     }
@@ -118,6 +146,7 @@ public interface Midi {
                                                           "    length: %d%n" +
                                                           "    bytes:  %s%n";
 
+            private final int type;
             private final Predicate<byte[]> identificator;
             private final Variety<byte[]> validator;
 
@@ -127,6 +156,7 @@ public interface Midi {
             }
 
             Type(final int type, final int minLength, final int maxLength) {
+                this.type = type;
                 final Predicate<byte[]> isType = bytes -> (bytes[1] & 0xFF) == type;
                 final Predicate<byte[]> isLength;
                 if (minLength == maxLength) {
@@ -154,7 +184,7 @@ public interface Midi {
                 return 0b111 == validator.apply(metaMessage.getMessage());
             }
 
-            public final MidiMessage valid(final MidiMessage message) {
+            public <M extends MidiMessage> M valid(final M message) {
                 if (isValidContent(Message.Type.META.valid(message))) {
                     return message;
                 } else {
@@ -164,6 +194,10 @@ public interface Midi {
                                                                   Arrays.toString(bytes));
                     throw new IllegalArgumentException(text);
                 }
+            }
+
+            public javax.sound.midi.MetaMessage newMessage(final byte[] bytes) {
+                return valid(Util.CNV.get(() -> new javax.sound.midi.MetaMessage(type, bytes, bytes.length)));
             }
         }
     }
