@@ -12,6 +12,7 @@ import java.util.function.Consumer;
 
 public interface Sequence {
 
+    // TODO ...
     void associate(Sequencer sequencer) throws InvalidMidiDataException;
 
     default MidiTrack create(final MidiEvent... events){
@@ -26,6 +27,7 @@ public interface Sequence {
 
     boolean equals(Object obj);
 
+    // TODO ...
     File getFile();
 
     int getTempo();
@@ -48,6 +50,7 @@ public interface Sequence {
 
     void split(MidiTrack track);
 
+    // TODO ...
     void addListener(Channel channel, Consumer<? super Sequence> listener);
 
     @SuppressWarnings("ClassNameSameAsAncestorName")

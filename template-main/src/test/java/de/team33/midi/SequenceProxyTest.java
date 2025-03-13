@@ -92,4 +92,9 @@ class SequenceProxyTest extends MidiTestBase {
     final void getTickLength() {
         assertEquals(sequence().getTickLength(), sequenceProxy.getTickLength());
     }
+
+    @Test
+    final void getTempo() {
+        assertEquals(116, sequenceProxy.getTempo());
+    }
 }

@@ -61,6 +61,10 @@ public class SequenceProxy {
         return features.get(Key.TRACKS);
     }
 
+    public final int getTempo() {
+        return features.get(Key.TEMPO);
+    }
+
     public final long getTickLength() {
         synchronized (backing) {
             return backing.getTickLength();
@@ -73,6 +77,7 @@ public class SequenceProxy {
 
         Key<List<MidiTrack>> TRACKS = Features::newTrackList;
         Key<Timing> TIMING = Features::newTiming;
+        Key<Integer> TEMPO = Features::newTempo;
     }
 
     @SuppressWarnings("ClassNameSameAsAncestorName")
@@ -98,6 +103,27 @@ public class SequenceProxy {
 
         private Timing newTiming() {
             throw new UnsupportedOperationException("not yet implemented");
+        }
+
+        @SuppressWarnings("NumericCastThatLosesPrecision")
+        private int newTempo() {
+            synchronized (backing) {
+                final Track[] tracks = backing.getTracks();
+                if (0 < tracks.length) {
+                    final MidiEvent event = Util.firstTempoEvent(tracks[0])
+                                                .orElse(null);
+                    if (null != event) {
+                        final byte[] bytes = event.getMessage().getMessage();
+                        int mpqn = 0;
+                        for (int i = 3; 6 > i; ++i) {
+                            mpqn <<= 8;
+                            mpqn += (bytes[i] & 0xff);
+                        }
+                        return (int) Math.round(Util.MSPMQN / mpqn);
+                    }
+                }
+                return 0;
+            }
         }
     }
 }
