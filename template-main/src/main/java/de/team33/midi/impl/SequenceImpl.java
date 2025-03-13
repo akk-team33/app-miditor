@@ -11,7 +11,6 @@ import javax.sound.midi.MetaMessage;
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.MidiMessage;
 import javax.sound.midi.MidiSystem;
-import javax.sound.midi.Sequencer;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -56,6 +55,11 @@ public class SequenceImpl implements Sequence {
         } else {
             this.m_Timing = Timing.of(m_Sequence);
         }
+    }
+
+    @Override
+    public javax.sound.midi.Sequence backing() {
+        return m_Sequence;
     }
 
     @Override
@@ -137,10 +141,6 @@ public class SequenceImpl implements Sequence {
         m_isSessionFile = true;
         core_setModified(false, channels);
         channels.forEach(event -> audience.send(event, this));
-    }
-
-    public final void associate(final Sequencer sequencer) throws InvalidMidiDataException {
-        sequencer.setSequence(m_Sequence);
     }
 
     private void core_clear(final Set<Channel> channels) {

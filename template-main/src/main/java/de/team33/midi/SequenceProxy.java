@@ -30,6 +30,11 @@ public class SequenceProxy {
                             .map(MidiTrack::backing);
     }
 
+    @Deprecated // should stay as package private.
+    public final Sequence backing() {
+        return backing;
+    }
+
     @SuppressWarnings("OverloadedVarargsMethod")
     public final SequenceProxy create(final MidiEvent... events) {
         return create(Arrays.asList(events));

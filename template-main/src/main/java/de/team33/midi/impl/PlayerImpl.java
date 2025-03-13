@@ -114,7 +114,7 @@ public class PlayerImpl implements Player {
                 outputDevice = newOutputDevice();
                 outputDevice.open();
                 sequencer.getTransmitter().setReceiver(outputDevice.getReceiver());
-                sequence.associate(sequencer);
+                sequencer.setSequence(sequence.backing());
                 sequencer.open();
                 events.add(Event.SetState);
                 events.add(Event.SetTempo);
