@@ -3,18 +3,22 @@ package de.team33.midi;
 import de.team33.midix.Timing;
 
 import javax.sound.midi.InvalidMidiDataException;
+import javax.sound.midi.MidiEvent;
 import javax.sound.midi.Sequencer;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.function.Consumer;
 
 public interface Sequence {
 
     void associate(Sequencer sequencer) throws InvalidMidiDataException;
 
-    MidiTrack create();
+    default MidiTrack create(final MidiEvent... events){
+        return create(Arrays.asList(events));
+    }
 
-    MidiTrack create(Metronome.Parameter cp);
+    MidiTrack create(final Iterable<? extends MidiEvent> events);
 
     void delete(Iterable<MidiTrack> tracks);
 

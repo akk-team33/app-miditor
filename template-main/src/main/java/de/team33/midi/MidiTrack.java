@@ -10,7 +10,6 @@ import javax.sound.midi.MidiEvent;
 import javax.sound.midi.MidiMessage;
 import javax.sound.midi.Track;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -98,24 +97,30 @@ public class MidiTrack extends Sender<MidiTrack> {
         return features.get(Key.NAME);
     }
 
+    @SuppressWarnings("OverloadedVarargsMethod")
     public final MidiTrack add(final MidiEvent... events) {
         return add(Arrays.asList(events));
     }
 
-    public final MidiTrack add(final Collection<? extends MidiEvent> events) {
+    public final MidiTrack add(final Iterable<? extends MidiEvent> events) {
         synchronized (backing) {
-            events.forEach(backing::add);
+            for (final MidiEvent event : events) {
+                backing.add(event);
+            }
         }
         return setModified(true);
     }
 
+    @SuppressWarnings("OverloadedVarargsMethod")
     public final MidiTrack remove(final MidiEvent... events) {
         return remove(Arrays.asList(events));
     }
 
-    public final MidiTrack remove(final Collection<? extends MidiEvent> events) {
+    public final MidiTrack remove(final Iterable<? extends MidiEvent> events) {
         synchronized (backing) {
-            events.forEach(backing::remove);
+            for (final MidiEvent event : events) {
+                backing.remove(event);
+            }
         }
         return setModified(true);
     }

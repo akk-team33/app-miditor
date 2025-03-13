@@ -1,6 +1,5 @@
 package de.team33.midi.impl;
 
-import de.team33.midi.Metronome;
 import de.team33.midi.MidiTrack;
 import de.team33.midi.Sequence;
 import de.team33.midi.util.TrackUtil;
@@ -13,7 +12,6 @@ import javax.sound.midi.MidiEvent;
 import javax.sound.midi.MidiMessage;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Sequencer;
-import javax.sound.midi.ShortMessage;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -198,41 +196,10 @@ public class SequenceImpl implements Sequence {
         }
     }
 
-    public final MidiTrack create() {
+    public final MidiTrack create(final Iterable<? extends MidiEvent> events) {
         final Set<Channel> channels = EnumSet.noneOf(Channel.class);
         final MidiTrack ret = core_create(channels);
-        channels.forEach(event -> audience.send(event, this));
-        return ret;
-    }
-
-    public final MidiTrack create(final Metronome.Parameter cp) {
-        final Set<Channel> channels = EnumSet.noneOf(Channel.class);
-        final MidiTrack ret = core_create(channels);
-        final MetaMessage msg0 = new MetaMessage();
-        final byte[] bytes = "Metronom".getBytes();
-
-        try {
-            msg0.setMessage(3, bytes, bytes.length);
-            ret.add(new MidiEvent(msg0, 0L));
-        } catch (final InvalidMidiDataException var14) {
-            Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), var14);
-        }
-
-        for (long pos = cp.getMin(); pos <= cp.getMax(); pos += cp.getRes()) {
-            final ShortMessage msg1 = new ShortMessage();
-            final ShortMessage msg2 = new ShortMessage();
-            final int data1 = cp.getNoteNo(pos);
-            final int data2 = cp.getDynamic(pos);
-
-            try {
-                msg1.setMessage(144, cp.getChannel(), data1, data2);
-                msg2.setMessage(144, cp.getChannel(), data1, 0);
-                ret.add(new MidiEvent(msg1, pos));
-                ret.add(new MidiEvent(msg2, pos + ((long) cp.getRes() / 4)));
-            } catch (final InvalidMidiDataException var13) {
-                Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), var13);
-            }
-        }
+        ret.add(events);
         channels.forEach(event -> audience.send(event, this));
         return ret;
     }
