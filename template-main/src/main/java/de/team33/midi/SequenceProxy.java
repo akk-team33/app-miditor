@@ -1,15 +1,21 @@
 package de.team33.midi;
 
 import de.team33.midix.Timing;
+import de.team33.patterns.mutable.alpha.Mutable;
 
+import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiEvent;
+import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Track;
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.UnaryOperator;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -17,17 +23,39 @@ import java.util.stream.StreamSupport;
 @SuppressWarnings({"WeakerAccess", "UnusedReturnValue"})
 public class SequenceProxy {
 
+    private static final UnaryOperator<Path> NORMALIZER = path -> path.toAbsolutePath().normalize();
+
     private final Sequence backing;
+    private final Mutable<Path> path;
     private final AtomicBoolean modification = new AtomicBoolean(false);
     private final Features features = new Features();
 
-    public SequenceProxy(final Sequence backing) {
+    SequenceProxy(final Path path, final Sequence backing) {
         this.backing = backing;
+        this.path = new Mutable<>(NORMALIZER, path);
+    }
+
+    public static SequenceProxy load(final Path path) throws InvalidMidiDataException, IOException {
+        final Sequence backing = MidiSystem.getSequence(path.toFile());
+        return new SequenceProxy(path, backing);
     }
 
     private static Stream<Track> streamOf(final Iterable<? extends MidiTrack> tracks) {
         return StreamSupport.stream(tracks.spliterator(), false)
                             .map(MidiTrack::backing);
+    }
+
+    public final SequenceProxy save() throws IOException {
+        synchronized (backing) {
+            final int mode = (1 < backing.getTracks().length) ? 1 : 0;
+            MidiSystem.write(backing, mode, path.get().toFile());
+        }
+        return setModified(false);
+    }
+
+    public final SequenceProxy saveAs(final Path path) throws IOException {
+        this.path.set(path);
+        return save();
     }
 
     @Deprecated // should stay as package private.
@@ -105,6 +133,10 @@ public class SequenceProxy {
         features.reset();
         // TODO!: return fire(MidiTrack.Internal.SetModified, MidiTrack.Channel.SetEvents);
         return this;
+    }
+
+    public final Path getPath() {
+        return path.get();
     }
 
     public final int getTempo() {

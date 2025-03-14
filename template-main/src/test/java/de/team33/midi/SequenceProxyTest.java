@@ -8,18 +8,51 @@ import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.Track;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SequenceProxyTest extends MidiTestBase {
 
     private final SequenceProxy sequenceProxy;
 
     SequenceProxyTest() throws InvalidMidiDataException, IOException {
-        this.sequenceProxy = new SequenceProxy(sequence());
+        this.sequenceProxy = new SequenceProxy(path(), sequence());
+    }
+
+    @Test
+    final void load() throws Exception {
+        final SequenceProxy other = SequenceProxy.load(sequenceProxy.getPath());
+        assertEquals(sequenceProxy.getTracks().size(), other.getTracks().size());
+    }
+
+    @Test
+    final void save() throws IOException {
+        final long oldSize = Files.size(sequenceProxy.getPath());
+        sequenceProxy.delete(sequenceProxy.getTracks().get(1));
+
+        sequenceProxy.save();
+        final long newSize = Files.size(sequenceProxy.getPath());
+
+        assertTrue(oldSize > newSize);
+    }
+
+    @Test
+    final void saveAs() throws IOException {
+        final Path oldPath = sequenceProxy.getPath();
+        final Path newPath = oldPath.getParent().resolve(UUID.randomUUID() + ".mid");
+        assertFalse(Files.exists(newPath, LinkOption.NOFOLLOW_LINKS));
+
+        sequenceProxy.saveAs(newPath);
+        assertTrue(Files.exists(newPath, LinkOption.NOFOLLOW_LINKS));
     }
 
     @Test

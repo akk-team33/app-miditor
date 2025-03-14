@@ -24,7 +24,6 @@ public interface Sequence {
 
     boolean equals(Object obj);
 
-    // TODO ...
     File getFile();
 
     int getTempo();
@@ -41,10 +40,8 @@ public interface Sequence {
 
     void join(Iterable<MidiTrack> tracks);
 
-    // TODO ...
     void save() throws IOException;
 
-    // TODO ...
     void save_as(File file) throws IOException;
 
     void split(MidiTrack track);

@@ -28,4 +28,8 @@ public class MidiTestBase {
     protected final Sequence sequence() {
         return sequence;
     }
+
+    protected final Path path() {
+        return RESPECT_MID;
+    }
 }
