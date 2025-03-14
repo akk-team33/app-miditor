@@ -146,7 +146,7 @@ public class SequenceImpl implements Sequence {
     private void core_clear(final Set<Channel> channels) {
         if (null != m_Parts) {
             m_Parts = null;
-            channels.add(Channel.SetParts);
+            channels.add(Channel.SetTracks);
             core_setModified(true, channels);
         }
     }
@@ -178,7 +178,7 @@ public class SequenceImpl implements Sequence {
         f = initialFile(f);
         if (!m_File.equals(f)) {
             m_File = f;
-            channels.add(Channel.SetFile);
+            channels.add(Channel.SetPath);
         }
 
     }

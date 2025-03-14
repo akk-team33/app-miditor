@@ -1,7 +1,11 @@
 package de.team33.midi;
 
 import de.team33.midix.Timing;
+import de.team33.patterns.execution.metis.SimpleAsyncExecutor;
 import de.team33.patterns.mutable.alpha.Mutable;
+import de.team33.patterns.notes.alpha.Audience;
+import de.team33.patterns.notes.alpha.Mapping;
+import de.team33.patterns.notes.alpha.Sender;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiEvent;
@@ -21,16 +25,26 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 @SuppressWarnings({"WeakerAccess", "UnusedReturnValue"})
-public class SequenceProxy {
+public class SequenceProxy extends Sender<SequenceProxy> {
 
     private static final UnaryOperator<Path> NORMALIZER = path -> path.toAbsolutePath().normalize();
 
+    private final Audience audience;
+    private final Mapping mapping;
     private final Sequence backing;
     private final Mutable<Path> path;
     private final AtomicBoolean modification = new AtomicBoolean(false);
     private final Features features = new Features();
 
     SequenceProxy(final Path path, final Sequence backing) {
+        super(SequenceProxy.class);
+        this.audience = new Audience(new SimpleAsyncExecutor());
+        this.mapping = Mapping.builder()
+                              .put(Internal.SetModified, () -> this)
+                              .put(Channel.SetPath, () -> this)
+                              .put(Channel.SetModified, () -> this)
+                              .put(Channel.SetTracks, () -> this)
+                              .build();
         this.backing = backing;
         this.path = new Mutable<>(NORMALIZER, path);
     }
@@ -43,6 +57,16 @@ public class SequenceProxy {
     private static Stream<Track> streamOf(final Iterable<? extends MidiTrack> tracks) {
         return StreamSupport.stream(tracks.spliterator(), false)
                             .map(MidiTrack::backing);
+    }
+
+    @Override
+    protected final Audience audience() {
+        throw new UnsupportedOperationException("not yet implemented");
+    }
+
+    @Override
+    protected final Mapping mapping() {
+        throw new UnsupportedOperationException("not yet implemented");
     }
 
     public final SequenceProxy save() throws IOException {
@@ -212,5 +236,17 @@ public class SequenceProxy {
                            .orElseGet(() -> Timing.of(backing));
             }
         }
+    }
+
+    private interface Internal extends de.team33.patterns.notes.alpha.Channel<SequenceProxy> {
+
+        Internal SetModified = () -> SequenceProxy.class.getCanonicalName() + ":SetModified";
+    }
+
+    @SuppressWarnings("ClassNameSameAsAncestorName")
+    public enum Channel implements de.team33.patterns.notes.alpha.Channel<SequenceProxy> {
+        SetPath,
+        SetModified,
+        SetTracks
     }
 }

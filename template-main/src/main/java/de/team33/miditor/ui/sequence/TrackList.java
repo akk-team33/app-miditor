@@ -141,7 +141,7 @@ public abstract class TrackList extends JScrollPane {
 
         TABLE() {
             super(new GridBagLayout());
-            getContext().getSequence().addListener(Sequence.Channel.SetParts, this::onSetParts);
+            getContext().getSequence().addListener(Sequence.Channel.SetTracks, this::onSetParts);
         }
 
         private void onSetParts(final Sequence sequence) {

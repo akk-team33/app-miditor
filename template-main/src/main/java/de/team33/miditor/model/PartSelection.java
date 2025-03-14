@@ -7,7 +7,7 @@ import de.team33.selection.SelectionImpl;
 public class PartSelection extends SelectionImpl<MidiTrack> {
 
     public PartSelection(final Sequence sequence) {
-        sequence.addListener(Sequence.Channel.SetParts, this::onSetParts);
+        sequence.addListener(Sequence.Channel.SetTracks, this::onSetParts);
     }
 
     private void onSetParts(final Sequence sequence) {

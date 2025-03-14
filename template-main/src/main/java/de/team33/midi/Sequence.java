@@ -51,8 +51,8 @@ public interface Sequence {
 
     @SuppressWarnings("ClassNameSameAsAncestorName")
     enum Channel implements de.team33.patterns.notes.alpha.Channel<Sequence> {
-        SetFile,
+        SetPath,
         SetModified,
-        SetParts
+        SetTracks
     }
 }
