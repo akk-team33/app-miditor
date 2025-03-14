@@ -33,7 +33,7 @@ public abstract class EventEditor extends UIControllerImpl {
     private JComponent m_RootComponent = null;
 
     protected EventEditor() {
-        getSequence().addListener(Sequence.Channel.SetTracks, this::onSetParts);
+        getSequence().add(Sequence.Channel.SetTracks, this::onSetParts);
     }
 
     private EventEditor _EventEditor() {

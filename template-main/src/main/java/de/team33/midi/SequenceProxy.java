@@ -17,8 +17,10 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -33,13 +35,14 @@ public class SequenceProxy extends Sender<SequenceProxy> {
     private final Mapping mapping;
     private final Sequence backing;
     private final Mutable<Path> path;
-    private final AtomicBoolean modification = new AtomicBoolean(false);
+    private final AtomicBoolean modification;
     private final Features features = new Features();
 
     SequenceProxy(final Path path, final Sequence backing) {
         super(SequenceProxy.class);
         this.audience = new Audience(new SimpleAsyncExecutor());
         this.mapping = Mapping.builder()
+                              .put(Internal.ResetModified, () -> this)
                               .put(Internal.SetModified, () -> this)
                               .put(Channel.SetPath, () -> this)
                               .put(Channel.SetModified, () -> this)
@@ -47,6 +50,14 @@ public class SequenceProxy extends Sender<SequenceProxy> {
                               .build();
         this.backing = backing;
         this.path = new Mutable<>(NORMALIZER, path);
+        this.modification = new AtomicBoolean(false);
+
+        @SuppressWarnings("TypeMayBeWeakened")
+        final SetModified onModified = new SetModified();
+        addPlain(Internal.ResetModified, onModified);
+        addPlain(Internal.SetModified, onModified);
+        addPlain(Internal.SetModified, new SetPath());
+        addPlain(Internal.SetModified, new SetTracks());
     }
 
     public static SequenceProxy load(final Path path) throws InvalidMidiDataException, IOException {
@@ -61,12 +72,12 @@ public class SequenceProxy extends Sender<SequenceProxy> {
 
     @Override
     protected final Audience audience() {
-        throw new UnsupportedOperationException("not yet implemented");
+        return audience;
     }
 
     @Override
     protected final Mapping mapping() {
-        throw new UnsupportedOperationException("not yet implemented");
+        return mapping;
     }
 
     public final SequenceProxy save() throws IOException {
@@ -74,7 +85,7 @@ public class SequenceProxy extends Sender<SequenceProxy> {
             final int mode = (1 < backing.getTracks().length) ? 1 : 0;
             MidiSystem.write(backing, mode, path.get().toFile());
         }
-        return setModified(false);
+        return resetModified();
     }
 
     public final SequenceProxy saveAs(final Path path) throws IOException {
@@ -96,7 +107,7 @@ public class SequenceProxy extends Sender<SequenceProxy> {
         synchronized (backing) {
             createTrack(events);
         }
-        return setModified(true);
+        return setModified();
     }
 
     private void createTrack(final Iterable<? extends MidiEvent> events) {
@@ -117,7 +128,7 @@ public class SequenceProxy extends Sender<SequenceProxy> {
                 backing.deleteTrack(track.backing());
             }
         }
-        return setModified(true);
+        return setModified();
     }
 
     public final SequenceProxy join(final Iterable<? extends MidiTrack> tracks) {
@@ -127,7 +138,7 @@ public class SequenceProxy extends Sender<SequenceProxy> {
                             .forEach(newTrack::add);
             streamOf(tracks).forEach(backing::deleteTrack);
         }
-        return setModified(true);
+        return setModified();
     }
 
     public final SequenceProxy split(final MidiTrack track) {
@@ -138,7 +149,7 @@ public class SequenceProxy extends Sender<SequenceProxy> {
                     createTrack(events);
                 }
             }
-            return setModified(true);
+            return setModified();
         } else {
             throw new IllegalArgumentException("<track> is not part of this sequence");
         }
@@ -152,11 +163,15 @@ public class SequenceProxy extends Sender<SequenceProxy> {
         return modification.get();
     }
 
-    private SequenceProxy setModified(final boolean modified) {
-        modification.set(modified);
+    private SequenceProxy setModified() {
+        modification.set(true);
         features.reset();
-        // TODO!: return fire(MidiTrack.Internal.SetModified, MidiTrack.Channel.SetEvents);
-        return this;
+        return fire(Internal.SetModified);
+    }
+
+    private SequenceProxy resetModified() {
+        modification.set(false);
+        return fire(Internal.ResetModified);
     }
 
     public final Path getPath() {
@@ -241,12 +256,59 @@ public class SequenceProxy extends Sender<SequenceProxy> {
     private interface Internal extends de.team33.patterns.notes.alpha.Channel<SequenceProxy> {
 
         Internal SetModified = () -> SequenceProxy.class.getCanonicalName() + ":SetModified";
+        Internal ResetModified = () -> SequenceProxy.class.getCanonicalName() + ":ResetModified";
     }
 
     @SuppressWarnings("ClassNameSameAsAncestorName")
     public enum Channel implements de.team33.patterns.notes.alpha.Channel<SequenceProxy> {
-        SetPath,
         SetModified,
+        SetPath,
         SetTracks
+    }
+
+    private static final class SetModified implements Consumer<SequenceProxy> {
+
+        private boolean lastModified = false;
+
+        @Override
+        public final void accept(final SequenceProxy sequenceProxy) {
+            final boolean newModified = sequenceProxy.modification.get();
+            if (newModified != lastModified) {
+                lastModified = newModified;
+                sequenceProxy.fire(Channel.SetModified);
+            }
+        }
+    }
+
+    private static final class SetPath implements Consumer<SequenceProxy> {
+
+        private Path lastPath = null;
+
+        @Override
+        public final void accept(final SequenceProxy sequenceProxy) {
+            final Path newPath = sequenceProxy.path.get();
+            if (!Objects.equals(newPath, lastPath)) {
+                lastPath = newPath;
+                sequenceProxy.fire(Channel.SetPath);
+            }
+        }
+    }
+
+    private static final class SetTracks implements Consumer<SequenceProxy> {
+
+        private List<Integer> lastHashCodes = null;
+
+        @Override
+        public final void accept(final SequenceProxy sequenceProxy) {
+            final List<Integer> newHashCodes = sequenceProxy.features.get(Key.TRACKS)
+                                                                     .stream()
+                                                                     .map(MidiTrack::backing)
+                                                                     .map(System::identityHashCode)
+                                                                     .toList();
+            if (!Objects.equals(newHashCodes, lastHashCodes)) {
+                lastHashCodes = newHashCodes;
+                sequenceProxy.fire(Channel.SetPath);
+            }
+        }
     }
 }

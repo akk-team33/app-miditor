@@ -31,7 +31,7 @@ public class PlayerImpl implements Player {
     public PlayerImpl(final Sequence sequence) throws MidiUnavailableException {
         sequencer = MidiSystem.getSequencer(false);
         this.sequence = sequence;
-        this.sequence.addListener(Sequence.Channel.SetTracks, this::onSetParts);
+        this.sequence.add(Sequence.Channel.SetTracks, this::onSetParts);
         audience.add(Event.SetState, new STARTER());
     }
 

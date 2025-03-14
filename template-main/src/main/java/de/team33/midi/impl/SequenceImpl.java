@@ -63,7 +63,7 @@ public class SequenceImpl implements Sequence {
     }
 
     @Override
-    public final void addListener(final Channel channel, final Consumer<? super Sequence> listener) {
+    public final void add(final Channel channel, final Consumer<? super Sequence> listener) {
         audience.add(channel, listener);
         listener.accept(this);
     }

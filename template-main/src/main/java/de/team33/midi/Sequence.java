@@ -46,8 +46,7 @@ public interface Sequence {
 
     void split(MidiTrack track);
 
-    // TODO ...
-    void addListener(Channel channel, Consumer<? super Sequence> listener);
+    void add(Channel channel, Consumer<? super Sequence> listener);
 
     @SuppressWarnings("ClassNameSameAsAncestorName")
     enum Channel implements de.team33.patterns.notes.alpha.Channel<Sequence> {
