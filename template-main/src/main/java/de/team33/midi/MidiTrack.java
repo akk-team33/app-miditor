@@ -40,6 +40,7 @@ public class MidiTrack extends Sender<MidiTrack> {
         this.audience = new Audience(new SimpleAsyncExecutor());
         this.mapping = Mapping.builder()
                               .put(Internal.SetModified, () -> this)
+                              .put(Internal.ResetModified, () -> this)
                               .put(Channel.SetEvents, () -> this)
                               .put(Channel.SetModified, () -> this)
                               .put(Channel.SetChannels, () -> this)
@@ -47,7 +48,10 @@ public class MidiTrack extends Sender<MidiTrack> {
                               .build();
         this.index = index;
         this.backing = backing;
-        addPlain(Internal.SetModified, new SetModified());
+
+        final SetModified onSetModified = new SetModified();
+        addPlain(Internal.SetModified, onSetModified);
+        addPlain(Internal.ResetModified, onSetModified);
         addPlain(Internal.SetModified, new SetName());
         addPlain(Internal.SetModified, new SetMidiChannels());
     }
@@ -72,12 +76,6 @@ public class MidiTrack extends Sender<MidiTrack> {
     @Override
     protected final Mapping mapping() {
         return mapping;
-    }
-
-    private MidiTrack setModified(final boolean modified) {
-        modification.set(modified);
-        features.reset();
-        return fire(Internal.SetModified, Channel.SetEvents);
     }
 
     private Stream<MidiEvent> stream() {
@@ -108,7 +106,7 @@ public class MidiTrack extends Sender<MidiTrack> {
                 backing.add(event);
             }
         }
-        return setModified(true);
+        return setModified();
     }
 
     @SuppressWarnings("OverloadedVarargsMethod")
@@ -122,7 +120,7 @@ public class MidiTrack extends Sender<MidiTrack> {
                 backing.remove(event);
             }
         }
-        return setModified(true);
+        return setModified();
     }
 
     public final MidiEvent get(final int index) {
@@ -162,9 +160,16 @@ public class MidiTrack extends Sender<MidiTrack> {
         return modification.get();
     }
 
+    private MidiTrack setModified() {
+        modification.set(true);
+        features.reset();
+        return fire(Internal.SetModified, Channel.SetEvents);
+    }
+
     @Deprecated // should stay as package private
     public final MidiTrack resetModified() {
-        return setModified(false);
+        modification.set(false);
+        return fire(Internal.ResetModified);
     }
 
     public final MidiTrack shift(final long delta) {
@@ -172,7 +177,7 @@ public class MidiTrack extends Sender<MidiTrack> {
             stream().toList()
                     .forEach(midiEvent -> shift(midiEvent, delta));
         }
-        return setModified(true);
+        return setModified();
     }
 
     private void shift(final MidiEvent midiEvent, final long delta) {
@@ -194,7 +199,7 @@ public class MidiTrack extends Sender<MidiTrack> {
                   .flatMap(List::stream)
                   .forEach(backing::remove);
         }
-        setModified(true);
+        setModified();
         return result;
     }
 
@@ -208,7 +213,8 @@ public class MidiTrack extends Sender<MidiTrack> {
 
     private interface Internal extends de.team33.patterns.notes.alpha.Channel<MidiTrack> {
 
-        Internal SetModified = () -> "Internal:SetModified";
+        Internal SetModified = () -> Internal.class.getCanonicalName() + ":SetModified";
+        Internal ResetModified = () -> Internal.class.getCanonicalName() + ":ResetModified";
     }
 
     @SuppressWarnings("ClassNameSameAsAncestorName")

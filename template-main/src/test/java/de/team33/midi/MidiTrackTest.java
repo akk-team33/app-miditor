@@ -20,6 +20,7 @@ import java.util.stream.IntStream;
 import static de.team33.midix.Midi.MetaMessage.Type.TRACK_NAME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MidiTrackTest extends MidiTestBase {
@@ -95,19 +96,33 @@ class MidiTrackTest extends MidiTestBase {
         final Mutable<List<MidiEvent>> setEvents = new Mutable<>(null);
         final Mutable<Set<Integer>> setChannels = new Mutable<>(null);
         final Mutable<String> setName = new Mutable<>(null);
+
         final MidiEvent[] events = newEvents();
         midiTrack.add(MidiTrack.Channel.SetEvents, t -> setEvents.set(t.list()))
                  .add(MidiTrack.Channel.SetChannels, t -> setChannels.set(t.midiChannels()))
                  .add(MidiTrack.Channel.SetModified, t -> setModified.set(t.isModified()))
                  .add(MidiTrack.Channel.SetName, t -> setName.set(t.name()))
                  .add(events);
-
         Thread.sleep(5);
+
+        assertTrue(midiTrack.isModified());
         assertEquals(midiTrack.isModified(), setModified.get());
         assertEquals(midiTrack.list(), setEvents.get());
         assertEquals(midiTrack.midiChannels(), setChannels.get());
         assertEquals(midiTrack.name(), setName.get());
-        assertTrue(midiTrack.isModified());
+
+        setModified.set(null);
+        setEvents.set(null);
+        setName.set(null);
+        setChannels.set(null);
+        midiTrack.resetModified();
+        Thread.sleep(5);
+
+        assertFalse(midiTrack.isModified());
+        assertEquals(midiTrack.isModified(), setModified.get());
+        assertNull(setEvents.get());
+        assertNull(setChannels.get());
+        assertNull(setName.get());
     }
 
     @Test
