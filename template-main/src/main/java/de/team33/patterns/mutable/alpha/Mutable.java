@@ -7,6 +7,10 @@ public class Mutable<V> {
     private final UnaryOperator<V> normalizer;
     private V value;
 
+    public Mutable(final V value) {
+        this(any -> any, value);
+    }
+
     public Mutable(final UnaryOperator<V> normalizer, final V value) {
         this.normalizer = normalizer;
         this.value = normalizer.apply(value);
