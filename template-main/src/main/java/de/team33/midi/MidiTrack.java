@@ -74,10 +74,12 @@ public final class MidiTrack extends Sender<MidiTrack> {
         return isChannelStatus(midiEvent.getMessage().getStatus());
     }
 
+    @SuppressWarnings("MagicNumber")
     private static boolean isChannelStatus(final Integer status) {
         return (127 < status) && (status < 240);
     }
 
+    @SuppressWarnings("MagicNumber")
     private static int channelOf(final MidiEvent midiEvent) {
         return midiEvent.getMessage().getStatus() & 0x0f;
     }
@@ -151,6 +153,7 @@ public final class MidiTrack extends Sender<MidiTrack> {
         return setModified();
     }
 
+    @SuppressWarnings("ParameterHidesMemberVariable")
     public final MidiEvent get(final int index) {
         synchronized (backing) {
             return backing.get(index);
@@ -169,12 +172,10 @@ public final class MidiTrack extends Sender<MidiTrack> {
         }
     }
 
-    @Deprecated // may stay as private (?)
-    public final int index() {
+    final int index() {
         return index;
     }
 
-    @Deprecated // may be better somewhere else (?)
     public final String getPrefix() {
         return String.format("Track %02d", index);
     }
@@ -201,7 +202,7 @@ public final class MidiTrack extends Sender<MidiTrack> {
         return setModified();
     }
 
-    private void shift(final MidiEvent midiEvent, final long delta) {
+    private static void shift(final MidiEvent midiEvent, final long delta) {
         final long oldTime = midiEvent.getTick();
         if ((0L == oldTime) && Midi.Message.Type.META.isTypeOf(midiEvent.getMessage())) {
             // keep it in place -> nothing to do!
@@ -211,7 +212,7 @@ public final class MidiTrack extends Sender<MidiTrack> {
         }
     }
 
-    public final Map<Integer, List<MidiEvent>> extractChannels() {
+    final Map<Integer, List<MidiEvent>> extractChannels() {
         final Map<Integer, List<MidiEvent>> result;
         synchronized (backing) {
             result = stream().filter(MidiTrack::isChannelEvent)
@@ -228,6 +229,7 @@ public final class MidiTrack extends Sender<MidiTrack> {
         return System.identityHashCode(backing);
     }
 
+    @SuppressWarnings("ClassNameSameAsAncestorName")
     public enum Channel implements de.team33.patterns.notes.alpha.Channel<MidiTrack> {
         // TODO?: Released,
         SetChannels,
@@ -301,7 +303,7 @@ public final class MidiTrack extends Sender<MidiTrack> {
                 final SortedSet<Integer> result =
                         stream().map(MidiEvent::getMessage)
                                 .map(MidiMessage::getStatus)
-                                .filter(status -> isChannelStatus(status)) // <-> isChannelMessage
+                                .filter(MidiTrack::isChannelStatus) // <-> isChannelMessage
                                 .map(status -> status & 0x0f)
                                 .collect(Collectors.toCollection(TreeSet::new));
                 return Collections.unmodifiableSortedSet(result);
