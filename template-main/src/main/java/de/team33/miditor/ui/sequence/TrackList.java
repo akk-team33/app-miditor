@@ -14,6 +14,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.Serial;
+import java.util.List;
 import java.util.Set;
 
 public abstract class TrackList extends JScrollPane {
@@ -106,7 +107,7 @@ public abstract class TrackList extends JScrollPane {
 
         private void onUpdate(final Set<?> selection) {
             final int sel = selection.size();
-            setSelected((getContext().getSequence().getTracks().length - sel) < sel);
+            setSelected((getContext().getSequence().getTracks().size() - sel) < sel);
         }
     }
 
@@ -145,13 +146,13 @@ public abstract class TrackList extends JScrollPane {
         }
 
         private void onSetParts(final MidiSequence sequence) {
-            final MidiTrack[] parts = sequence.getTracks();
+            final List<MidiTrack> parts = sequence.getTracks();
             setVisible(false);
             removeAll();
-            int k = parts.length;
+            int k = parts.size();
 
             for (int i = 0; i < k; ++i) {
-                final TRCK_CTRL details = TrackList.this.new TRCK_CTRL(parts[i], i);
+                final TRCK_CTRL details = TrackList.this.new TRCK_CTRL(parts.get(i), i);
                 add(details.getIndexPane(), new GBC(0, i));
                 add(details.getNamePane(), new GBC(1, i));
                 add(details.getSwitchPane(), new GBC(2, i));

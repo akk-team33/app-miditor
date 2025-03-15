@@ -39,7 +39,13 @@ public abstract class FileControl extends JPanel {
             try {
                 getContext().getSequence().save();
             } catch (final IOException var3) {
-                JOptionPane.showMessageDialog(getContext().getFrame(), "Die Datei\n\t" + getContext().getSequence().getFile().getPath() + "\nkonnte nicht gespeichert werden.\n\nEventuell ist die Datei schreibgeschützt\noder Ihnen fehlen die notwendigen Rechte.", "Datei-Fehler", 0);
+                JOptionPane.showMessageDialog(getContext().getFrame(),
+                                              "Die Datei\n\t" +
+                                              getContext().getSequence().getPath() +
+                                              "\nkonnte nicht gespeichert werden.\n" +
+                                              "\nEventuell ist die Datei schreibgeschützt" +
+                                              "\noder Ihnen fehlen die notwendigen Rechte.",
+                                              "Datei-Fehler", 0);
             }
 
         }
@@ -62,7 +68,7 @@ public abstract class FileControl extends JPanel {
         }
 
         public void actionPerformed(final ActionEvent e) {
-            final JFileChooser chooser = new JFileChooser(getContext().getSequence().getFile().getParentFile());
+            final JFileChooser chooser = new JFileChooser(getContext().getSequence().getPath().getParent().toFile());
             final CMidiFileFilter filter = new CMidiFileFilter();
             chooser.setDialogTitle("Song speichern");
             chooser.setFileFilter(filter);
@@ -74,9 +80,15 @@ public abstract class FileControl extends JPanel {
                         f = new File(f.getParentFile(), f.getName() + ".mid");
                     }
 
-                    getContext().getSequence().save_as(f);
+                    getContext().getSequence().saveAs(f.toPath());
                 } catch (final IOException var6) {
-                    JOptionPane.showMessageDialog(getContext().getFrame(), "Die Datei\n\t" + chooser.getSelectedFile() + "\nkonnte nicht gespeichert werden.\n\nEventuell ist die Datei schreibgeschützt\noder Ihnen fehlen die notwendigen Rechte.", "Datei-Fehler", 0);
+                    JOptionPane.showMessageDialog(getContext().getFrame(),
+                                                  "Die Datei\n\t" +
+                                                  chooser.getSelectedFile() +
+                                                  "\nkonnte nicht gespeichert werden.\n" +
+                                                  "\nEventuell ist die Datei schreibgeschützt\n" +
+                                                  "oder Ihnen fehlen die notwendigen Rechte.",
+                                                  "Datei-Fehler", 0);
                 }
             }
 

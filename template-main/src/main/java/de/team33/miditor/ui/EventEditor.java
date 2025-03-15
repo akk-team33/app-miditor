@@ -14,6 +14,7 @@ import de.team33.midix.Timing;
 import javax.swing.*;
 import javax.swing.table.TableModel;
 import java.awt.*;
+import java.util.List;
 
 public abstract class EventEditor extends UIControllerImpl {
     private static final Insets GBC_INSETS = new Insets(2, 2, 2, 2);
@@ -100,21 +101,19 @@ public abstract class EventEditor extends UIControllerImpl {
     }
 
     private void onSetParts(final MidiSequence sequence) {
-        final MidiTrack[] parts = sequence.getTracks();
-        final MidiTrack[] var6 = parts;
-        final int var5 = parts.length;
-
-        for (int var4 = 0; var4 < var5; ++var4) {
-            final MidiTrack track = var6[var4];
+        final List<MidiTrack> parts = sequence.getTracks();
+        final int size = parts.size();
+        for (int index = 0; index < size; ++index) {
+            final MidiTrack track = parts.get(index);
             if (track == getTrack()) {
                 return;
             }
         }
 
-        if (parts.length == 0) {
-            setTrack((MidiTrack) null);
+        if (parts.isEmpty()) {
+            setTrack(null);
         } else {
-            setTrack(parts[0]);
+            setTrack(parts.get(0));
         }
     }
 

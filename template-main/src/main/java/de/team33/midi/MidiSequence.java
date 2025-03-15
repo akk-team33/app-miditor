@@ -1,366 +1,339 @@
 package de.team33.midi;
 
-import de.team33.midi.util.TrackUtil;
 import de.team33.midix.Timing;
+import de.team33.patterns.execution.metis.SimpleAsyncExecutor;
+import de.team33.patterns.mutable.alpha.Mutable;
 import de.team33.patterns.notes.alpha.Audience;
+import de.team33.patterns.notes.alpha.Mapping;
+import de.team33.patterns.notes.alpha.Sender;
 
 import javax.sound.midi.InvalidMidiDataException;
-import javax.sound.midi.MetaMessage;
 import javax.sound.midi.MidiEvent;
-import javax.sound.midi.MidiMessage;
 import javax.sound.midi.MidiSystem;
-import java.io.File;
+import javax.sound.midi.Sequence;
+import javax.sound.midi.Track;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.function.UnaryOperator;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
-public class MidiSequence {
+import static de.team33.midix.Midi.MetaMessage.Type.SET_TEMPO;
 
-    private static final String ERR_BACKUP =
-            "Die Datei '%1$s' konnte nicht umbenannt werden. Zuletzt wurde versucht, folgenden Namen zu verwenden: '%2$s'";
+@SuppressWarnings({"WeakerAccess", "UnusedReturnValue"})
+public class MidiSequence extends Sender<MidiSequence> {
 
-    private final Audience audience = new Audience();
-    private final PART_MAP m_PartMap = new PART_MAP();
-    private final javax.sound.midi.Sequence m_Sequence;
-    protected int m_nSelectedTracks;
-    private boolean m_isSessionFile = false;
-    private boolean m_Modified = false;
-    private MidiTrack[] m_Parts = null;
-    private File m_File;
-    private Timing m_Timing;
+    private static final UnaryOperator<Path> NORMALIZER = path -> path.toAbsolutePath().normalize();
 
-    public MidiSequence(final File file) throws InvalidMidiDataException, IOException {
-        m_File = initialFile(file);
-        m_Sequence = initialSequence(m_File);
-        final javax.sound.midi.Track[] var5;
-        final int length = (var5 = m_Sequence.getTracks()).length;
+    private final Audience audience;
+    private final Mapping mapping;
+    private final Sequence backing;
+    private final Mutable<Path> path;
+    private final AtomicBoolean modification;
+    private final Features features = new Features();
 
-        for (int index = 0; index < length; ++index) {
-            final javax.sound.midi.Track tRaw = var5[index];
-            m_PartMap.put(tRaw, new MidiTrack(index, tRaw));
+    MidiSequence(final Path path, final Sequence backing) {
+        super(MidiSequence.class);
+        this.audience = new Audience(new SimpleAsyncExecutor());
+        this.mapping = Mapping.builder()
+                              .put(Internal.ResetModified, () -> this)
+                              .put(Internal.SetModified, () -> this)
+                              .put(Channel.SetPath, () -> this)
+                              .put(Channel.SetModified, () -> this)
+                              .put(Channel.SetTracks, () -> this)
+                              .build();
+        this.backing = backing;
+        this.path = new Mutable<>(NORMALIZER, path);
+        this.modification = new AtomicBoolean(false);
+
+        @SuppressWarnings("TypeMayBeWeakened")
+        final SetModified onModified = new SetModified();
+        addPlain(Internal.ResetModified, onModified);
+        addPlain(Internal.SetModified, onModified);
+        addPlain(Internal.SetModified, new SetPath());
+        addPlain(Internal.SetModified, new SetTracks());
+    }
+
+    public static MidiSequence load(final Path path) throws InvalidMidiDataException, IOException {
+        final Sequence backing = MidiSystem.getSequence(path.toFile());
+        return new MidiSequence(path, backing);
+    }
+
+    private static Stream<Track> streamOf(final Iterable<? extends MidiTrack> tracks) {
+        return StreamSupport.stream(tracks.spliterator(), false)
+                            .map(MidiTrack::backing);
+    }
+
+    @Override
+    protected final Audience audience() {
+        return audience;
+    }
+
+    @Override
+    protected final Mapping mapping() {
+        return mapping;
+    }
+
+    public final MidiSequence save() throws IOException {
+        synchronized (backing) {
+            final int mode = (1 < backing.getTracks().length) ? 1 : 0;
+            MidiSystem.write(backing, mode, path.get().toFile());
         }
-
-        if (0 < getTracks().length) {
-            this.m_Timing = Timing.of(getTimingEvent(this.getTracks()[0], 0L).getMessage(), m_Sequence);
-        } else {
-            this.m_Timing = Timing.of(m_Sequence);
-        }
+        return resetModified();
     }
 
-    public javax.sound.midi.Sequence backing() {
-        return m_Sequence;
+    public final MidiSequence saveAs(final Path path) throws IOException {
+        this.path.set(path);
+        return save();
     }
 
-    public final void add(final Channel channel, final Consumer<? super MidiSequence> listener) {
-        audience.add(channel, listener);
-        listener.accept(this);
+    @Deprecated // should stay as package private.
+    public final Sequence backing() {
+        return backing;
     }
 
-    private static void _save(final javax.sound.midi.Sequence s, final File file, final boolean doBackup) throws IOException {
-        if (doBackup && file.exists()) {
-            backup(file);
-        }
-        final int mode = 1 < s.getTracks().length ? 1 : 0;
-        MidiSystem.write(s, mode, file);
-    }
-
-    private static void backup(final File file) throws IOException {
-        final String fmt = file.getPath().replaceAll(Pattern.quote("%"), Matcher.quoteReplacement("%%")).replaceAll("([.][^.]*)$", ".%03d$1");
-        int i = 0;
-
-        File fBak;
-        for (fBak = new File(String.format(fmt, i)); fBak.exists(); fBak = new File(String.format(fmt, i))) {
-            ++i;
-            if (999 < i) {
-                throw new BACKUP_OVERFLOW();
-            }
-        }
-
-        if (!file.renameTo(fBak)) {
-            final String message = String.format("Die Datei '%1$s' konnte nicht umbenannt werden. Zuletzt wurde versucht, folgenden Namen zu verwenden: '%2$s'", file.getAbsolutePath(), fBak.getName());
-            throw new BACKUP_RENAME(message);
-        }
-    }
-
-    private static MidiEvent getMetaEvent(final MidiTrack p, final int type, final long latestTick) {
-        MidiEvent ret = null;
-        int i = 0;
-
-        for (final int n = p.size(); i < n; ++i) {
-            final MidiEvent evnt = p.get(i);
-            if (evnt.getTick() > latestTick) {
-                break;
-            }
-
-            final MidiMessage mssg = evnt.getMessage();
-            if (255 == mssg.getStatus()) {
-                final byte[] b = mssg.getMessage();
-                if (2 < b.length && b[1] == type && 3 == b.length - b[2]) {
-                    ret = evnt;
-                }
-            }
-        }
-
-        return ret;
-    }
-
-    private static MidiEvent getTempoEvent(final MidiTrack p, final long latestTick) {
-        return getMetaEvent(p, 81, latestTick);
-    }
-
-    private static MidiEvent getTimingEvent(final MidiTrack p, final long latestTick) {
-        return getMetaEvent(p, 88, latestTick);
-    }
-
-    private static File initialFile(final File file) {
-        try {
-            return file.getCanonicalFile();
-        } catch (final IOException var2) {
-            throw new RuntimeException("canonical(" + file.getPath() + ") not available", var2);
-        }
-    }
-
-    private static javax.sound.midi.Sequence initialSequence(final File file) throws InvalidMidiDataException, IOException {
-        return MidiSystem.getSequence(file);
-    }
-
-    private void _save_and_relay(final Set<Channel> channels) throws IOException {
-        _save(m_Sequence, m_File, !m_isSessionFile);
-        m_isSessionFile = true;
-        core_setModified(false, channels);
-        channels.forEach(event -> audience.send(event, this));
-    }
-
-    private void core_clear(final Set<Channel> channels) {
-        if (null != m_Parts) {
-            m_Parts = null;
-            channels.add(Channel.SetTracks);
-            core_setModified(true, channels);
-        }
-    }
-
-    private MidiTrack core_create(final Set<Channel> channels) {
-        final javax.sound.midi.Track rawTrack = m_Sequence.createTrack();
-        if (null != rawTrack) {
-            core_clear(channels);
-            m_PartMap.put(rawTrack, new MidiTrack(Arrays.asList(m_Sequence.getTracks()).indexOf(rawTrack), rawTrack));
-        }
-
-        return m_PartMap.get(rawTrack);
-    }
-
-    private boolean core_delete(final MidiTrack p, final Set<Channel> channels) {
-        boolean ret = false;
-        final javax.sound.midi.Track tRaw = p.backing();
-        if (m_PartMap.containsKey(tRaw)) {
-            ret = m_Sequence.deleteTrack(tRaw);
-            if (ret) {
-                core_clear(channels);
-                m_PartMap.remove(tRaw);
-            }
-        }
-        return ret;
-    }
-
-    private void core_setFile(File f, final Set<Channel> channels) {
-        f = initialFile(f);
-        if (!m_File.equals(f)) {
-            m_File = f;
-            channels.add(Channel.SetPath);
-        }
-
-    }
-
-    private void core_setModified(final boolean b, final Set<Channel> channels) {
-        if (m_Modified != b) {
-            m_Modified = b;
-            if (!m_Modified) {
-                for (final MidiTrack part : m_PartMap.values()) {
-                    part.resetModified();
-                }
-            }
-            channels.add(Channel.SetModified);
-        }
-    }
-
-    public final MidiTrack create(final MidiEvent... events){
+    @SuppressWarnings("OverloadedVarargsMethod")
+    public final MidiSequence create(final MidiEvent... events) {
         return create(Arrays.asList(events));
     }
 
-    public final MidiTrack create(final Iterable<? extends MidiEvent> events) {
-        final Set<Channel> channels = EnumSet.noneOf(Channel.class);
-        final MidiTrack ret = core_create(channels);
-        ret.add(events);
-        channels.forEach(event -> audience.send(event, this));
-        return ret;
-    }
-
-    public final void delete(final Iterable<MidiTrack> tracks) {
-        final Set<Channel> channels = EnumSet.noneOf(Channel.class);
-        for (final MidiTrack p : tracks) {
-            core_delete(p, channels);
+    public final MidiSequence create(final Iterable<? extends MidiEvent> events) {
+        synchronized (backing) {
+            createTrack(events);
         }
-        channels.forEach(event -> audience.send(event, this));
+        return setModified();
     }
 
-    public final boolean delete(final MidiTrack track) {
-        final Set<Channel> channels = EnumSet.noneOf(Channel.class);
-        final boolean ret = core_delete(track, channels);
-        channels.forEach(event -> audience.send(event, this));
-        return ret;
+    private void createTrack(final Iterable<? extends MidiEvent> events) {
+        final Track track = backing.createTrack();
+        for (final MidiEvent event : events) {
+            track.add(event);
+        }
     }
 
-    public final File getFile() {
-        return m_File;
+    @SuppressWarnings("OverloadedVarargsMethod")
+    public final MidiSequence delete(final MidiTrack... tracks) {
+        return delete(Arrays.asList(tracks));
     }
 
-    public final MidiTrack[] getTracks() {
-        if (null == m_Parts) {
-            final javax.sound.midi.Track[] rawTracks = m_Sequence.getTracks();
-            m_Parts = new MidiTrack[rawTracks.length];
-            for (int i = 0; i < rawTracks.length; ++i) {
-                m_Parts[i] = m_PartMap.get(rawTracks[i]);
-                m_Parts[i].add(MidiTrack.Channel.SetModified, this::onSetModified);
+    public final MidiSequence delete(final Iterable<? extends MidiTrack> tracks) {
+        synchronized (backing) {
+            for (final MidiTrack track : tracks) {
+                backing.deleteTrack(track.backing());
             }
         }
-        return m_Parts;
+        return setModified();
+    }
+
+    public final MidiSequence join(final Iterable<? extends MidiTrack> tracks) {
+        synchronized (backing) {
+            final Track newTrack = backing.createTrack();
+            streamOf(tracks).flatMap(Util::stream)
+                            .forEach(newTrack::add);
+            streamOf(tracks).forEach(backing::deleteTrack);
+        }
+        return setModified();
+    }
+
+    public final MidiSequence split(final MidiTrack track) {
+        if (getTracks().contains(track)) {
+            final Map<Integer, List<MidiEvent>> extracted = track.extractChannels();
+            synchronized (backing) {
+                for (final List<MidiEvent> events : extracted.values()) {
+                    createTrack(events);
+                }
+            }
+            return setModified();
+        } else {
+            throw new IllegalArgumentException("<track> is not part of this sequence");
+        }
+    }
+
+    public final List<MidiTrack> getTracks() {
+        return features.get(Key.TRACKS);
+    }
+
+    public final boolean isModified() {
+        return modification.get();
+    }
+
+    private MidiSequence setModified() {
+        modification.set(true);
+        features.reset();
+        return fire(Internal.SetModified);
+    }
+
+    private MidiSequence resetModified() {
+        modification.set(false);
+        return fire(Internal.ResetModified);
+    }
+
+    public final Path getPath() {
+        return path.get();
     }
 
     public final int getTempo() {
-        if (0 < getTracks().length) {
-            final MidiEvent event = getTempoEvent(getTracks()[0], 0L);
-            if (null != event) {
-                final byte[] bytes = event.getMessage().getMessage();
-                int mpqn = 0;
-
-                for (int i = 3; 6 > i; ++i) {
-                    mpqn *= 256;
-                    mpqn += bytes[i] & 255;
-                }
-
-                return (int) Math.round(6.0E7 / (double) mpqn);
-            }
-        }
-
-        return 0;
+        return features.get(Key.TEMPO);
     }
 
+    @Deprecated // should stay as package private.
     public final void setTempo(final int tempo) {
-        final MidiTrack p0;
-        if (0 < getTracks().length) {
-            p0 = getTracks()[0];
-        } else {
-            p0 = create();
+        if (getTracks().isEmpty()) {
+            create();
         }
-
-        for (MidiEvent oldEvnt = getTempoEvent(p0, 0L); null != oldEvnt; oldEvnt = getTempoEvent(p0, 0L)) {
-            p0.remove(oldEvnt);
-        }
+        final MidiTrack track = getTracks().get(0);
+        track.remove(Util.stream(track)
+                         .filter(SET_TEMPO::isTypeOf)
+                         .filter(event -> 0L == event.getTick())
+                         .toList());
 
         if (0 < tempo) {
-            long mpqn = Math.round(6.0E7 / (double) tempo);
             final byte[] data = new byte[3];
-
+            long mpqn = Math.round(Util.MSPMQN / tempo);
             for (int i = 0; i < data.length; ++i) {
-                data[2 - i] = (byte) ((int) mpqn);
-                mpqn /= 256L;
+                //noinspection NumericCastThatLosesPrecision,MagicNumber
+                data[2 - i] = (byte) (mpqn & 0xff);
+                mpqn >>= 8;
             }
-
-            final MetaMessage mssg = new MetaMessage();
-
-            try {
-                mssg.setMessage(81, data, data.length);
-            } catch (final InvalidMidiDataException var9) {
-                Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), var9);
-            }
-            final MidiEvent evnt = new MidiEvent(mssg, 0L);
-            p0.add(evnt);
+            track.add(new MidiEvent(SET_TEMPO.newMessage(data), 0L));
         }
     }
 
     public final long getTickLength() {
-        return m_Sequence.getTickLength();
+        synchronized (backing) {
+            return backing.getTickLength();
+        }
     }
 
     public final Timing getTiming() {
-        return m_Timing;
-    }
-
-    public final boolean isModified() {
-        return m_Modified;
-    }
-
-    public final void join(final Iterable<MidiTrack> tracks) {
-        final Set<Channel> channels = EnumSet.noneOf(Channel.class);
-        final MidiTrack newTrack = core_create(channels);
-        for (final MidiTrack t : tracks) {
-            newTrack.add(t.list());
-            core_delete(t, channels);
-        }
-        channels.forEach(event -> audience.send(event, this));
-    }
-
-    public final void save() throws IOException {
-        _save_and_relay(new HashSet());
-    }
-
-    public final void save_as(File file) throws IOException {
-        final Set<Channel> channels = EnumSet.noneOf(Channel.class);
-        file = initialFile(file);
-        if (!file.equals(m_File)) {
-            m_isSessionFile = false;
-            core_setFile(file, channels);
-        }
-        _save_and_relay(channels);
-    }
-
-    public final void split(final MidiTrack track) {
-        final Set<Channel> channels = EnumSet.noneOf(Channel.class);
-        final Map<Integer, List<MidiEvent>> extract = track.extractChannels();
-        for (final List<MidiEvent> midiEvents : extract.values()) {
-            final MidiTrack newTrack = core_create(channels);
-            TrackUtil.add(newTrack, midiEvents);
-        }
-        channels.forEach(event -> audience.send(event, this));
-    }
-
-    private static class BACKUP_OVERFLOW extends IOException {
-        public BACKUP_OVERFLOW() {
-            super("Zu viele Backups!");
-        }
-    }
-
-    private static class BACKUP_RENAME extends IOException {
-        public BACKUP_RENAME(final String message) {
-            super(message);
-        }
-    }
-
-    private static class PART_MAP extends HashMap<javax.sound.midi.Track, MidiTrack> {
-        private PART_MAP() {
-        }
-    }
-
-    public final void onSetModified(final MidiTrack track) {
-        if (track.isModified()) {
-            final Set<Channel> channels = EnumSet.noneOf(Channel.class);
-            core_setModified(true, channels);
-            channels.forEach(event -> audience.send(event, this));
-        }
+        return features.get(Key.TIMING);
     }
 
     @SuppressWarnings("ClassNameSameAsAncestorName")
     public enum Channel implements de.team33.patterns.notes.alpha.Channel<MidiSequence> {
-        SetPath,
         SetModified,
+        SetPath,
         SetTracks
+    }
+
+    @SuppressWarnings("ClassNameSameAsAncestorName")
+    @FunctionalInterface
+    private interface Key<R> extends de.team33.patterns.features.alpha.Features.Key<Features, R> {
+
+        Key<List<MidiTrack>> TRACKS = Features::newTrackList;
+        Key<Integer> TEMPO = Features::newTempo;
+        Key<Timing> TIMING = Features::newTiming;
+    }
+
+    private interface Internal extends de.team33.patterns.notes.alpha.Channel<MidiSequence> {
+
+        Internal SetModified = () -> MidiSequence.class.getCanonicalName() + ":SetModified";
+        Internal ResetModified = () -> MidiSequence.class.getCanonicalName() + ":ResetModified";
+    }
+
+    private static final class SetModified implements Consumer<MidiSequence> {
+
+        private boolean lastModified = false;
+
+        @Override
+        public final void accept(final MidiSequence midiSequence) {
+            final boolean newModified = midiSequence.modification.get();
+            if (newModified != lastModified) {
+                lastModified = newModified;
+                midiSequence.fire(Channel.SetModified);
+            }
+        }
+    }
+
+    private static final class SetPath implements Consumer<MidiSequence> {
+
+        private Path lastPath = null;
+
+        @Override
+        public final void accept(final MidiSequence midiSequence) {
+            final Path newPath = midiSequence.path.get();
+            if (!Objects.equals(newPath, lastPath)) {
+                lastPath = newPath;
+                midiSequence.fire(Channel.SetPath);
+            }
+        }
+    }
+
+    private static final class SetTracks implements Consumer<MidiSequence> {
+
+        private List<Integer> lastHashCodes = null;
+
+        @Override
+        public final void accept(final MidiSequence midiSequence) {
+            final List<Integer> newHashCodes = midiSequence.features.get(Key.TRACKS)
+                                                                    .stream()
+                                                                    .map(MidiTrack::backing)
+                                                                    .map(System::identityHashCode)
+                                                                    .toList();
+            if (!Objects.equals(newHashCodes, lastHashCodes)) {
+                lastHashCodes = newHashCodes;
+                midiSequence.fire(Channel.SetPath);
+            }
+        }
+    }
+
+    @SuppressWarnings("ClassNameSameAsAncestorName")
+    private final class Features extends de.team33.patterns.features.alpha.Features<Features> {
+
+        private Features() {
+            super(ConcurrentHashMap::new);
+        }
+
+        @Override
+        protected final Features host() {
+            return this;
+        }
+
+        private List<MidiTrack> newTrackList() {
+            synchronized (backing) {
+                final Track[] tracks = backing.getTracks();
+                return IntStream.range(0, tracks.length)
+                                .mapToObj(index -> new MidiTrack(index, tracks[index]))
+                                .toList();
+            }
+        }
+
+        @SuppressWarnings("NumericCastThatLosesPrecision")
+        private int newTempo() {
+            synchronized (backing) {
+                final Track[] tracks = backing.getTracks();
+                if (0 < tracks.length) {
+                    final MidiEvent event = Util.firstTempoEvent(tracks[0])
+                                                .orElse(null);
+                    if (null != event) {
+                        final byte[] bytes = event.getMessage().getMessage();
+                        int mpqn = 0;
+                        for (int i = 3; 6 > i; ++i) {
+                            mpqn <<= 8;
+                            mpqn += (bytes[i] & 0xff);
+                        }
+                        return (int) Math.round(Util.MSPMQN / mpqn);
+                    }
+                }
+                return 0;
+            }
+        }
+
+        private Timing newTiming() {
+            synchronized (backing) {
+                return Util.firstTimeSignature(backing.getTracks()[0])
+                           .map(MidiEvent::getMessage)
+                           .map(message -> Timing.of(message, backing))
+                           .orElseGet(() -> Timing.of(backing));
+            }
+        }
     }
 }

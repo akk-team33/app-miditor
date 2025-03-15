@@ -17,7 +17,6 @@ import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.io.File;
 import java.util.prefs.Preferences;
 
 public class MainFrame extends XFrame {
@@ -145,8 +144,7 @@ public class MainFrame extends XFrame {
     }
 
     public void onSetFile(final MidiSequence sequence) {
-        final File f = sequence.getFile();
-        setTitle(String.format("%s - Miditor 01a/12", f.getPath()));
+        setTitle(String.format("%s - Miditor 01a/12", sequence.getPath()));
     }
 
     private class SONG_CTRLS extends SongControls {

@@ -2,6 +2,7 @@ package de.team33.midix;
 
 import de.team33.patterns.decision.carpo.Variety;
 
+import javax.sound.midi.MidiEvent;
 import javax.sound.midi.MidiMessage;
 import javax.sound.midi.ShortMessage;
 import java.nio.charset.StandardCharsets;
@@ -172,8 +173,16 @@ public interface Midi {
                 this.validator = Variety.joined(isType, isLength, isBytesLength);
             }
 
+            public final boolean isTypeOf(final MidiEvent event) {
+                return isTypeOf(event.getMessage());
+            }
+
             public final boolean isTypeOf(final MidiMessage message) {
                 return Message.Type.META.isTypeOf(message) && identificator.test(message.getMessage());
+            }
+
+            public final boolean isValid(final MidiEvent event) {
+                return isValid(event.getMessage());
             }
 
             public final boolean isValid(final MidiMessage message) {

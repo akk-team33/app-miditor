@@ -35,7 +35,7 @@ public class MiditorStub implements Runnable {
                 File f = new File(arg);
 
                 try {
-                    (new MainFrame(new MidiSequence(f), PREFS.node("MainFrame"))).setVisible(true);
+                    (new MainFrame(MidiSequence.load(f.toPath()), PREFS.node("MainFrame"))).setVisible(true);
                 } catch (MidiUnavailableException var7) {
                     JOptionPane.showMessageDialog((Component) null, "Auf diesem System steht Ihnen anscheinend\nleider kein MIDI Subsystem zur Verfügung.\n\nDie Datei\n\t" + arg + "\nkonnte nicht geöffnet werden.", "MIDI-System fehlt", 0);
                 } catch (InvalidMidiDataException var8) {

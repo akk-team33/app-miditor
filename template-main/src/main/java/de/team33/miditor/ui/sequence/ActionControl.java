@@ -8,6 +8,7 @@ import de.team33.swing.XButton;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.util.List;
 
 public abstract class ActionControl extends JPanel {
     public ActionControl() {
@@ -121,14 +122,13 @@ public abstract class ActionControl extends JPanel {
         protected abstract long getDelta();
 
         public void actionPerformed(final ActionEvent e) {
-            final MidiTrack[] var5;
-            final int var4 = (var5 = getContext().getSequence().getTracks()).length;
+            final List<MidiTrack> var5;
+            final int var4 = (var5 = getContext().getSequence().getTracks()).size();
 
             for (int var3 = 0; var3 < var4; ++var3) {
-                final MidiTrack t = var5[var3];
+                final MidiTrack t = var5.get(var3);
                 t.shift(getDelta());
             }
-
         }
     }
 }

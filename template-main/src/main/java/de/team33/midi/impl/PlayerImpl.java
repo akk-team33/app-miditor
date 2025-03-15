@@ -248,7 +248,7 @@ public class PlayerImpl implements Player {
             int i;
             if (Mode.SOLO != oldMode) {
                 if (Mode.SOLO == newMode) {
-                    length = sequence.getTracks().length;
+                    length = sequence.getTracks().size();
 
                     for (i = 0; i < length; ++i) {
                         core_setTrackMute(i, i != index, events);
@@ -257,7 +257,7 @@ public class PlayerImpl implements Player {
                     core_setTrackMute(index, Mode.MUTE == newMode, events);
                 }
             } else {
-                length = sequence.getTracks().length;
+                length = sequence.getTracks().size();
 
                 for (i = 0; i < length; ++i) {
                     core_setTrackMute(i, i == index && Mode.MUTE == newMode, events);
@@ -267,7 +267,7 @@ public class PlayerImpl implements Player {
         }
     }
 
-    private void onSetParts(final MidiSequence sequence) {
+    private void onSetParts(final MidiSequence midiSequence) {
         final Set<Event> events = EnumSet.noneOf(Event.class);
         final boolean running = sequencer.isRunning();
         final boolean open = sequencer.isOpen();
