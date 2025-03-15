@@ -2,7 +2,10 @@ package de.team33.midi;
 
 import de.team33.midi.util.ClassUtil;
 import de.team33.midix.Timing;
+import de.team33.patterns.execution.metis.SimpleAsyncExecutor;
 import de.team33.patterns.notes.alpha.Audience;
+import de.team33.patterns.notes.alpha.Mapping;
+import de.team33.patterns.notes.alpha.Sender;
 
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiSystem;
@@ -16,18 +19,28 @@ import java.util.function.Consumer;
 import java.util.prefs.Preferences;
 
 @SuppressWarnings("ClassWithTooManyMethods")
-public class MidiPlayer {
+public class MidiPlayer extends Sender<MidiPlayer> {
+
     private static final Preferences PREFS = Preferences.userRoot().node(ClassUtil.getPathString(MidiPlayer.class));
     private static final Mode[] EMPTY_MODES = new Mode[0];
 
+    private final Audience audience;
+    private final Mapping mapping;
     private final MidiSequence sequence;
-    private final Sequencer sequencer;
-    private final Audience audience = new Audience();
+    private final Sequencer backing;
     private MidiDevice outputDevice;
     private Mode[] modes;
 
     public MidiPlayer(final MidiSequence sequence) throws MidiUnavailableException {
-        sequencer = MidiSystem.getSequencer(false);
+        super(MidiPlayer.class);
+        this.audience = new Audience(new SimpleAsyncExecutor());
+        this.mapping = Mapping.builder()
+                              .put(Channel.SetPosition, () -> this)
+                              .put(Channel.SetState, () -> this)
+                              .put(Channel.SetTempo, () -> this)
+                              .put(Channel.SetModes, () -> this)
+                              .build();
+        backing = MidiSystem.getSequencer(false);
         this.sequence = sequence;
         this.sequence.add(MidiSequence.Channel.SetTracks, this::onSetParts);
         audience.add(Channel.SetState, new STARTER());
@@ -63,10 +76,10 @@ public class MidiPlayer {
     }
 
     private void core_close(final Set<? super Channel> events) {
-        if (sequencer.isOpen()) {
+        if (backing.isOpen()) {
             outputDevice.close();
             outputDevice = null;
-            sequencer.close();
+            backing.close();
             events.add(Channel.SetState);
         }
     }
@@ -78,7 +91,7 @@ public class MidiPlayer {
 
     private Mode[] core_Modes() {
         if (null == modes) {
-            final javax.sound.midi.Sequence seq = sequencer.getSequence();
+            final javax.sound.midi.Sequence seq = backing.getSequence();
             if (null != seq) {
                 final int length = seq.getTracks().length;
                 int nNormal = 0;
@@ -86,7 +99,7 @@ public class MidiPlayer {
                 modes = new Mode[length];
 
                 for (int i = 0; i < length; ++i) {
-                    if (sequencer.getTrackMute(i)) {
+                    if (backing.getTrackMute(i)) {
                         modes[i] = Mode.MUTE;
                     } else {
                         modes[i] = Mode.NORMAL;
@@ -107,13 +120,13 @@ public class MidiPlayer {
     }
 
     private void core_open(final Set<? super Channel> events) {
-        if (!sequencer.isOpen()) {
+        if (!backing.isOpen()) {
             try {
                 outputDevice = newOutputDevice();
                 outputDevice.open();
-                sequencer.getTransmitter().setReceiver(outputDevice.getReceiver());
-                sequencer.setSequence(sequence.backing());
-                sequencer.open();
+                backing.getTransmitter().setReceiver(outputDevice.getReceiver());
+                backing.setSequence(sequence.backing());
+                backing.open();
                 events.add(Channel.SetState);
                 events.add(Channel.SetTempo);
             } catch (final Exception e) {
@@ -124,41 +137,51 @@ public class MidiPlayer {
     }
 
     private void core_setTickPosition(final long ticks, final Set<? super Channel> events) {
-        if (!sequencer.isOpen()) {
+        if (!backing.isOpen()) {
             core_open(events);
         }
 
-        sequencer.setTickPosition(ticks);
+        backing.setTickPosition(ticks);
         events.add(Channel.SetPosition);
         events.add(Channel.SetState);
     }
 
     private void core_setTrackMute(final int trackIndex, final boolean muted, final Set<? super Channel> events) {
-        if (sequencer.getTrackMute(trackIndex) != muted) {
-            sequencer.setTrackMute(trackIndex, muted);
+        if (backing.getTrackMute(trackIndex) != muted) {
+            backing.setTrackMute(trackIndex, muted);
             core_clrModes(events);
         }
 
     }
 
     private void core_start(final Set<? super Channel> messages) {
-        if (!sequencer.isOpen()) {
+        if (!backing.isOpen()) {
             core_open(messages);
         }
 
-        if (!sequencer.isRunning()) {
-            sequencer.start();
+        if (!backing.isRunning()) {
+            backing.start();
             messages.add(Channel.SetState);
         }
 
     }
 
     private void core_stop(final Set<? super Channel> events) {
-        if (sequencer.isRunning()) {
-            sequencer.stop();
+        if (backing.isRunning()) {
+            backing.stop();
             events.add(Channel.SetState);
         }
 
+    }
+
+    @Override
+    protected final Audience audience() {
+        return audience;
+    }
+
+    @Override
+    protected final Mapping mapping() {
+        return mapping;
     }
 
     public final Mode getMode(final int index) {
@@ -166,7 +189,7 @@ public class MidiPlayer {
     }
 
     public final long getPosition() {
-        return sequencer.getTickPosition();
+        return backing.getTickPosition();
     }
 
     public final void setPosition(final long ticks) {
@@ -175,20 +198,15 @@ public class MidiPlayer {
         channels.forEach(message -> audience.send(message, this));
     }
 
-    public final void addListener(final Channel channel, final Consumer<? super MidiPlayer> listener) {
-        audience.add(channel, listener);
-        listener.accept(this);
-    }
-
     public final MidiSequence getSequence() {
         return sequence;
     }
 
     public final State getState() {
-        if (sequencer.isRunning()) {
+        if (backing.isRunning()) {
             return State.RUN;
-        } else if (sequencer.isOpen()) {
-            return 0L == sequencer.getTickPosition() ? State.STOP : State.PAUSE;
+        } else if (backing.isOpen()) {
+            return 0L == backing.getTickPosition() ? State.STOP : State.PAUSE;
         } else {
             return State.IDLE;
         }
@@ -222,13 +240,13 @@ public class MidiPlayer {
     }
 
     public final int getTempo() {
-        return Math.round(sequencer.getTempoInBPM());
+        return Math.round(backing.getTempoInBPM());
     }
 
     public final void setTempo(final int tempo) {
         final Set<Channel> channels = EnumSet.noneOf(Channel.class);
         channels.add(Channel.SetTempo);
-        sequencer.setTempoInBPM(tempo);
+        backing.setTempoInBPM(tempo);
         sequence.setTempo(tempo);
         channels.forEach(event -> audience.send(event, this));
     }
@@ -266,9 +284,9 @@ public class MidiPlayer {
 
     private void onSetParts(final MidiSequence midiSequence) {
         final Set<Channel> channels = EnumSet.noneOf(Channel.class);
-        final boolean running = sequencer.isRunning();
-        final boolean open = sequencer.isOpen();
-        final long currPos = sequencer.getTickPosition();
+        final boolean running = backing.isRunning();
+        final boolean open = backing.isOpen();
+        final long currPos = backing.getTickPosition();
         core_close(channels);
         if (open) {
             core_setTickPosition(currPos, channels);
@@ -303,7 +321,7 @@ public class MidiPlayer {
         public final void run() {
             final Set<Channel> channels = EnumSet.noneOf(Channel.class);
             channels.add(Channel.SetPosition);
-            if (!sequencer.isRunning()) {
+            if (!backing.isRunning()) {
                 cancel();
                 channels.add(Channel.SetState);
             }

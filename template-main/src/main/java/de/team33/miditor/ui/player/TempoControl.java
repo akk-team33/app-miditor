@@ -28,7 +28,7 @@ public abstract class TempoControl {
         public LABEL() {
             setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.GRAY), BorderFactory.createEmptyBorder(1, 4, 1, 4)));
             setFont(new Font(getFont().getName(), 1, 18));
-            getPlayer().addListener(MidiPlayer.Channel.SetTempo, this::onSetTempo);
+            getPlayer().add(MidiPlayer.Channel.SetTempo, this::onSetTempo);
         }
 
         protected void decrease(final int exponent) {
