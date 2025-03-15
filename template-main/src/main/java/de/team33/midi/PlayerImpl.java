@@ -1,7 +1,5 @@
-package de.team33.midi.impl;
+package de.team33.midi;
 
-import de.team33.midi.MidiSequence;
-import de.team33.midi.Player;
 import de.team33.midi.util.ClassUtil;
 import de.team33.midix.Timing;
 import de.team33.patterns.notes.alpha.Audience;
@@ -18,7 +16,7 @@ import java.util.function.Consumer;
 import java.util.prefs.Preferences;
 
 @SuppressWarnings("ClassWithTooManyMethods")
-public class PlayerImpl implements Player {
+public class PlayerImpl implements MidiPlayer {
     private static final Preferences PREFS = Preferences.userRoot().node(ClassUtil.getPathString(PlayerImpl.class));
     private static final Mode[] EMPTY_MODES = new Mode[0];
 
@@ -26,7 +24,7 @@ public class PlayerImpl implements Player {
     private final Sequencer sequencer;
     private final Audience audience = new Audience();
     private MidiDevice outputDevice;
-    private Player.Mode[] modes;
+    private MidiPlayer.Mode[] modes;
 
     public PlayerImpl(final MidiSequence sequence) throws MidiUnavailableException {
         sequencer = MidiSystem.getSequencer(false);
@@ -78,14 +76,14 @@ public class PlayerImpl implements Player {
         events.add(Event.SetModes);
     }
 
-    private Player.Mode[] core_Modes() {
+    private MidiPlayer.Mode[] core_Modes() {
         if (null == modes) {
             final javax.sound.midi.Sequence seq = sequencer.getSequence();
             if (null != seq) {
                 final int length = seq.getTracks().length;
                 int nNormal = 0;
                 int iNormal = -1;
-                modes = new Player.Mode[length];
+                modes = new MidiPlayer.Mode[length];
 
                 for (int i = 0; i < length; ++i) {
                     if (sequencer.getTrackMute(i)) {
@@ -163,7 +161,7 @@ public class PlayerImpl implements Player {
 
     }
 
-    public final Player.Mode getMode(final int index) {
+    public final MidiPlayer.Mode getMode(final int index) {
         return ((0 <= index) && (index < core_Modes().length)) ? core_Modes()[index] : Mode.NORMAL;
     }
 
@@ -178,7 +176,7 @@ public class PlayerImpl implements Player {
     }
 
     @Override
-    public final void addListener(final Event event, final Consumer<? super Player> listener) {
+    public final void addListener(final Event event, final Consumer<? super MidiPlayer> listener) {
         audience.add(event, listener);
         listener.accept(this);
     }
@@ -187,7 +185,7 @@ public class PlayerImpl implements Player {
         return sequence;
     }
 
-    public final Player.State getState() {
+    public final MidiPlayer.State getState() {
         if (sequencer.isRunning()) {
             return State.RUN;
         } else if (sequencer.isOpen()) {
@@ -197,13 +195,13 @@ public class PlayerImpl implements Player {
         }
     }
 
-    public final void setState(final Player.State newState) {
+    public final void setState(final MidiPlayer.State newState) {
         setNonNull((null == newState) ? State.IDLE : newState);
     }
 
-    private void setNonNull(final Player.State newState) {
+    private void setNonNull(final MidiPlayer.State newState) {
         final Set<Event> events = EnumSet.noneOf(Event.class);
-        final Player.State currState = getState();
+        final MidiPlayer.State currState = getState();
 
         if (currState != newState) {
             if (State.IDLE == currState) {
@@ -240,8 +238,8 @@ public class PlayerImpl implements Player {
         return sequence.getTiming();
     }
 
-    public final void setMode(final int index, final Player.Mode newMode) {
-        final Player.Mode oldMode = getMode(index);
+    public final void setMode(final int index, final MidiPlayer.Mode newMode) {
+        final MidiPlayer.Mode oldMode = getMode(index);
         if (oldMode != newMode) {
             final Set<Event> events = EnumSet.noneOf(Event.class);
             final int length;
@@ -282,11 +280,11 @@ public class PlayerImpl implements Player {
         events.forEach(event -> audience.send(event, this));
     }
 
-    private class STARTER implements Consumer<Player> {
+    private class STARTER implements Consumer<MidiPlayer> {
 
-        private volatile Player.State lastState = null;
+        private volatile MidiPlayer.State lastState = null;
 
-        public final void accept(final Player player) {
+        public final void accept(final MidiPlayer player) {
             synchronized (this) {
                 final State state = player.getState();
                 if (State.RUN == state && state != lastState) {

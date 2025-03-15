@@ -1,11 +1,10 @@
 package de.team33.miditor.ui.player;
 
-import de.team33.midi.Player;
+import de.team33.midi.MidiPlayer;
 import de.team33.swing.XSpinner;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.function.Consumer;
 
 public abstract class Locator extends JPanel {
     private static final Insets GBC_INSETS = new Insets(0, 0, 0, 0);
@@ -91,7 +90,7 @@ public abstract class Locator extends JPanel {
             setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 4));
             setFont(new Font(getFont().getName(), 1, 17));
             getContext().getPlayer()
-                        .addListener(Player.Event.SetPosition, this::onSetPosition);
+                        .addListener(MidiPlayer.Event.SetPosition, this::onSetPosition);
         }
 
         protected void decrease(final int exponent) {
@@ -122,7 +121,7 @@ public abstract class Locator extends JPanel {
             getContext().getPlayer().setPosition(getContext().getPlayer().getPosition() + ((long) delta * getDelta()));
         }
 
-        public void onSetPosition(final Player player) {
+        public void onSetPosition(final MidiPlayer player) {
             final long ticks = player.getPosition();
             setDisplay(ticks);
         }

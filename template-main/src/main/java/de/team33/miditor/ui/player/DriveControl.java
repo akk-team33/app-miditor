@@ -1,7 +1,7 @@
 package de.team33.miditor.ui.player;
 
-import de.team33.midi.Player;
-import de.team33.midi.Player.State;
+import de.team33.midi.MidiPlayer;
+import de.team33.midi.MidiPlayer.State;
 import de.team33.miditor.ui.Rsrc;
 
 import javax.swing.*;
@@ -10,7 +10,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.util.function.Consumer;
 
 public abstract class DriveControl extends JPanel {
     public DriveControl() {
@@ -89,19 +88,19 @@ public abstract class DriveControl extends JPanel {
     }
 
     private class SBUTTON extends ICOBUTTON {
-        private final Player.State m_State;
+        private final MidiPlayer.State m_State;
 
-        SBUTTON(final Player.State s) {
+        SBUTTON(final MidiPlayer.State s) {
             super(Rsrc.DC_ICONSET[s.ordinal()]);
             m_State = s;
             getContext().getPlayer()
-                        .addListener(Player.Event.SetState, this::onSetState);
+                        .addListener(MidiPlayer.Event.SetState, this::onSetState);
             getContext().getWindow()
                         .addWindowListener(new CLIENT3());
             addActionListener(this::onActionPerformed);
         }
 
-        private void _setState(final Player.State state) {
+        private void _setState(final MidiPlayer.State state) {
             synchronized (this) {
                 setEnabled(state != m_State);
                 final JRootPane rp = getRootPane();
@@ -126,8 +125,8 @@ public abstract class DriveControl extends JPanel {
             getContext().getPlayer().setState(m_State);
         }
 
-        private void onSetState(final Player player) {
-            final Player.State state = player.getState();
+        private void onSetState(final MidiPlayer player) {
+            final MidiPlayer.State state = player.getState();
             _setState(state);
         }
 

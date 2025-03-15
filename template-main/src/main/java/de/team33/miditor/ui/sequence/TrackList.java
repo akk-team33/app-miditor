@@ -1,8 +1,8 @@
 package de.team33.miditor.ui.sequence;
 
+import de.team33.midi.MidiPlayer;
 import de.team33.midi.MidiSequence;
 import de.team33.midi.MidiTrack;
-import de.team33.midi.Player;
 import de.team33.miditor.controller.UIController;
 import de.team33.miditor.ui.SmallButton;
 import de.team33.miditor.ui.TrackControls;
@@ -180,7 +180,7 @@ public abstract class TrackList extends JScrollPane {
             return m_Index;
         }
 
-        public Player getPlayer() {
+        public MidiPlayer getPlayer() {
             return getContext().getPlayer();
         }
 

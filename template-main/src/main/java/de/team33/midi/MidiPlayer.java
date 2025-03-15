@@ -5,7 +5,7 @@ import de.team33.patterns.notes.alpha.Channel;
 
 import java.util.function.Consumer;
 
-public interface Player {
+public interface MidiPlayer {
 
     Mode getMode(int index);
 
@@ -27,7 +27,7 @@ public interface Player {
 
     void setMode(int index, Mode newMode);
 
-    void addListener(Event event, Consumer<? super Player> listener);
+    void addListener(Event event, Consumer<? super MidiPlayer> listener);
 
     enum Mode {
         NORMAL,
@@ -42,7 +42,7 @@ public interface Player {
         RUN
     }
 
-    enum Event implements Channel<Player> {
+    enum Event implements Channel<MidiPlayer> {
         SetModes,
         SetPosition,
         SetState,

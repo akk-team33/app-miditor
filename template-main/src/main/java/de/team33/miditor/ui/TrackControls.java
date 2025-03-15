@@ -1,8 +1,8 @@
 package de.team33.miditor.ui;
 
+import de.team33.midi.MidiPlayer;
+import de.team33.midi.MidiPlayer.Mode;
 import de.team33.midi.MidiTrack;
-import de.team33.midi.Player;
-import de.team33.midi.Player.Mode;
 import de.team33.miditor.ui.track.Context;
 import de.team33.selection.Selection;
 import de.team33.swing.XTextField;
@@ -102,7 +102,7 @@ public abstract class TrackControls {
         private MUTE_BUTTON() {
             super("mute");
             getContext().getPlayer()
-                        .addListener(Player.Event.SetModes, this::onSetModes);
+                        .addListener(MidiPlayer.Event.SetModes, this::onSetModes);
         }
 
         public final void actionPerformed(final ActionEvent e) {
@@ -114,9 +114,9 @@ public abstract class TrackControls {
 
         }
 
-        private void onSetModes(final Player player) {
+        private void onSetModes(final MidiPlayer player) {
             final int index = getContext().getIndex();
-            final Player.Mode mode = player.getMode(index);
+            final MidiPlayer.Mode mode = player.getMode(index);
             setSelected(Mode.MUTE == mode);
         }
     }
@@ -136,7 +136,7 @@ public abstract class TrackControls {
         public SOLO_BUTTON() {
             super("solo");
             getContext().getPlayer()
-                        .addListener(Player.Event.SetModes, this::onSetModes);
+                        .addListener(MidiPlayer.Event.SetModes, this::onSetModes);
         }
 
         public final void actionPerformed(final ActionEvent e) {
@@ -148,9 +148,9 @@ public abstract class TrackControls {
 
         }
 
-        private void onSetModes(final Player player) {
+        private void onSetModes(final MidiPlayer player) {
             final int index = getContext().getIndex();
-            final Player.Mode mode = player.getMode(index);
+            final MidiPlayer.Mode mode = player.getMode(index);
             setSelected(Mode.SOLO == mode);
         }
     }

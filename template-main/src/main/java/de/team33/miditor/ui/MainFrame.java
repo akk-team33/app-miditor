@@ -1,10 +1,10 @@
 package de.team33.miditor.ui;
 
+import de.team33.midi.MidiPlayer;
+import de.team33.midi.MidiPlayer.State;
 import de.team33.midi.MidiSequence;
 import de.team33.midi.MidiTrack;
-import de.team33.midi.Player;
-import de.team33.midi.Player.State;
-import de.team33.midi.impl.PlayerImpl;
+import de.team33.midi.PlayerImpl;
 import de.team33.miditor.controller.UIController;
 import de.team33.miditor.model.PartSelection;
 import de.team33.miditor.ui.sequence.Context;
@@ -46,7 +46,7 @@ public class MainFrame extends XFrame {
 
     private final Selection<MidiTrack> selection;
     private final MidiSequence sequence;
-    private final Player player;
+    private final MidiPlayer player;
     private final EventEditor m_EventEditor;
     private final WindowListener m_WindowListener = new WINDOW_ADAPTER();
     private final CONTEXT context = new CONTEXT();
@@ -88,7 +88,7 @@ public class MainFrame extends XFrame {
             return MainFrame.this;
         }
 
-        public Player getPlayer() {
+        public MidiPlayer getPlayer() {
             return player;
         }
 

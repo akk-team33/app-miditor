@@ -1,6 +1,6 @@
 package de.team33.miditor.ui;
 
-import de.team33.midi.Player;
+import de.team33.midi.MidiPlayer;
 import de.team33.miditor.ui.player.DriveControl;
 import de.team33.miditor.ui.player.Locator;
 import de.team33.miditor.ui.player.TempoControl;
@@ -50,7 +50,7 @@ public abstract class PlayerControls {
         private TMPO_CTRL() {
         }
 
-        protected Player getPlayer() {
+        protected MidiPlayer getPlayer() {
             return PlayerControls.this.getRootContext().getPlayer();
         }
     }
