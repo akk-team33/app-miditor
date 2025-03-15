@@ -1,15 +1,15 @@
 package de.team33.midi;
 
+import de.team33.midix.Timing;
 import de.team33.patterns.notes.alpha.Channel;
 
 import java.util.function.Consumer;
-import de.team33.midix.Timing;
 
 public interface Player {
 
     Mode getMode(int index);
 
-    Sequence getSequence();
+    MidiSequence getSequence();
 
     long getPosition();
 

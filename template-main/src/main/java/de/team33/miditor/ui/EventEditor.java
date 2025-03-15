@@ -1,7 +1,7 @@
 package de.team33.miditor.ui;
 
+import de.team33.midi.MidiSequence;
 import de.team33.midi.MidiTrack;
-import de.team33.midi.Sequence;
 import de.team33.miditor.controller.UIController;
 import de.team33.miditor.controller.UIControllerImpl;
 import de.team33.miditor.ui.event.TableRenderer;
@@ -33,7 +33,7 @@ public abstract class EventEditor extends UIControllerImpl {
     private JComponent m_RootComponent = null;
 
     protected EventEditor() {
-        getSequence().add(Sequence.Channel.SetTracks, this::onSetParts);
+        getSequence().add(MidiSequence.Channel.SetTracks, this::onSetParts);
     }
 
     private EventEditor _EventEditor() {
@@ -48,7 +48,7 @@ public abstract class EventEditor extends UIControllerImpl {
         return m_RootComponent;
     }
 
-    protected abstract Sequence getSequence();
+    protected abstract MidiSequence getSequence();
 
     private class ACTIONS extends EventActions {
         private ACTIONS() {
@@ -99,7 +99,7 @@ public abstract class EventEditor extends UIControllerImpl {
         }
     }
 
-    private void onSetParts(final Sequence sequence) {
+    private void onSetParts(final MidiSequence sequence) {
         final MidiTrack[] parts = sequence.getTracks();
         final MidiTrack[] var6 = parts;
         final int var5 = parts.length;

@@ -1,7 +1,7 @@
 package de.team33.midi.impl;
 
+import de.team33.midi.MidiSequence;
 import de.team33.midi.Player;
-import de.team33.midi.Sequence;
 import de.team33.midi.util.ClassUtil;
 import de.team33.midix.Timing;
 import de.team33.patterns.notes.alpha.Audience;
@@ -22,16 +22,16 @@ public class PlayerImpl implements Player {
     private static final Preferences PREFS = Preferences.userRoot().node(ClassUtil.getPathString(PlayerImpl.class));
     private static final Mode[] EMPTY_MODES = new Mode[0];
 
-    private final Sequence sequence;
+    private final MidiSequence sequence;
     private final Sequencer sequencer;
     private final Audience audience = new Audience();
     private MidiDevice outputDevice;
     private Player.Mode[] modes;
 
-    public PlayerImpl(final Sequence sequence) throws MidiUnavailableException {
+    public PlayerImpl(final MidiSequence sequence) throws MidiUnavailableException {
         sequencer = MidiSystem.getSequencer(false);
         this.sequence = sequence;
-        this.sequence.add(Sequence.Channel.SetTracks, this::onSetParts);
+        this.sequence.add(MidiSequence.Channel.SetTracks, this::onSetParts);
         audience.add(Event.SetState, new STARTER());
     }
 
@@ -183,7 +183,7 @@ public class PlayerImpl implements Player {
         listener.accept(this);
     }
 
-    public final Sequence getSequence() {
+    public final MidiSequence getSequence() {
         return sequence;
     }
 
@@ -267,7 +267,7 @@ public class PlayerImpl implements Player {
         }
     }
 
-    private void onSetParts(final Sequence sequence) {
+    private void onSetParts(final MidiSequence sequence) {
         final Set<Event> events = EnumSet.noneOf(Event.class);
         final boolean running = sequencer.isRunning();
         final boolean open = sequencer.isOpen();

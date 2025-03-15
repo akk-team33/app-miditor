@@ -1,9 +1,9 @@
 package de.team33.miditor.ui;
 
+import de.team33.midi.MidiSequence;
 import de.team33.midi.MidiTrack;
 import de.team33.midi.Player;
 import de.team33.midi.Player.State;
-import de.team33.midi.Sequence;
 import de.team33.midi.impl.PlayerImpl;
 import de.team33.miditor.controller.UIController;
 import de.team33.miditor.model.PartSelection;
@@ -46,7 +46,7 @@ public class MainFrame extends XFrame {
     }
 
     private final Selection<MidiTrack> selection;
-    private final Sequence sequence;
+    private final MidiSequence sequence;
     private final Player player;
     private final EventEditor m_EventEditor;
     private final WindowListener m_WindowListener = new WINDOW_ADAPTER();
@@ -54,7 +54,7 @@ public class MainFrame extends XFrame {
     private final PLAY_CTRLS playCtrls = new PLAY_CTRLS();
     private final SONG_CTRLS songCtrls = new SONG_CTRLS();
 
-    public MainFrame(final Sequence sequence, final Preferences prefs) throws MidiUnavailableException {
+    public MainFrame(final MidiSequence sequence, final Preferences prefs) throws MidiUnavailableException {
         super("?", prefs);
         this.sequence = sequence;
         selection = new PartSelection(this.sequence);
@@ -64,7 +64,7 @@ public class MainFrame extends XFrame {
         setContentPane(new MAIN_PANE());
         setLocationByPlatform(true);
         addWindowListener(m_WindowListener);
-        player.getSequence().add(Sequence.Channel.SetPath, this::onSetFile);
+        player.getSequence().add(MidiSequence.Channel.SetPath, this::onSetFile);
     }
 
 //    protected void finalize() throws Throwable {
@@ -97,7 +97,7 @@ public class MainFrame extends XFrame {
             return selection;
         }
 
-        public Sequence getSequence() {
+        public MidiSequence getSequence() {
             return sequence;
         }
 
@@ -144,7 +144,7 @@ public class MainFrame extends XFrame {
         }
     }
 
-    public void onSetFile(final Sequence sequence) {
+    public void onSetFile(final MidiSequence sequence) {
         final File f = sequence.getFile();
         setTitle(String.format("%s - Miditor 01a/12", f.getPath()));
     }
@@ -159,7 +159,7 @@ public class MainFrame extends XFrame {
     }
 
     private class TRACK_EDITOR extends EventEditor {
-        protected Sequence getSequence() {
+        protected MidiSequence getSequence() {
             return player.getSequence();
         }
     }

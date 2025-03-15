@@ -1,6 +1,6 @@
 package de.team33.miditor;
 
-import de.team33.midi.impl.SequenceImpl;
+import de.team33.midi.MidiSequence;
 import de.team33.miditor.ui.MainFrame;
 
 import javax.sound.midi.InvalidMidiDataException;
@@ -35,7 +35,7 @@ public class MiditorStub implements Runnable {
                 File f = new File(arg);
 
                 try {
-                    (new MainFrame(new SequenceImpl(f), PREFS.node("MainFrame"))).setVisible(true);
+                    (new MainFrame(new MidiSequence(f), PREFS.node("MainFrame"))).setVisible(true);
                 } catch (MidiUnavailableException var7) {
                     JOptionPane.showMessageDialog((Component) null, "Auf diesem System steht Ihnen anscheinend\nleider kein MIDI Subsystem zur Verfügung.\n\nDie Datei\n\t" + arg + "\nkonnte nicht geöffnet werden.", "MIDI-System fehlt", 0);
                 } catch (InvalidMidiDataException var8) {

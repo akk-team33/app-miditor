@@ -1,7 +1,5 @@
-package de.team33.midi.impl;
+package de.team33.midi;
 
-import de.team33.midi.MidiTrack;
-import de.team33.midi.Sequence;
 import de.team33.midi.util.TrackUtil;
 import de.team33.midix.Timing;
 import de.team33.patterns.notes.alpha.Audience;
@@ -24,7 +22,7 @@ import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class SequenceImpl implements Sequence {
+public class MidiSequence {
 
     private static final String ERR_BACKUP =
             "Die Datei '%1$s' konnte nicht umbenannt werden. Zuletzt wurde versucht, folgenden Namen zu verwenden: '%2$s'";
@@ -39,7 +37,7 @@ public class SequenceImpl implements Sequence {
     private File m_File;
     private Timing m_Timing;
 
-    public SequenceImpl(final File file) throws InvalidMidiDataException, IOException {
+    public MidiSequence(final File file) throws InvalidMidiDataException, IOException {
         m_File = initialFile(file);
         m_Sequence = initialSequence(m_File);
         final javax.sound.midi.Track[] var5;
@@ -57,13 +55,11 @@ public class SequenceImpl implements Sequence {
         }
     }
 
-    @Override
     public javax.sound.midi.Sequence backing() {
         return m_Sequence;
     }
 
-    @Override
-    public final void add(final Channel channel, final Consumer<? super Sequence> listener) {
+    public final void add(final Channel channel, final Consumer<? super MidiSequence> listener) {
         audience.add(channel, listener);
         listener.accept(this);
     }
@@ -193,6 +189,10 @@ public class SequenceImpl implements Sequence {
             }
             channels.add(Channel.SetModified);
         }
+    }
+
+    public final MidiTrack create(final MidiEvent... events){
+        return create(Arrays.asList(events));
     }
 
     public final MidiTrack create(final Iterable<? extends MidiEvent> events) {
@@ -355,5 +355,12 @@ public class SequenceImpl implements Sequence {
             core_setModified(true, channels);
             channels.forEach(event -> audience.send(event, this));
         }
+    }
+
+    @SuppressWarnings("ClassNameSameAsAncestorName")
+    public enum Channel implements de.team33.patterns.notes.alpha.Channel<MidiSequence> {
+        SetPath,
+        SetModified,
+        SetTracks
     }
 }
