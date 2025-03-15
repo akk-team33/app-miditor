@@ -195,7 +195,7 @@ public class MidiPlayer extends Sender<MidiPlayer> {
     public final void setPosition(final long ticks) {
         final Set<Channel> channels = EnumSet.noneOf(Channel.class);
         core_setTickPosition(ticks, channels);
-        channels.forEach(message -> audience.send(message, this));
+        fire(channels);
     }
 
     public final MidiSequence getSequence() {
@@ -235,7 +235,7 @@ public class MidiPlayer extends Sender<MidiPlayer> {
                     core_setTickPosition(0L, channels);
                 }
             }
-            channels.forEach(event -> audience.send(event, this));
+            fire(channels);
         }
     }
 
@@ -248,7 +248,7 @@ public class MidiPlayer extends Sender<MidiPlayer> {
         channels.add(Channel.SetTempo);
         backing.setTempoInBPM(tempo);
         sequence.setTempo(tempo);
-        channels.forEach(event -> audience.send(event, this));
+        fire(channels);
     }
 
     public final Timing getTiming() {
@@ -278,7 +278,7 @@ public class MidiPlayer extends Sender<MidiPlayer> {
                     core_setTrackMute(i, i == index && Mode.MUTE == newMode, channels);
                 }
             }
-            channels.forEach(event -> audience.send(event, this));
+            fire(channels);
         }
     }
 
@@ -294,7 +294,7 @@ public class MidiPlayer extends Sender<MidiPlayer> {
                 core_start(channels);
             }
         }
-        channels.forEach(event -> audience.send(event, this));
+        fire(channels);
     }
 
     private class STARTER implements Consumer<MidiPlayer> {
@@ -333,7 +333,7 @@ public class MidiPlayer extends Sender<MidiPlayer> {
                     channels.add(Channel.SetTempo);
                 }
             }
-            channels.forEach(event -> audience.send(event, MidiPlayer.this));
+            fire(channels);
         }
     }
 
