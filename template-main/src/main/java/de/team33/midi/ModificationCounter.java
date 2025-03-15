@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 
@@ -19,8 +20,8 @@ class ModificationCounter {
     private final AtomicLong mainCounter = new AtomicLong(0L);
     private final Map<Integer, AtomicLong> subCounters = new ConcurrentHashMap<>(0);
 
-    ModificationCounter() {
-        this.audience = new Audience();
+    ModificationCounter(final Executor executor) {
+        this.audience = new Audience(executor);
     }
 
     @SuppressWarnings("TypeMayBeWeakened")
@@ -53,7 +54,6 @@ class ModificationCounter {
     final void increment(final int id) {
         subCounter(id).incrementAndGet();
         audience.send(Channel.SUB_MODIFIED, id);
-        increment();
     }
 
     final void reset() {

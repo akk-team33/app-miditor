@@ -17,18 +17,16 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static de.team33.midix.Midi.MetaMessage.Type.SET_TEMPO;
 
-@SuppressWarnings({"WeakerAccess", "UnusedReturnValue"})
+@SuppressWarnings({"WeakerAccess", "UnusedReturnValue", "ClassNamePrefixedWithPackageName", "ClassWithTooManyMethods"})
 public class MidiSequence extends Sender<MidiSequence> {
 
     private static final UnaryOperator<Path> NORMALIZER = path -> path.toAbsolutePath().normalize();
@@ -37,29 +35,25 @@ public class MidiSequence extends Sender<MidiSequence> {
     private final Mapping mapping;
     private final Sequence backing;
     private final Mutable<Path> path;
-    private final AtomicBoolean modification;
+    private final ModificationCounter modificationCounter;
     private final Features features = new Features();
 
     MidiSequence(final Path path, final Sequence backing) {
         super(MidiSequence.class);
-        this.audience = new Audience(new SimpleAsyncExecutor());
+        final SimpleAsyncExecutor executor = new SimpleAsyncExecutor();
+        this.audience = new Audience(executor);
         this.mapping = Mapping.builder()
-                              .put(Internal.ResetModified, () -> this)
-                              .put(Internal.SetModified, () -> this)
                               .put(Channel.SetPath, () -> this)
                               .put(Channel.SetModified, () -> this)
                               .put(Channel.SetTracks, () -> this)
                               .build();
         this.backing = backing;
         this.path = new Mutable<>(NORMALIZER, path);
-        this.modification = new AtomicBoolean(false);
+        this.modificationCounter = new ModificationCounter(executor);
 
-        @SuppressWarnings("TypeMayBeWeakened")
-        final SetModified onModified = new SetModified();
-        addPlain(Internal.ResetModified, onModified);
-        addPlain(Internal.SetModified, onModified);
-        addPlain(Internal.SetModified, new SetPath());
-        addPlain(Internal.SetModified, new SetTracks());
+        modificationCounter.add(ModificationCounter.Channel.MODIFIED, this::onModified);
+        modificationCounter.add(ModificationCounter.Channel.RESET, this::onModified);
+        modificationCounter.add(ModificationCounter.Channel.SUB_MODIFIED, this::onSubModified);
     }
 
     public static MidiSequence load(final Path path) throws InvalidMidiDataException, IOException {
@@ -70,6 +64,14 @@ public class MidiSequence extends Sender<MidiSequence> {
     private static Stream<Track> streamOf(final Iterable<? extends MidiTrack> tracks) {
         return StreamSupport.stream(tracks.spliterator(), false)
                             .map(MidiTrack::backing);
+    }
+
+    private void onModified(final Void unused) {
+        fire(Channel.SetModified);
+    }
+
+    private void onSubModified(final int id) {
+        modificationCounter.increment();
     }
 
     @Override
@@ -90,13 +92,13 @@ public class MidiSequence extends Sender<MidiSequence> {
         return resetModified();
     }
 
+    @SuppressWarnings("ParameterHidesMemberVariable")
     public final MidiSequence saveAs(final Path path) throws IOException {
         this.path.set(path);
-        return save();
+        return save().fire(Channel.SetPath);
     }
 
-    @Deprecated // should stay as package private.
-    public final Sequence backing() {
+    final Sequence backing() {
         return backing;
     }
 
@@ -162,18 +164,19 @@ public class MidiSequence extends Sender<MidiSequence> {
     }
 
     public final boolean isModified() {
-        return modification.get();
+        return 0 != modificationCounter.get();
     }
 
     private MidiSequence setModified() {
-        modification.set(true);
         features.reset();
-        return fire(Internal.SetModified);
+        modificationCounter.increment();
+        modificationCounter.keep(getTracks().stream().map(MidiTrack::id).collect(Collectors.toSet()));
+        return fire(Channel.SetTracks);
     }
 
     private MidiSequence resetModified() {
-        modification.set(false);
-        return fire(Internal.ResetModified);
+        modificationCounter.reset();
+        return this;
     }
 
     public final Path getPath() {
@@ -184,8 +187,7 @@ public class MidiSequence extends Sender<MidiSequence> {
         return features.get(Key.TEMPO);
     }
 
-    @Deprecated // should stay as package private.
-    public final void setTempo(final int tempo) {
+    final void setTempo(final int tempo) {
         if (getTracks().isEmpty()) {
             create();
         }
@@ -233,58 +235,6 @@ public class MidiSequence extends Sender<MidiSequence> {
         Key<Timing> TIMING = Features::newTiming;
     }
 
-    private interface Internal extends de.team33.patterns.notes.alpha.Channel<MidiSequence> {
-
-        Internal SetModified = () -> MidiSequence.class.getCanonicalName() + ":SetModified";
-        Internal ResetModified = () -> MidiSequence.class.getCanonicalName() + ":ResetModified";
-    }
-
-    private static final class SetModified implements Consumer<MidiSequence> {
-
-        private boolean lastModified = false;
-
-        @Override
-        public final void accept(final MidiSequence midiSequence) {
-            final boolean newModified = midiSequence.modification.get();
-            if (newModified != lastModified) {
-                lastModified = newModified;
-                midiSequence.fire(Channel.SetModified);
-            }
-        }
-    }
-
-    private static final class SetPath implements Consumer<MidiSequence> {
-
-        private Path lastPath = null;
-
-        @Override
-        public final void accept(final MidiSequence midiSequence) {
-            final Path newPath = midiSequence.path.get();
-            if (!Objects.equals(newPath, lastPath)) {
-                lastPath = newPath;
-                midiSequence.fire(Channel.SetPath);
-            }
-        }
-    }
-
-    private static final class SetTracks implements Consumer<MidiSequence> {
-
-        private List<Integer> lastHashCodes = null;
-
-        @Override
-        public final void accept(final MidiSequence midiSequence) {
-            final List<Integer> newHashCodes = midiSequence.features.get(Key.TRACKS)
-                                                                    .stream()
-                                                                    .map(MidiTrack::backing)
-                                                                    .map(System::identityHashCode)
-                                                                    .toList();
-            if (!Objects.equals(newHashCodes, lastHashCodes)) {
-                lastHashCodes = newHashCodes;
-                midiSequence.fire(Channel.SetPath);
-            }
-        }
-    }
-
     @SuppressWarnings("ClassNameSameAsAncestorName")
     private final class Features extends de.team33.patterns.features.alpha.Features<Features> {
 
@@ -292,6 +242,7 @@ public class MidiSequence extends Sender<MidiSequence> {
             super(ConcurrentHashMap::new);
         }
 
+        @SuppressWarnings("ReturnOfInnerClass")
         @Override
         protected final Features host() {
             return this;
@@ -306,7 +257,7 @@ public class MidiSequence extends Sender<MidiSequence> {
             }
         }
 
-        @SuppressWarnings("NumericCastThatLosesPrecision")
+        @SuppressWarnings({"NumericCastThatLosesPrecision", "MagicNumber"})
         private int newTempo() {
             synchronized (backing) {
                 final Track[] tracks = backing.getTracks();

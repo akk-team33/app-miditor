@@ -151,8 +151,7 @@ public class MidiTrack extends Sender<MidiTrack> {
         return String.format("Track %02d", index);
     }
 
-    @Deprecated // may stay as package private (?)
-    public final Track backing() {
+    final Track backing() {
         return backing;
     }
 
@@ -201,6 +200,10 @@ public class MidiTrack extends Sender<MidiTrack> {
         }
         setModified();
         return result;
+    }
+
+    final int id() {
+        return System.identityHashCode(backing);
     }
 
     public enum Channel implements de.team33.patterns.notes.alpha.Channel<MidiTrack> {
