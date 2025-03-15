@@ -1,7 +1,6 @@
 package de.team33.midi;
 
 import de.team33.midix.Midi;
-import de.team33.patterns.execution.metis.SimpleAsyncExecutor;
 import de.team33.patterns.notes.alpha.Audience;
 import de.team33.patterns.notes.alpha.Mapping;
 import de.team33.patterns.notes.alpha.Sender;
@@ -17,7 +16,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -26,21 +25,26 @@ import java.util.stream.Stream;
 import static java.util.stream.Collectors.groupingBy;
 
 @SuppressWarnings({"ClassNamePrefixedWithPackageName", "ClassWithTooManyMethods"})
-public class MidiTrack extends Sender<MidiTrack> {
+public final class MidiTrack extends Sender<MidiTrack> {
 
     private final Audience audience;
     private final Mapping mapping;
     private final int index;
     private final Track backing;
-    private final AtomicBoolean modification = new AtomicBoolean(false);
+    private final ModificationCounter modificationCounter;
     private final Features features = new Features();
 
-    public MidiTrack(final int index, final Track backing) {
+    private final Consumer<Integer> onModified;
+    private final Consumer<Void> onReset;
+    private final Consumer<Set<Integer>> onRemoved;
+
+    private MidiTrack(final int index,
+              final Track backing,
+              final ModificationCounter modificationCounter,
+              final Executor executor) {
         super(MidiTrack.class);
-        this.audience = new Audience(new SimpleAsyncExecutor());
+        this.audience = new Audience(executor);
         this.mapping = Mapping.builder()
-                              .put(Internal.SetModified, () -> this)
-                              .put(Internal.ResetModified, () -> this)
                               .put(Channel.SetEvents, () -> this)
                               .put(Channel.SetModified, () -> this)
                               .put(Channel.SetChannels, () -> this)
@@ -48,12 +52,22 @@ public class MidiTrack extends Sender<MidiTrack> {
                               .build();
         this.index = index;
         this.backing = backing;
+        this.modificationCounter = modificationCounter;
 
-        final SetModified onSetModified = new SetModified();
-        addPlain(Internal.SetModified, onSetModified);
-        addPlain(Internal.ResetModified, onSetModified);
-        addPlain(Internal.SetModified, new SetName());
-        addPlain(Internal.SetModified, new SetMidiChannels());
+        addPlain(Channel.SetEvents, new SetName());
+        addPlain(Channel.SetEvents, new SetMidiChannels());
+
+        this.onReset = ignored -> fire(Channel.SetModified);
+        this.onModified = this::onModified;
+        this.onRemoved = this::onRemoved;
+
+        modificationCounter.add(ModificationCounter.Channel.REMOVED, onRemoved);
+        modificationCounter.add(ModificationCounter.Channel.SUB_MODIFIED, onModified);
+        modificationCounter.add(ModificationCounter.Channel.RESET, onReset);
+    }
+
+    static Factory factory(final ModificationCounter modificationCounter, final Executor executor) {
+        return (index1, track) -> new MidiTrack(index1, track, modificationCounter, executor);
     }
 
     private static boolean isChannelEvent(final MidiEvent midiEvent) {
@@ -66,6 +80,20 @@ public class MidiTrack extends Sender<MidiTrack> {
 
     private static int channelOf(final MidiEvent midiEvent) {
         return midiEvent.getMessage().getStatus() & 0x0f;
+    }
+
+    private void onRemoved(final Set<Integer> ids) {
+        if (ids.contains(id())) {
+            modificationCounter.remove(ModificationCounter.Channel.SUB_MODIFIED, onModified);
+            modificationCounter.remove(ModificationCounter.Channel.RESET, onReset);
+            modificationCounter.remove(ModificationCounter.Channel.REMOVED, onRemoved);
+        }
+    }
+
+    private void onModified(final int id) {
+        if (id == id()) {
+            fire(Channel.SetModified);
+        }
     }
 
     @Override
@@ -156,19 +184,13 @@ public class MidiTrack extends Sender<MidiTrack> {
     }
 
     public final boolean isModified() {
-        return modification.get();
+        return 0L != modificationCounter.get(id());
     }
 
     private MidiTrack setModified() {
-        modification.set(true);
         features.reset();
-        return fire(Internal.SetModified, Channel.SetEvents);
-    }
-
-    @Deprecated // should stay as package private
-    public final MidiTrack resetModified() {
-        modification.set(false);
-        return fire(Internal.ResetModified);
+        modificationCounter.increment(id());
+        return fire(Channel.SetEvents);
     }
 
     public final MidiTrack shift(final long delta) {
@@ -214,10 +236,9 @@ public class MidiTrack extends Sender<MidiTrack> {
         SetName
     }
 
-    private interface Internal extends de.team33.patterns.notes.alpha.Channel<MidiTrack> {
-
-        Internal SetModified = () -> Internal.class.getCanonicalName() + ":SetModified";
-        Internal ResetModified = () -> Internal.class.getCanonicalName() + ":ResetModified";
+    @FunctionalInterface
+    interface Factory {
+        MidiTrack create(int index, Track track);
     }
 
     @SuppressWarnings("ClassNameSameAsAncestorName")
@@ -253,20 +274,6 @@ public class MidiTrack extends Sender<MidiTrack> {
             if (!newName.equals(lastName)) {
                 lastName = newName;
                 track.fire(Channel.SetName);
-            }
-        }
-    }
-
-    private static final class SetModified implements Consumer<MidiTrack> {
-
-        private boolean lastModified = false;
-
-        @Override
-        public final void accept(final MidiTrack track) {
-            final boolean newModified = track.modification.get();
-            if (newModified != lastModified) {
-                lastModified = newModified;
-                track.fire(Channel.SetModified);
             }
         }
     }

@@ -36,6 +36,7 @@ public class MidiSequence extends Sender<MidiSequence> {
     private final Sequence backing;
     private final Mutable<Path> path;
     private final ModificationCounter modificationCounter;
+    private final MidiTrack.Factory trackFactory;
     private final Features features = new Features();
 
     MidiSequence(final Path path, final Sequence backing) {
@@ -50,6 +51,7 @@ public class MidiSequence extends Sender<MidiSequence> {
         this.backing = backing;
         this.path = new Mutable<>(NORMALIZER, path);
         this.modificationCounter = new ModificationCounter(executor);
+        this.trackFactory = MidiTrack.factory(modificationCounter, executor);
 
         modificationCounter.add(ModificationCounter.Channel.MODIFIED, this::onModified);
         modificationCounter.add(ModificationCounter.Channel.RESET, this::onModified);
@@ -164,7 +166,7 @@ public class MidiSequence extends Sender<MidiSequence> {
     }
 
     public final boolean isModified() {
-        return 0 != modificationCounter.get();
+        return 0L != modificationCounter.get();
     }
 
     private MidiSequence setModified() {
@@ -252,7 +254,7 @@ public class MidiSequence extends Sender<MidiSequence> {
             synchronized (backing) {
                 final Track[] tracks = backing.getTracks();
                 return IntStream.range(0, tracks.length)
-                                .mapToObj(index -> new MidiTrack(index, tracks[index]))
+                                .mapToObj(index -> trackFactory.create(index, tracks[index]))
                                 .toList();
             }
         }
