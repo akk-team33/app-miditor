@@ -4,7 +4,6 @@ import de.team33.midi.MidiPlayer;
 import de.team33.midi.MidiPlayer.State;
 import de.team33.midi.MidiSequence;
 import de.team33.midi.MidiTrack;
-import de.team33.midi.PlayerImpl;
 import de.team33.miditor.controller.UIController;
 import de.team33.miditor.model.PartSelection;
 import de.team33.miditor.ui.sequence.Context;
@@ -57,7 +56,7 @@ public class MainFrame extends XFrame {
         super("?", prefs);
         this.sequence = sequence;
         selection = new PartSelection(this.sequence);
-        player = new PlayerImpl(this.sequence);
+        player = new MidiPlayer(this.sequence);
         m_EventEditor = new TRACK_EDITOR();
         setIconImage(Rsrc.MAIN_ICON.getImage());
         setContentPane(new MAIN_PANE());

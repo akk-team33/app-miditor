@@ -94,7 +94,7 @@ public abstract class DriveControl extends JPanel {
             super(Rsrc.DC_ICONSET[s.ordinal()]);
             m_State = s;
             getContext().getPlayer()
-                        .addListener(MidiPlayer.Event.SetState, this::onSetState);
+                        .addListener(MidiPlayer.Channel.SetState, this::onSetState);
             getContext().getWindow()
                         .addWindowListener(new CLIENT3());
             addActionListener(this::onActionPerformed);
