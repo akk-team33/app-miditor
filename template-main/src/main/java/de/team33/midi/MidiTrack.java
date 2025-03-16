@@ -2,6 +2,7 @@ package de.team33.midi;
 
 import de.team33.midix.Midi;
 import de.team33.patterns.notes.alpha.Audience;
+import de.team33.patterns.notes.alpha.Listeners;
 import de.team33.patterns.notes.alpha.Mapping;
 import de.team33.patterns.notes.alpha.Sender;
 
@@ -33,10 +34,7 @@ public final class MidiTrack extends Sender<MidiTrack> {
     private final Track backing;
     private final ModificationCounter modificationCounter;
     private final Features features = new Features();
-
-    private final Consumer<Integer> onModified;
-    private final Consumer<Void> onReset;
-    private final Consumer<Set<Integer>> onRemoved;
+    private final Listeners listeners = new Listeners();
 
     private MidiTrack(final int index,
               final Track backing,
@@ -57,14 +55,10 @@ public final class MidiTrack extends Sender<MidiTrack> {
         addPlain(Channel.SetEvents, new SetName());
         addPlain(Channel.SetEvents, new SetMidiChannels());
 
-        this.onReset = ignored -> fire(Channel.SetModified);
-        this.onModified = this::onModified;
-        this.onRemoved = this::onRemoved;
-
         modificationCounter.registry()
-                           .add(ModificationCounter.Channel.REMOVED, onRemoved)
-                           .add(ModificationCounter.Channel.SUB_MODIFIED, onModified)
-                           .add(ModificationCounter.Channel.RESET, onReset);
+                           .add(ModificationCounter.Channel.REMOVED, listeners.add(this::onRemoved))
+                           .add(ModificationCounter.Channel.SUB_MODIFIED, listeners.add(this::onModified))
+                           .add(ModificationCounter.Channel.RESET, listeners.add(ignored -> fire(Channel.SetModified)));
     }
 
     static Factory factory(final ModificationCounter modificationCounter, final Executor executor) {
@@ -87,10 +81,7 @@ public final class MidiTrack extends Sender<MidiTrack> {
 
     private void onRemoved(final Set<Integer> ids) {
         if (ids.contains(id())) {
-            modificationCounter.registry()
-                               .remove(ModificationCounter.Channel.SUB_MODIFIED, onModified)
-                               .remove(ModificationCounter.Channel.RESET, onReset)
-                               .remove(ModificationCounter.Channel.REMOVED, onRemoved);
+            listeners.removeFrom(modificationCounter.registry());
         }
     }
 
