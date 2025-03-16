@@ -56,7 +56,6 @@ public final class MidiTrack extends Sender<MidiTrack> {
         addPlain(Channel.SetEvents, new SetMidiChannels());
 
         modificationCounter.registry()
-                           .add(ModificationCounter.Channel.REMOVED, listeners.add(this::onRemoved))
                            .add(ModificationCounter.Channel.SUB_MODIFIED, listeners.add(this::onModified))
                            .add(ModificationCounter.Channel.RESET, listeners.add(ignored -> fire(Channel.SetModified)));
     }
@@ -77,12 +76,6 @@ public final class MidiTrack extends Sender<MidiTrack> {
     @SuppressWarnings("MagicNumber")
     private static int channelOf(final MidiEvent midiEvent) {
         return midiEvent.getMessage().getStatus() & 0x0f;
-    }
-
-    private void onRemoved(final Set<Integer> ids) {
-        if (ids.contains(id())) {
-            listeners.removeFrom(modificationCounter.registry());
-        }
     }
 
     private void onModified(final int id) {
@@ -220,6 +213,10 @@ public final class MidiTrack extends Sender<MidiTrack> {
 
     final int id() {
         return System.identityHashCode(backing);
+    }
+
+    final void release() {
+        listeners.removeFrom(modificationCounter.registry());
     }
 
     @SuppressWarnings("ClassNameSameAsAncestorName")

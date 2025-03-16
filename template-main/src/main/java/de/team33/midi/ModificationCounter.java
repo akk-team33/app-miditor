@@ -5,13 +5,9 @@ import de.team33.patterns.notes.alpha.Registry;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicLong;
-
-import static java.util.function.Predicate.not;
-import static java.util.stream.Collectors.toSet;
 
 @SuppressWarnings("unused")
 class ModificationCounter {
@@ -57,11 +53,7 @@ class ModificationCounter {
     }
 
     final void keep(final Collection<Integer> ids) {
-        final Set<Integer> drop = subCounters.keySet().stream()
-                                             .filter(not(ids::contains))
-                                             .collect(toSet());
-        subCounters.keySet().removeAll(drop);
-        audience.send(Channel.REMOVED, drop);
+        subCounters.keySet().retainAll(ids);
     }
 
     @SuppressWarnings("ClassNameSameAsAncestorName")
@@ -70,7 +62,6 @@ class ModificationCounter {
 
         Channel<Void> MODIFIED = () -> Channel.class.getCanonicalName() + ":MODIFIED";
         Channel<Integer> SUB_MODIFIED = () -> Channel.class.getCanonicalName() + ":SUB_MODIFIED";
-        Channel<Set<Integer>> REMOVED = () -> Channel.class.getCanonicalName() + ":REMOVED";
         Channel<Void> RESET = () -> Channel.class.getCanonicalName() + ":RESET";
     }
 }

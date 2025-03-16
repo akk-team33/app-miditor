@@ -122,6 +122,7 @@ public class MidiSequence extends Sender<MidiSequence> {
         for (final MidiEvent event : events) {
             track.add(event);
         }
+        modificationCounter.increment(System.identityHashCode(track));
     }
 
     @SuppressWarnings("OverloadedVarargsMethod")
@@ -144,6 +145,7 @@ public class MidiSequence extends Sender<MidiSequence> {
             streamOf(tracks).flatMap(Util::stream)
                             .forEach(newTrack::add);
             streamOf(tracks).forEach(backing::deleteTrack);
+            modificationCounter.increment(System.identityHashCode(newTrack));
         }
         return setModified();
     }
@@ -171,6 +173,9 @@ public class MidiSequence extends Sender<MidiSequence> {
     }
 
     private MidiSequence setModified() {
+        features.peek(Key.TRACKS)
+                .orElseGet(List::of)
+                .forEach(MidiTrack::release);
         features.reset();
         modificationCounter.increment();
         modificationCounter.keep(getTracks().stream().map(MidiTrack::id).collect(Collectors.toSet()));

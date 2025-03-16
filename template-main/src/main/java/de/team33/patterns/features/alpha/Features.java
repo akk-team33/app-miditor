@@ -1,6 +1,7 @@
 package de.team33.patterns.features.alpha;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
@@ -40,6 +41,14 @@ public abstract class Features<H> {
     @SuppressWarnings("unchecked")
     public final <R> R get(final Key<? super H, R> key) {
         return (R) backing.computeIfAbsent(key, this::initialOf);
+    }
+
+    /**
+     * TODO!
+     */
+    @SuppressWarnings("unchecked")
+    public final <R> Optional<R> peek(final Key<? super H, R> key) {
+        return Optional.ofNullable((R) backing.get(key));
     }
 
     /**
