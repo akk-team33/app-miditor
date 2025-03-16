@@ -1,6 +1,7 @@
 package de.team33.midi;
 
 import de.team33.patterns.notes.alpha.Audience;
+import de.team33.patterns.notes.alpha.Registry;
 
 import java.util.Collection;
 import java.util.Map;
@@ -8,7 +9,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Consumer;
 
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toSet;
@@ -24,14 +24,8 @@ class ModificationCounter {
         this.audience = new Audience(executor);
     }
 
-    @SuppressWarnings("TypeMayBeWeakened")
-    final <M> void add(final Channel<M> channel, final Consumer<? super M> listener) {
-        audience.add(channel, listener);
-    }
-
-    @SuppressWarnings("TypeMayBeWeakened")
-    final <M> void remove(final Channel<M> channel, final Consumer<? super M> listener) {
-        audience.remove(channel, listener);
+    final Registry<?> registry() {
+        return audience;
     }
 
     private AtomicLong subCounter(final int id) {

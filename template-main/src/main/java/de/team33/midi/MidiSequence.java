@@ -53,9 +53,10 @@ public class MidiSequence extends Sender<MidiSequence> {
         this.modificationCounter = new ModificationCounter(executor);
         this.trackFactory = MidiTrack.factory(modificationCounter, executor);
 
-        modificationCounter.add(ModificationCounter.Channel.MODIFIED, this::onModified);
-        modificationCounter.add(ModificationCounter.Channel.RESET, this::onModified);
-        modificationCounter.add(ModificationCounter.Channel.SUB_MODIFIED, this::onSubModified);
+        modificationCounter.registry()
+                           .add(ModificationCounter.Channel.MODIFIED, this::onModified)
+                           .add(ModificationCounter.Channel.RESET, this::onModified)
+                           .add(ModificationCounter.Channel.SUB_MODIFIED, this::onSubModified);
     }
 
     public static MidiSequence load(final Path path) throws InvalidMidiDataException, IOException {

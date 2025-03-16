@@ -14,7 +14,7 @@ import java.util.function.Consumer;
 /**
  * Implementation of a registry with the additional option to send messages to the registered listeners.
  */
-public class Audience implements Registry {
+public class Audience implements Registry<Audience> {
 
     private final Object monitor = new Object();
     private final Map<Channel<?>, List<Consumer<?>>> backing = new HashMap<>(0);
@@ -48,7 +48,7 @@ public class Audience implements Registry {
     }
 
     @Override
-    public final <M> void add(final Channel<M> channel, final Consumer<? super M> listener) {
+    public final <M> Audience add(final Channel<M> channel, final Consumer<? super M> listener) {
         synchronized (monitor) {
             final List<Consumer<? super M>> oldList = getListeners(channel);
             final List<Consumer<? super M>> newList = new ArrayList<>(oldList.size() + 1);
@@ -56,16 +56,18 @@ public class Audience implements Registry {
             newList.add(listener);
             putListeners(channel, newList);
         }
+        return this;
     }
 
     @Override
-    public final <M> void remove(final Channel<M> channel, final Consumer<? super M> listener) {
+    public final <M> Audience remove(final Channel<M> channel, final Consumer<? super M> listener) {
         synchronized (monitor) {
             final List<Consumer<? super M>> oldList = getListeners(channel);
             final List<Consumer<? super M>> newList = new ArrayList<>(oldList);
             newList.remove(listener);
             putListeners(channel, newList);
         }
+        return this;
     }
 
     private static <M> Optional<Consumer<M>> emitter(final Collection<? extends Consumer<? super M>> listeners) {

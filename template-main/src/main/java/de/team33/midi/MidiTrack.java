@@ -61,9 +61,10 @@ public final class MidiTrack extends Sender<MidiTrack> {
         this.onModified = this::onModified;
         this.onRemoved = this::onRemoved;
 
-        modificationCounter.add(ModificationCounter.Channel.REMOVED, onRemoved);
-        modificationCounter.add(ModificationCounter.Channel.SUB_MODIFIED, onModified);
-        modificationCounter.add(ModificationCounter.Channel.RESET, onReset);
+        modificationCounter.registry()
+                           .add(ModificationCounter.Channel.REMOVED, onRemoved)
+                           .add(ModificationCounter.Channel.SUB_MODIFIED, onModified)
+                           .add(ModificationCounter.Channel.RESET, onReset);
     }
 
     static Factory factory(final ModificationCounter modificationCounter, final Executor executor) {
@@ -86,9 +87,10 @@ public final class MidiTrack extends Sender<MidiTrack> {
 
     private void onRemoved(final Set<Integer> ids) {
         if (ids.contains(id())) {
-            modificationCounter.remove(ModificationCounter.Channel.SUB_MODIFIED, onModified);
-            modificationCounter.remove(ModificationCounter.Channel.RESET, onReset);
-            modificationCounter.remove(ModificationCounter.Channel.REMOVED, onRemoved);
+            modificationCounter.registry()
+                               .remove(ModificationCounter.Channel.SUB_MODIFIED, onModified)
+                               .remove(ModificationCounter.Channel.RESET, onReset)
+                               .remove(ModificationCounter.Channel.REMOVED, onRemoved);
         }
     }
 
