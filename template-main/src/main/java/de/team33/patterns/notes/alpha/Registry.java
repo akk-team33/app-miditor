@@ -1,5 +1,7 @@
 package de.team33.patterns.notes.alpha;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.function.Consumer;
 
 /**
@@ -35,5 +37,18 @@ public interface Registry<R extends Registry<R>> {
      * @param listener A {@link Consumer} to unregister as a listener.
      * @param <M>      The message type.
      */
-    <M> R remove(Channel<M> channel, Consumer<? super M> listener);
+    R remove(Channel<?> channel, Consumer<?> listener);
+
+    /**
+     * TODO!
+     */
+    R remove(Collection<? extends Consumer<?>> listeners);
+
+    /**
+     * TODO!
+     */
+    @SuppressWarnings("OverloadedVarargsMethod")
+    default R remove(final Consumer<?>... listeners) {
+        return remove(Arrays.asList(listeners));
+    }
 }

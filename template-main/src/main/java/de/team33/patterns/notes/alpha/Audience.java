@@ -1,23 +1,25 @@
 package de.team33.patterns.notes.alpha;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
+
+import static java.util.function.Predicate.not;
 
 /**
  * Implementation of a registry with the additional option to send messages to the registered listeners.
  */
 public class Audience implements Registry<Audience> {
 
-    private final Object monitor = new Object();
-    private final Map<Channel<?>, List<Consumer<?>>> backing = new HashMap<>(0);
+    @SuppressWarnings("rawtypes")
+    private final Map<Channel, List> backing = new HashMap<>(0);
     private final Executor executor;
 
     /**
@@ -36,49 +38,60 @@ public class Audience implements Registry<Audience> {
         this.executor = executor;
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    private <M> List<Consumer<? super M>> getListeners(final Channel<M> channel) {
-        final List list = backing.get(channel);
-        return (null == list) ? Collections.emptyList() : list;
+    private static <M> Consumer<M> emitter(final Collection<? extends Consumer<? super M>> listeners) {
+        return message -> {
+            for (final Consumer<? super M> listener : listeners) {
+                listener.accept(message);
+            }
+        };
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    private void putListeners(final Channel channel, final List newList) {
-        backing.put(channel, newList);
+    @SuppressWarnings("unchecked")
+    private <M> List<Consumer<? super M>> list(final Channel<M> channel) {
+        return backing.get(channel);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <M> Stream<Consumer<? super M>> stream(final Channel<M> channel) {
+        return Optional.ofNullable(list(channel)).map(List::stream).orElseGet(Stream::empty);
     }
 
     @Override
     public final <M> Audience add(final Channel<M> channel, final Consumer<? super M> listener) {
-        synchronized (monitor) {
-            final List<Consumer<? super M>> oldList = getListeners(channel);
-            final List<Consumer<? super M>> newList = new ArrayList<>(oldList.size() + 1);
-            newList.addAll(oldList);
-            newList.add(listener);
-            putListeners(channel, newList);
+        synchronized (backing) {
+            backing.put(channel, Stream.concat(stream(channel), Stream.of(listener)).toList());
+        }
+        return this;
+    }
+
+    private void remove(final Channel<?> channel, final Collection<? extends Consumer<?>> listeners) {
+        backing.put(channel, stream(channel).filter(not(listeners::contains)).toList());
+    }
+
+    @Override
+    public final Audience remove(final Channel<?> channel, final Consumer<?> listener) {
+        synchronized (backing) {
+            remove(channel, Set.of(listener));
         }
         return this;
     }
 
     @Override
-    public final <M> Audience remove(final Channel<M> channel, final Consumer<? super M> listener) {
-        synchronized (monitor) {
-            final List<Consumer<? super M>> oldList = getListeners(channel);
-            final List<Consumer<? super M>> newList = new ArrayList<>(oldList);
-            newList.remove(listener);
-            putListeners(channel, newList);
+    public final Audience remove(final Collection<? extends Consumer<?>> listeners) {
+        synchronized (backing) {
+            //noinspection unchecked,SuspiciousMethodCalls
+            backing.entrySet().stream()
+                   .filter(entry -> entry.getValue().stream()
+                                         .anyMatch(listeners::contains))
+                   .forEach(entry -> remove(entry.getKey(), listeners));
         }
         return this;
     }
 
-    private static <M> Optional<Consumer<M>> emitter(final Collection<? extends Consumer<? super M>> listeners) {
-        return listeners.isEmpty()
-                ? Optional.empty()
-                : Optional.of(message -> listeners.forEach(listener -> listener.accept(message)));
-    }
-
     private <M> Optional<Consumer<M>> emitter(final Channel<? super M> channel) {
-        synchronized (monitor) {
-            return emitter(getListeners(channel));
+        synchronized (backing) {
+            return Optional.ofNullable(list(channel))
+                           .map(Audience::emitter);
         }
     }
 
