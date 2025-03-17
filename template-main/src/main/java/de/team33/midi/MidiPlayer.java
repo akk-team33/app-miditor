@@ -7,6 +7,7 @@ import de.team33.patterns.notes.alpha.Audience;
 import de.team33.patterns.notes.alpha.Mapping;
 import de.team33.patterns.notes.alpha.Sender;
 
+import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
@@ -21,7 +22,7 @@ import java.util.function.Consumer;
 import java.util.prefs.Preferences;
 import java.util.stream.IntStream;
 
-@SuppressWarnings("ClassWithTooManyMethods")
+@SuppressWarnings("ClassNamePrefixedWithPackageName")
 public class MidiPlayer extends Sender<MidiPlayer> {
 
     private static final Preferences PREFS = Preferences.userRoot().node(ClassUtil.getPathString(MidiPlayer.class));
@@ -29,7 +30,8 @@ public class MidiPlayer extends Sender<MidiPlayer> {
     private final Audience audience;
     private final Mapping mapping;
     private final MidiSequence sequence;
-    private final Sequencer backing;
+    @Deprecated // make package private asap!
+    final Sequencer backing;
     private MidiDevice outputDevice;
     private final Features features = new Features();
 
@@ -77,60 +79,26 @@ public class MidiPlayer extends Sender<MidiPlayer> {
         return result;
     }
 
-    private void core_close(final Set<? super Channel> events) {
+    @Deprecated // make private asap!
+    final void close() {
         if (backing.isOpen()) {
-            outputDevice.close();
-            outputDevice = null;
-            backing.close();
-            events.add(Channel.SET_STATE);
-        }
-    }
-
-    private void core_open(final Set<? super Channel> events) {
-        if (!backing.isOpen()) {
-            try {
-                outputDevice = newOutputDevice();
-                outputDevice.open();
-                backing.getTransmitter().setReceiver(outputDevice.getReceiver());
-                backing.setSequence(sequence.backing());
-                backing.open();
-                events.add(Channel.SET_STATE);
-                events.add(Channel.SET_TEMPO);
-            } catch (final Exception e) {
-                Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), e);
+            if (backing.isRunning()) {
+                backing.stop();
             }
+            backing.close();
+            outputDevice.close();
         }
-
     }
 
-    private void core_setTickPosition(final long ticks, final Set<? super Channel> events) {
+    @Deprecated // make private asap!
+    final void open() throws MidiUnavailableException, InvalidMidiDataException {
         if (!backing.isOpen()) {
-            core_open(events);
+            outputDevice = newOutputDevice();
+            outputDevice.open();
+            backing.getTransmitter().setReceiver(outputDevice.getReceiver());
+            backing.setSequence(sequence.backing());
+            backing.open();
         }
-
-        backing.setTickPosition(ticks);
-        events.add(Channel.SET_POSITION);
-        events.add(Channel.SET_STATE);
-    }
-
-    private void core_start(final Set<? super Channel> messages) {
-        if (!backing.isOpen()) {
-            core_open(messages);
-        }
-
-        if (!backing.isRunning()) {
-            backing.start();
-            messages.add(Channel.SET_STATE);
-        }
-
-    }
-
-    private void core_stop(final Set<? super Channel> events) {
-        if (backing.isRunning()) {
-            backing.stop();
-            events.add(Channel.SET_STATE);
-        }
-
     }
 
     @Override
@@ -153,9 +121,8 @@ public class MidiPlayer extends Sender<MidiPlayer> {
     }
 
     public final void setPosition(final long ticks) {
-        final Set<Channel> channels = EnumSet.noneOf(Channel.class);
-        core_setTickPosition(ticks, channels);
-        fire(channels);
+        backing.setTickPosition(ticks);
+        fire(Channel.SET_POSITION);
     }
 
     public final MidiSequence getSequence() {
@@ -166,31 +133,9 @@ public class MidiPlayer extends Sender<MidiPlayer> {
         return PlayState.of(backing);
     }
 
-    public final void setState(final PlayState newState) {
-        setNonNull((null == newState) ? PlayState.OFF : newState);
-    }
-
-    private void setNonNull(final PlayState newState) {
-        final Set<Channel> channels = EnumSet.noneOf(Channel.class);
-        final PlayState currState = getState();
-
-        if (currState != newState) {
-            if (PlayState.OFF == currState) {
-                core_open(channels);
-            }
-
-            if (PlayState.RUNNING == newState) {
-                core_start(channels);
-            } else if (PlayState.OFF == newState) {
-                core_close(channels);
-            } else {
-                core_stop(channels);
-                if (PlayState.READY == newState) {
-                    core_setTickPosition(0L, channels);
-                }
-            }
-            fire(channels);
-        }
+    public final void push(final PlayTrigger trigger) {
+        final Set<Channel> results = trigger.apply(this, getState());
+        fire(results);
     }
 
     public final int getTempo() {
@@ -198,11 +143,9 @@ public class MidiPlayer extends Sender<MidiPlayer> {
     }
 
     public final void setTempo(final int tempo) {
-        final Set<Channel> channels = EnumSet.noneOf(Channel.class);
-        channels.add(Channel.SET_TEMPO);
         backing.setTempoInBPM(tempo);
         sequence.setTempo(tempo);
-        fire(channels);
+        fire(Channel.SET_TEMPO);
     }
 
     public final Timing getTiming() {
@@ -229,20 +172,21 @@ public class MidiPlayer extends Sender<MidiPlayer> {
     }
 
     private void onSetParts(final MidiSequence midiSequence) {
-        final Set<Channel> channels = EnumSet.noneOf(Channel.class);
-        final boolean running = backing.isRunning();
         final boolean open = backing.isOpen();
-        final long currPos = backing.getTickPosition();
-        core_close(channels);
+        final boolean running = backing.isRunning();
+        final long position = backing.getTickPosition();
+        close();
         if (open) {
-            core_setTickPosition(currPos, channels);
+            Util.CNV.run(this::open);
+            backing.setTickPosition(position);
             if (running) {
-                core_start(channels);
+                backing.start();
             }
         }
-        fire(channels);
+        fire(Channel.SET_STATE, Channel.SET_POSITION);
     }
 
+    @SuppressWarnings("SynchronizeOnThis")
     private class STARTER implements Consumer<MidiPlayer> {
 
         private volatile PlayState lastState = null;
@@ -283,6 +227,7 @@ public class MidiPlayer extends Sender<MidiPlayer> {
         }
     }
 
+    @SuppressWarnings("ClassNameSameAsAncestorName")
     public enum Channel implements de.team33.patterns.notes.alpha.Channel<MidiPlayer> {
         SET_MODES,
         SET_POSITION,
@@ -306,6 +251,7 @@ public class MidiPlayer extends Sender<MidiPlayer> {
 
         @Override
         protected final Features host() {
+            //noinspection ReturnOfInnerClass
             return this;
         }
 

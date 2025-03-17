@@ -1,5 +1,7 @@
 package de.team33.miditor.ui;
 
+import de.team33.midi.PlayTrigger;
+
 import javax.swing.*;
 
 public class Rsrc {
@@ -14,10 +16,14 @@ public class Rsrc {
     public static final Icon DC_STPICON = new ImageIcon(Rsrc.class.getResource("dc_stop.gif"));
     public static final Icon DC_PAUSICON = new ImageIcon(Rsrc.class.getResource("dc_pause.gif"));
     public static final Icon DC_RUNICON = new ImageIcon(Rsrc.class.getResource("dc_run.gif"));
-    public static final Icon[] DC_ICONSET;
 
-    static {
-        DC_ICONSET = new Icon[]{null, DC_RUNICON, DC_PAUSICON, DC_STPICON};
+    public static Icon dcIcon(final PlayTrigger trigger) {
+        return switch (trigger) {
+            case START -> DC_RUNICON;
+            case STOP -> DC_STPICON;
+            case PAUSE -> DC_PAUSICON;
+            default -> throw new IllegalStateException("Unexpected value: " + trigger);
+        };
     }
 
     public Rsrc() {

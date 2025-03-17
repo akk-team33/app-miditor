@@ -2,7 +2,6 @@ package de.team33.midi;
 
 import de.team33.patterns.enums.pan.Values;
 
-import javax.sound.midi.Sequencer;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -43,7 +42,6 @@ public enum PlayTrigger {
         map.put(choice.state, choice.methods);
     }
 
-    @Deprecated // make package private asap!
     public static Set<PlayTrigger> allEffectiveOn(final PlayState state) {
         return effectiveMap.computeIfAbsent(state, PlayTrigger::newEffectiveSet);
     }
@@ -54,11 +52,11 @@ public enum PlayTrigger {
                      .collect(Collectors.toUnmodifiableSet());
     }
 
-    final Set<MidiPlayer.Channel> apply(final Sequencer sequencer, final PlayState state) {
+    final Set<MidiPlayer.Channel> apply(final MidiPlayer player, final PlayState state) {
         return Optional.ofNullable(map.get(state))
                        .orElseGet(List::of)
                        .stream()
-                       .map(action -> action.apply(sequencer))
+                       .map(action -> action.apply(player))
                        .collect(Collectors.toSet());
     }
 
@@ -67,16 +65,16 @@ public enum PlayTrigger {
     }
 
     @FunctionalInterface
-    private interface Action extends Function<Sequencer, MidiPlayer.Channel> {
+    private interface Action extends Function<MidiPlayer, MidiPlayer.Channel> {
 
-        Action OPEN = act(CNV.consumer(Sequencer::open), MidiPlayer.Channel.SET_STATE);
-        Action START = act(Sequencer::start, MidiPlayer.Channel.SET_STATE);
-        Action STOP = act(Sequencer::stop, MidiPlayer.Channel.SET_STATE);
-        Action RESET = act(seq -> seq.setTickPosition(0L), MidiPlayer.Channel.SET_POSITION);
-        Action CLOSE = act(Sequencer::close, MidiPlayer.Channel.SET_STATE);
+        Action OPEN = act(CNV.consumer(MidiPlayer::open), MidiPlayer.Channel.SET_STATE);
+        Action START = act(mp -> mp.backing.start(), MidiPlayer.Channel.SET_STATE);
+        Action STOP = act(mp -> mp.backing.stop(), MidiPlayer.Channel.SET_STATE);
+        Action RESET = act(mp -> mp.backing.setTickPosition(0L), MidiPlayer.Channel.SET_POSITION);
+        Action CLOSE = act(MidiPlayer::close, MidiPlayer.Channel.SET_STATE);
 
         @SuppressWarnings("BoundedWildcard")
-        static Action act(final Consumer<Sequencer> consumer, final MidiPlayer.Channel result) {
+        static Action act(final Consumer<MidiPlayer> consumer, final MidiPlayer.Channel result) {
             return sequencer -> {
                 consumer.accept(sequencer);
                 return result;

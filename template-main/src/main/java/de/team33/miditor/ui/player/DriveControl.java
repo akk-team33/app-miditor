@@ -2,6 +2,7 @@ package de.team33.miditor.ui.player;
 
 import de.team33.midi.MidiPlayer;
 import de.team33.midi.PlayState;
+import de.team33.midi.PlayTrigger;
 import de.team33.miditor.ui.Rsrc;
 
 import javax.swing.*;
@@ -15,9 +16,9 @@ public abstract class DriveControl extends JPanel {
     public DriveControl() {
         super(new GridLayout(1, 0, 1, 1));
         add(new REW_BUTTON());
-        add(new SBUTTON(PlayState.RUNNING));
-        add(new SBUTTON(PlayState.PAUSED));
-        add(new SBUTTON(PlayState.READY));
+        add(new SBUTTON(PlayTrigger.START));
+        add(new SBUTTON(PlayTrigger.PAUSE));
+        add(new SBUTTON(PlayTrigger.STOP));
         add(new FWD_BUTTON());
     }
 
@@ -88,11 +89,11 @@ public abstract class DriveControl extends JPanel {
     }
 
     private class SBUTTON extends ICOBUTTON {
-        private final PlayState m_State;
+        private final PlayTrigger trigger;
 
-        SBUTTON(final PlayState s) {
-            super(Rsrc.DC_ICONSET[s.ordinal()]);
-            m_State = s;
+        SBUTTON(final PlayTrigger trigger) {
+            super(Rsrc.dcIcon(trigger));
+            this.trigger = trigger;
             getContext().getPlayer()
                         .add(MidiPlayer.Channel.SET_STATE, this::onSetState);
             getContext().getWindow()
@@ -102,19 +103,19 @@ public abstract class DriveControl extends JPanel {
 
         private void _setState(final PlayState state) {
             synchronized (this) {
-                setEnabled(state != m_State);
+                setEnabled(PlayTrigger.allEffectiveOn(state).contains(trigger));
                 final JRootPane rp = getRootPane();
                 if (null != rp) {
-                    if ((PlayState.RUNNING == m_State) && (PlayState.RUNNING != state)) {
+                    if ((PlayTrigger.START == trigger) && (PlayState.RUNNING != state)) {
                         rp.setDefaultButton(this);
                         requestFocus();
                     }
 
-                    if ((PlayState.READY == m_State) && (PlayState.RUNNING == state)) {
+                    if ((PlayTrigger.STOP == trigger) && (PlayState.RUNNING == state)) {
                         rp.setDefaultButton(this);
                     }
 
-                    if ((PlayState.PAUSED == m_State) && (PlayState.RUNNING == state)) {
+                    if ((PlayTrigger.PAUSE == trigger) && (PlayState.RUNNING == state)) {
                         requestFocus();
                     }
                 }
@@ -122,7 +123,7 @@ public abstract class DriveControl extends JPanel {
         }
 
         private void onActionPerformed(final ActionEvent e) {
-            getContext().getPlayer().setState(m_State);
+            getContext().getPlayer().push(trigger);
         }
 
         private void onSetState(final MidiPlayer player) {

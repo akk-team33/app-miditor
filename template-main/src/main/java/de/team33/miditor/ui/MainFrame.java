@@ -3,7 +3,7 @@ package de.team33.miditor.ui;
 import de.team33.midi.MidiPlayer;
 import de.team33.midi.MidiSequence;
 import de.team33.midi.MidiTrack;
-import de.team33.midi.PlayState;
+import de.team33.midi.PlayTrigger;
 import de.team33.miditor.controller.UIController;
 import de.team33.miditor.model.PartSelection;
 import de.team33.miditor.ui.sequence.Context;
@@ -80,8 +80,6 @@ public class MainFrame extends XFrame {
     }
 
     private class CONTEXT implements Context, PlayerControls.Context {
-        private CONTEXT() {
-        }
 
         public Component getFrame() {
             return MainFrame.this;
@@ -134,8 +132,6 @@ public class MainFrame extends XFrame {
     }
 
     private class PLAY_CTRLS extends PlayerControls {
-        private PLAY_CTRLS() {
-        }
 
         protected PlayerControls.Context getRootContext() {
             return context;
@@ -147,9 +143,6 @@ public class MainFrame extends XFrame {
     }
 
     private class SONG_CTRLS extends SongControls {
-        private SONG_CTRLS() {
-        }
-
         protected Context getContext() {
             return context;
         }
@@ -162,15 +155,13 @@ public class MainFrame extends XFrame {
     }
 
     private class WINDOW_ADAPTER extends WindowAdapter {
-        private WINDOW_ADAPTER() {
-        }
 
         public void windowClosed(final WindowEvent e) {
-            player.setState(PlayState.OFF);
+            player.push(PlayTrigger.OFF);
         }
 
         public void windowOpened(final WindowEvent e) {
-            player.setState(PlayState.READY);
+            player.push(PlayTrigger.ON);
         }
     }
 }
