@@ -1,7 +1,6 @@
 package de.team33.midi;
 
 import de.team33.midix.Timing;
-import de.team33.patterns.execution.metis.SimpleAsyncExecutor;
 import de.team33.patterns.mutable.alpha.Mutable;
 import de.team33.patterns.notes.alpha.Audience;
 import de.team33.patterns.notes.alpha.Mapping;
@@ -18,6 +17,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -39,9 +39,8 @@ public class MidiSequence extends Sender<MidiSequence> {
     private final MidiTrack.Factory trackFactory;
     private final Features features = new Features();
 
-    MidiSequence(final Path path, final Sequence backing) {
+    MidiSequence(final Path path, final Sequence backing, final Executor executor) {
         super(MidiSequence.class);
-        final SimpleAsyncExecutor executor = new SimpleAsyncExecutor();
         this.audience = new Audience(executor);
         this.mapping = Mapping.builder()
                               .put(Channel.SetPath, () -> this)
@@ -59,9 +58,11 @@ public class MidiSequence extends Sender<MidiSequence> {
                           .add(ModificationCenter.Channel.SUB_MODIFIED, this::onSubModified);
     }
 
-    public static MidiSequence load(final Path path) throws InvalidMidiDataException, IOException {
-        final Sequence backing = MidiSystem.getSequence(path.toFile());
-        return new MidiSequence(path, backing);
+    public static Loader loader(final Executor executor) {
+        return path -> {
+            final Sequence backing = MidiSystem.getSequence(path.toFile());
+            return new MidiSequence(path, backing, executor);
+        };
     }
 
     private static Stream<Track> streamOf(final Iterable<? extends MidiTrack> tracks) {
@@ -236,6 +237,10 @@ public class MidiSequence extends Sender<MidiSequence> {
         SetModified,
         SetPath,
         SetTracks
+    }
+
+    public interface Loader {
+        MidiSequence load(final Path path) throws InvalidMidiDataException, IOException;
     }
 
     @SuppressWarnings("ClassNameSameAsAncestorName")

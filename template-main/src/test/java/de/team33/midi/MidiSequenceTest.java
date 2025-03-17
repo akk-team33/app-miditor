@@ -25,12 +25,13 @@ class MidiSequenceTest extends MidiTestBase {
     private final MidiSequence midiSequence;
 
     MidiSequenceTest() throws InvalidMidiDataException, IOException {
-        this.midiSequence = new MidiSequence(path(), sequence());
+        this.midiSequence = new MidiSequence(path(), sequence(), Runnable::run);
     }
 
     @Test
     final void load() throws Exception {
-        final MidiSequence other = MidiSequence.load(midiSequence.getPath());
+        final MidiSequence other = MidiSequence.loader(Runnable::run)
+                                               .load(midiSequence.getPath());
         assertEquals(midiSequence.getTracks().size(), other.getTracks().size());
     }
 
@@ -158,8 +159,8 @@ class MidiSequenceTest extends MidiTestBase {
 
     @Test
     final void isModified() {
-        assertEquals(false, midiSequence.isModified());
+        assertFalse(midiSequence.isModified());
         midiSequence.delete(midiSequence.getTracks().get(3));
-        assertEquals(true, midiSequence.isModified());
+        assertTrue(midiSequence.isModified());
     }
 }
