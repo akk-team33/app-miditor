@@ -17,7 +17,7 @@ public class Rsrc {
     public static final Icon[] DC_ICONSET;
 
     static {
-        DC_ICONSET = new Icon[]{null, DC_STPICON, DC_PAUSICON, DC_RUNICON};
+        DC_ICONSET = new Icon[]{null, DC_RUNICON, DC_PAUSICON, DC_STPICON};
     }
 
     public Rsrc() {

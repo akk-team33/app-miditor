@@ -1,9 +1,9 @@
 package de.team33.miditor.ui;
 
 import de.team33.midi.MidiPlayer;
-import de.team33.midi.MidiPlayer.State;
 import de.team33.midi.MidiSequence;
 import de.team33.midi.MidiTrack;
+import de.team33.midi.PlayState;
 import de.team33.miditor.controller.UIController;
 import de.team33.miditor.model.PartSelection;
 import de.team33.miditor.ui.sequence.Context;
@@ -166,11 +166,11 @@ public class MainFrame extends XFrame {
         }
 
         public void windowClosed(final WindowEvent e) {
-            player.setState(State.IDLE);
+            player.setState(PlayState.OFF);
         }
 
         public void windowOpened(final WindowEvent e) {
-            player.setState(State.STOP);
+            player.setState(PlayState.READY);
         }
     }
 }

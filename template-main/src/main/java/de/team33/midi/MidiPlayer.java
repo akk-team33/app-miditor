@@ -162,36 +162,30 @@ public class MidiPlayer extends Sender<MidiPlayer> {
         return sequence;
     }
 
-    public final State getState() {
-        if (backing.isRunning()) {
-            return State.RUN;
-        } else if (backing.isOpen()) {
-            return 0L == backing.getTickPosition() ? State.STOP : State.PAUSE;
-        } else {
-            return State.IDLE;
-        }
+    public final PlayState getState() {
+        return PlayState.of(backing);
     }
 
-    public final void setState(final State newState) {
-        setNonNull((null == newState) ? State.IDLE : newState);
+    public final void setState(final PlayState newState) {
+        setNonNull((null == newState) ? PlayState.OFF : newState);
     }
 
-    private void setNonNull(final State newState) {
+    private void setNonNull(final PlayState newState) {
         final Set<Channel> channels = EnumSet.noneOf(Channel.class);
-        final State currState = getState();
+        final PlayState currState = getState();
 
         if (currState != newState) {
-            if (State.IDLE == currState) {
+            if (PlayState.OFF == currState) {
                 core_open(channels);
             }
 
-            if (State.RUN == newState) {
+            if (PlayState.RUNNING == newState) {
                 core_start(channels);
-            } else if (State.IDLE == newState) {
+            } else if (PlayState.OFF == newState) {
                 core_close(channels);
             } else {
                 core_stop(channels);
-                if (State.STOP == newState) {
+                if (PlayState.READY == newState) {
                     core_setTickPosition(0L, channels);
                 }
             }
@@ -251,12 +245,12 @@ public class MidiPlayer extends Sender<MidiPlayer> {
 
     private class STARTER implements Consumer<MidiPlayer> {
 
-        private volatile State lastState = null;
+        private volatile PlayState lastState = null;
 
         public final void accept(final MidiPlayer player) {
             synchronized (this) {
-                final State state = player.getState();
-                if (State.RUN == state && state != lastState) {
+                final PlayState state = player.getState();
+                if (PlayState.RUNNING == state && state != lastState) {
                     // TODO?: Timer: static? member?
                     (new Timer()).schedule(MidiPlayer.this.new Task(), 100L, 50L);
                 }
@@ -287,13 +281,6 @@ public class MidiPlayer extends Sender<MidiPlayer> {
             }
             fire(channels);
         }
-    }
-
-    public enum State {
-        IDLE,
-        STOP,
-        PAUSE,
-        RUN
     }
 
     public enum Channel implements de.team33.patterns.notes.alpha.Channel<MidiPlayer> {

@@ -1,5 +1,6 @@
 package de.team33.midix;
 
+import de.team33.midi.PlayState;
 import de.team33.midi.TrackMode;
 import de.team33.patterns.enums.pan.Values;
 import de.team33.patterns.notes.alpha.Audience;
@@ -18,7 +19,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -26,7 +26,6 @@ import java.util.stream.Stream;
 import static de.team33.midix.Midi.MetaMessage.Type.SET_TEMPO;
 import static de.team33.midix.Util.CNV;
 import static de.team33.midix.Util.sleep;
-import static java.util.function.Predicate.not;
 
 @SuppressWarnings("UnusedReturnValue")
 public class MidiPlayer extends Sender<MidiPlayer> {
@@ -52,8 +51,8 @@ public class MidiPlayer extends Sender<MidiPlayer> {
         audience.add(Channel.SET_STATE, this::onSetState);
     }
 
-    private void onSetState(final State state) {
-        if (State.RUNNING == state) {
+    private void onSetState(final PlayState state) {
+        if (PlayState.RUNNING == state) {
             new Thread(this::whileRunning, "TODO:name").start();
         }
     }
@@ -101,7 +100,7 @@ public class MidiPlayer extends Sender<MidiPlayer> {
         final Set<Channel<?>> channels = new HashSet<>(0);
         final long oldPosition = getPosition();
         if (newPosition != oldPosition) {
-            final State oldState = getState();
+            final PlayState oldState = getState();
             sequencer.setTickPosition(newPosition);
             channels.add(Channel.SET_POSITION);
             if (oldState != getState()) {
@@ -111,8 +110,8 @@ public class MidiPlayer extends Sender<MidiPlayer> {
         return fire(channels);
     }
 
-    public final State getState() {
-        return State.of(sequencer);
+    public final PlayState getState() {
+        return PlayState.of(sequencer);
     }
 
     public final MidiPlayer push(final Trigger trigger) {
@@ -166,41 +165,41 @@ public class MidiPlayer extends Sender<MidiPlayer> {
     @SuppressWarnings("WeakerAccess")
     public enum Trigger {
 
-        ON(Choice.on(State.OFF).apply(Action.OPEN)),
-        START(Choice.on(State.OFF).apply(Action.OPEN, Action.START),
-              Choice.on(State.READY).apply(Action.START),
-              Choice.on(State.PAUSED).apply(Action.START)),
-        STOP(Choice.on(State.PAUSED).apply(Action.RESET),
-             Choice.on(State.RUNNING).apply(Action.STOP, Action.RESET)),
-        PAUSE(Choice.on(State.RUNNING).apply(Action.STOP)),
-        OFF(Choice.on(State.READY).apply(Action.CLOSE, Action.RESET),
-            Choice.on(State.RUNNING).apply(Action.CLOSE, Action.RESET),
-            Choice.on(State.PAUSED).apply(Action.CLOSE, Action.RESET));
+        ON(Choice.on(PlayState.OFF).apply(Action.OPEN)),
+        START(Choice.on(PlayState.OFF).apply(Action.OPEN, Action.START),
+              Choice.on(PlayState.READY).apply(Action.START),
+              Choice.on(PlayState.PAUSED).apply(Action.START)),
+        STOP(Choice.on(PlayState.PAUSED).apply(Action.RESET),
+             Choice.on(PlayState.RUNNING).apply(Action.STOP, Action.RESET)),
+        PAUSE(Choice.on(PlayState.RUNNING).apply(Action.STOP)),
+        OFF(Choice.on(PlayState.READY).apply(Action.CLOSE, Action.RESET),
+            Choice.on(PlayState.RUNNING).apply(Action.CLOSE, Action.RESET),
+            Choice.on(PlayState.PAUSED).apply(Action.CLOSE, Action.RESET));
 
         private static final Values<Trigger> VALUES = Values.of(Trigger.class);
-        private static final Map<State, Set<Trigger>> effectiveMap = new ConcurrentHashMap<>(0);
+        private static final Map<PlayState, Set<Trigger>> effectiveMap = new ConcurrentHashMap<>(0);
 
-        private final Map<State, List<Action>> map;
+        private final Map<PlayState, List<Action>> map;
 
         Trigger(final Choice... choices) {
             this.map = Stream.of(choices).collect(HashMap::new, Trigger::put, Map::putAll);
         }
 
-        private static void put(final Map<? super State, ? super List<Action>> map, final Choice choice) {
+        private static void put(final Map<? super PlayState, ? super List<Action>> map, final Choice choice) {
             map.put(choice.state, choice.methods);
         }
 
-        public static Set<Trigger> allEffectiveOn(final State state) {
+        public static Set<Trigger> allEffectiveOn(final PlayState state) {
             return effectiveMap.computeIfAbsent(state, Trigger::newEffectiveSet);
         }
 
-        private static Set<Trigger> newEffectiveSet(final State state) {
+        private static Set<Trigger> newEffectiveSet(final PlayState state) {
             return VALUES.stream()
                          .filter(value -> value.hasEffectOn(state))
                          .collect(Collectors.toUnmodifiableSet());
         }
 
-        private Set<Channel<?>> apply(final Sequencer sequencer, final State state) {
+        private Set<Channel<?>> apply(final Sequencer sequencer, final PlayState state) {
             return Optional.ofNullable(map.get(state))
                            .orElseGet(List::of)
                            .stream()
@@ -208,7 +207,7 @@ public class MidiPlayer extends Sender<MidiPlayer> {
                            .collect(Collectors.toSet());
         }
 
-        public final boolean hasEffectOn(final State state) {
+        public final boolean hasEffectOn(final PlayState state) {
             return map.containsKey(state);
         }
 
@@ -230,36 +229,15 @@ public class MidiPlayer extends Sender<MidiPlayer> {
             }
         }
 
-        private record Choice(State state, List<Action> methods) {
+        private record Choice(PlayState state, List<Action> methods) {
 
-            static Stage on(final State state) {
+            static Stage on(final PlayState state) {
                 return actions -> new Choice(state, Arrays.asList(actions));
             }
 
             private interface Stage {
                 Choice apply(Action... actions);
             }
-        }
-    }
-
-    public enum State {
-
-        OFF(not(Sequencer::isOpen)),
-        RUNNING(Sequencer::isRunning),
-        PAUSED(sequencer -> 0L < sequencer.getTickPosition()),
-        READY(sequencer -> true);
-
-        private static final Values<State> VALUES = Values.of(State.class);
-
-        private final Predicate<Sequencer> condition;
-
-        State(final Predicate<Sequencer> condition) {
-            this.condition = condition;
-        }
-
-        private static State of(final Sequencer sequencer) {
-            return VALUES.findAny(state -> state.condition.test(sequencer))
-                         .orElse(READY);
         }
     }
 
@@ -270,7 +248,7 @@ public class MidiPlayer extends Sender<MidiPlayer> {
         /**
          * Symbolizes a change of the current player state.
          */
-        Channel<State> SET_STATE = () -> "SET_STATE";
+        Channel<PlayState> SET_STATE = () -> "SET_STATE";
 
         /**
          * Symbolizes a change of the current player position.
