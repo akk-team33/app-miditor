@@ -10,13 +10,13 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicLong;
 
 @SuppressWarnings("unused")
-class ModificationCounter {
+class ModificationCenter {
 
     private final Audience audience;
     private final AtomicLong mainCounter = new AtomicLong(0L);
     private final Map<Integer, AtomicLong> subCounters = new ConcurrentHashMap<>(0);
 
-    ModificationCounter(final Executor executor) {
+    ModificationCenter(final Executor executor) {
         this.audience = new Audience(executor);
     }
 

@@ -35,7 +35,7 @@ public class MidiSequence extends Sender<MidiSequence> {
     private final Mapping mapping;
     private final Sequence backing;
     private final Mutable<Path> path;
-    private final ModificationCounter modificationCounter;
+    private final ModificationCenter modificationCenter;
     private final MidiTrack.Factory trackFactory;
     private final Features features = new Features();
 
@@ -50,13 +50,13 @@ public class MidiSequence extends Sender<MidiSequence> {
                               .build();
         this.backing = backing;
         this.path = new Mutable<>(NORMALIZER, path);
-        this.modificationCounter = new ModificationCounter(executor);
-        this.trackFactory = MidiTrack.factory(modificationCounter, executor);
+        this.modificationCenter = new ModificationCenter(executor);
+        this.trackFactory = MidiTrack.factory(modificationCenter, executor);
 
-        modificationCounter.registry()
-                           .add(ModificationCounter.Channel.MODIFIED, this::onModified)
-                           .add(ModificationCounter.Channel.RESET, this::onModified)
-                           .add(ModificationCounter.Channel.SUB_MODIFIED, this::onSubModified);
+        modificationCenter.registry()
+                          .add(ModificationCenter.Channel.MODIFIED, this::onModified)
+                          .add(ModificationCenter.Channel.RESET, this::onModified)
+                          .add(ModificationCenter.Channel.SUB_MODIFIED, this::onSubModified);
     }
 
     public static MidiSequence load(final Path path) throws InvalidMidiDataException, IOException {
@@ -74,7 +74,7 @@ public class MidiSequence extends Sender<MidiSequence> {
     }
 
     private void onSubModified(final int id) {
-        modificationCounter.increment();
+        modificationCenter.increment();
     }
 
     @Override
@@ -117,12 +117,17 @@ public class MidiSequence extends Sender<MidiSequence> {
         return setModified();
     }
 
+    private Track newTrack() {
+        final Track result = backing.createTrack();
+        modificationCenter.increment(Util.idCode(result));
+        return result;
+    }
+
     private void createTrack(final Iterable<? extends MidiEvent> events) {
-        final Track track = backing.createTrack();
+        final Track track = newTrack();
         for (final MidiEvent event : events) {
             track.add(event);
         }
-        modificationCounter.increment(System.identityHashCode(track));
     }
 
     @SuppressWarnings("OverloadedVarargsMethod")
@@ -141,11 +146,10 @@ public class MidiSequence extends Sender<MidiSequence> {
 
     public final MidiSequence join(final Iterable<? extends MidiTrack> tracks) {
         synchronized (backing) {
-            final Track newTrack = backing.createTrack();
+            final Track newTrack = newTrack();
             streamOf(tracks).flatMap(Util::stream)
                             .forEach(newTrack::add);
             streamOf(tracks).forEach(backing::deleteTrack);
-            modificationCounter.increment(System.identityHashCode(newTrack));
         }
         return setModified();
     }
@@ -169,7 +173,7 @@ public class MidiSequence extends Sender<MidiSequence> {
     }
 
     public final boolean isModified() {
-        return 0L != modificationCounter.get();
+        return 0L != modificationCenter.get();
     }
 
     private MidiSequence setModified() {
@@ -177,13 +181,13 @@ public class MidiSequence extends Sender<MidiSequence> {
                 .orElseGet(List::of)
                 .forEach(MidiTrack::release);
         features.reset();
-        modificationCounter.increment();
-        modificationCounter.keep(getTracks().stream().map(MidiTrack::id).collect(Collectors.toSet()));
+        modificationCenter.increment();
+        modificationCenter.keep(Util.stream(backing).map(Util::idCode).collect(Collectors.toSet()));
         return fire(Channel.SetTracks);
     }
 
     private MidiSequence resetModified() {
-        modificationCounter.reset();
+        modificationCenter.reset();
         return this;
     }
 

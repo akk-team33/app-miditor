@@ -32,13 +32,13 @@ public final class MidiTrack extends Sender<MidiTrack> {
     private final Mapping mapping;
     private final int index;
     private final Track backing;
-    private final ModificationCounter modificationCounter;
+    private final ModificationCenter modificationCenter;
     private final Features features = new Features();
     private final Listeners listeners = new Listeners();
 
     private MidiTrack(final int index,
               final Track backing,
-              final ModificationCounter modificationCounter,
+              final ModificationCenter modificationCenter,
               final Executor executor) {
         super(MidiTrack.class);
         this.audience = new Audience(executor);
@@ -50,18 +50,18 @@ public final class MidiTrack extends Sender<MidiTrack> {
                               .build();
         this.index = index;
         this.backing = backing;
-        this.modificationCounter = modificationCounter;
+        this.modificationCenter = modificationCenter;
 
         addPlain(Channel.SetEvents, new SetName());
         addPlain(Channel.SetEvents, new SetMidiChannels());
 
-        modificationCounter.registry()
-                           .add(ModificationCounter.Channel.SUB_MODIFIED, listeners.add(this::onModified))
-                           .add(ModificationCounter.Channel.RESET, listeners.add(ignored -> fire(Channel.SetModified)));
+        modificationCenter.registry()
+                          .add(ModificationCenter.Channel.SUB_MODIFIED, listeners.add(this::onModified))
+                          .add(ModificationCenter.Channel.RESET, listeners.add(ignored -> fire(Channel.SetModified)));
     }
 
-    static Factory factory(final ModificationCounter modificationCounter, final Executor executor) {
-        return (index1, track) -> new MidiTrack(index1, track, modificationCounter, executor);
+    static Factory factory(final ModificationCenter modificationCenter, final Executor executor) {
+        return (index1, track) -> new MidiTrack(index1, track, modificationCenter, executor);
     }
 
     private static boolean isChannelEvent(final MidiEvent midiEvent) {
@@ -79,7 +79,7 @@ public final class MidiTrack extends Sender<MidiTrack> {
     }
 
     private void onModified(final int id) {
-        if (id == id()) {
+        if (id == Util.idCode(backing)) {
             fire(Channel.SetModified);
         }
     }
@@ -171,12 +171,12 @@ public final class MidiTrack extends Sender<MidiTrack> {
     }
 
     public final boolean isModified() {
-        return 0L != modificationCounter.get(id());
+        return 0L != modificationCenter.get(Util.idCode(backing));
     }
 
     private MidiTrack setModified() {
         features.reset();
-        modificationCounter.increment(id());
+        modificationCenter.increment(Util.idCode(backing));
         return fire(Channel.SetEvents);
     }
 
@@ -211,12 +211,8 @@ public final class MidiTrack extends Sender<MidiTrack> {
         return result;
     }
 
-    final int id() {
-        return System.identityHashCode(backing);
-    }
-
     final void release() {
-        listeners.removeFrom(modificationCounter.registry());
+        listeners.removeFrom(modificationCenter.registry());
     }
 
     @SuppressWarnings("ClassNameSameAsAncestorName")

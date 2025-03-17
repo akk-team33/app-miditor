@@ -39,4 +39,8 @@ final class Util {
         return stream(track).filter(event -> TIME_SIGNATURE.isValid(event.getMessage()))
                             .findFirst();
     }
+
+    static int idCode(final Track track) {
+        return System.identityHashCode(track);
+    }
 }
