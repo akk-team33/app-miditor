@@ -29,7 +29,7 @@ public abstract class Features<H> {
      * Returns the <em>feature</em> that is associated with the given <em>key</em>.
      * <p>
      * When the <em>feature</em> in question is requested for the first time, it is created.
-     * Once created, the same <em>feature</em> is returned until it is {@link #reset(Key)}.
+     * Once created, the same <em>feature</em> is returned until it is {@linkplain #reset(Key) reset}.
      *
      * @param key A unique key for a specific feature and also a method that can generate that feature
      *            on demand in the context of a specific host.

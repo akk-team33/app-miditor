@@ -1,6 +1,7 @@
 package de.team33.midi;
 
 import de.team33.midix.Midi;
+import de.team33.patterns.features.beta.FeaturesBase;
 import de.team33.patterns.notes.alpha.Audience;
 import de.team33.patterns.notes.alpha.Listeners;
 import de.team33.patterns.notes.alpha.Mapping;
@@ -78,6 +79,16 @@ public final class MidiTrack extends Sender<MidiTrack> {
         return midiEvent.getMessage().getStatus() & 0x0f;
     }
 
+    private static void shift(final MidiEvent midiEvent, final long delta) {
+        final long oldTime = midiEvent.getTick();
+        if ((0L == oldTime) && Midi.Message.Type.META.isTypeOf(midiEvent.getMessage())) {
+            // keep it in place -> nothing to do!
+        } else {
+            final long newTime = Math.max(0L, oldTime + delta);
+            midiEvent.setTick(newTime);
+        }
+    }
+
     private void onModified(final int id) {
         if (id == Util.idCode(backing)) {
             fire(Channel.SetModified);
@@ -152,16 +163,6 @@ public final class MidiTrack extends Sender<MidiTrack> {
         }
     }
 
-    public final long ticks() {
-        synchronized (backing) {
-            return backing.ticks();
-        }
-    }
-
-    final int index() {
-        return index;
-    }
-
     public final String getPrefix() {
         return String.format("Track %02d", index);
     }
@@ -186,16 +187,6 @@ public final class MidiTrack extends Sender<MidiTrack> {
                     .forEach(midiEvent -> shift(midiEvent, delta));
         }
         return setModified();
-    }
-
-    private static void shift(final MidiEvent midiEvent, final long delta) {
-        final long oldTime = midiEvent.getTick();
-        if ((0L == oldTime) && Midi.Message.Type.META.isTypeOf(midiEvent.getMessage())) {
-            // keep it in place -> nothing to do!
-        } else {
-            final long newTime = Math.max(0L, oldTime + delta);
-            midiEvent.setTick(newTime);
-        }
     }
 
     final Map<Integer, List<MidiEvent>> extractChannels() {
@@ -231,11 +222,11 @@ public final class MidiTrack extends Sender<MidiTrack> {
 
     @SuppressWarnings("ClassNameSameAsAncestorName")
     @FunctionalInterface
-    private interface Key<R> extends de.team33.patterns.features.alpha.Features.Key<MidiTrack, R> {
+    private interface Key<R> extends FeaturesBase.Key<Features, R> {
 
-        Key<List<MidiEvent>> LIST = host -> host.features.newList();
-        Key<SortedSet<Integer>> MIDI_CHANNELS = host -> host.features.newMidiChannels();
-        Key<String> NAME = host -> host.features.newName();
+        Key<List<MidiEvent>> LIST = Features::newList;
+        Key<SortedSet<Integer>> MIDI_CHANNELS = Features::newMidiChannels;
+        Key<String> NAME = Features::newName;
     }
 
     private static final class SetMidiChannels implements Consumer<MidiTrack> {
@@ -266,16 +257,10 @@ public final class MidiTrack extends Sender<MidiTrack> {
         }
     }
 
-    @SuppressWarnings("ClassNameSameAsAncestorName")
-    private final class Features extends de.team33.patterns.features.alpha.Features<MidiTrack> {
+    private final class Features extends FeaturesBase<Features> {
 
         private Features() {
-            super(ConcurrentHashMap::new);
-        }
-
-        @Override
-        protected final MidiTrack host() {
-            return MidiTrack.this;
+            super(Features.class, ConcurrentHashMap::new);
         }
 
         private List<MidiEvent> newList() {

@@ -1,6 +1,7 @@
 package de.team33.midi;
 
 import de.team33.midix.Timing;
+import de.team33.patterns.features.beta.FeaturesBase;
 import de.team33.patterns.mutable.alpha.Mutable;
 import de.team33.patterns.notes.alpha.Audience;
 import de.team33.patterns.notes.alpha.Mapping;
@@ -245,7 +246,7 @@ public class MidiSequence extends Sender<MidiSequence> {
 
     @SuppressWarnings("ClassNameSameAsAncestorName")
     @FunctionalInterface
-    private interface Key<R> extends de.team33.patterns.features.alpha.Features.Key<Features, R> {
+    private interface Key<R> extends FeaturesBase.Key<Features, R> {
 
         Key<List<MidiTrack>> TRACKS = Features::newTrackList;
         Key<Integer> TEMPO = Features::newTempo;
@@ -253,16 +254,10 @@ public class MidiSequence extends Sender<MidiSequence> {
     }
 
     @SuppressWarnings("ClassNameSameAsAncestorName")
-    private final class Features extends de.team33.patterns.features.alpha.Features<Features> {
+    private final class Features extends FeaturesBase<Features> {
 
         private Features() {
-            super(ConcurrentHashMap::new);
-        }
-
-        @SuppressWarnings("ReturnOfInnerClass")
-        @Override
-        protected final Features host() {
-            return this;
+            super(Features.class, ConcurrentHashMap::new);
         }
 
         private List<MidiTrack> newTrackList() {
