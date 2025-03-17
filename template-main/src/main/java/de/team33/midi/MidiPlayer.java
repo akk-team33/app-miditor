@@ -37,15 +37,15 @@ public class MidiPlayer extends Sender<MidiPlayer> {
         super(MidiPlayer.class);
         this.audience = new Audience(new SimpleAsyncExecutor());
         this.mapping = Mapping.builder()
-                              .put(Channel.SetPosition, () -> this)
-                              .put(Channel.SetState, () -> this)
-                              .put(Channel.SetTempo, () -> this)
-                              .put(Channel.SetModes, () -> this)
+                              .put(Channel.SET_POSITION, () -> this)
+                              .put(Channel.SET_STATE, () -> this)
+                              .put(Channel.SET_TEMPO, () -> this)
+                              .put(Channel.SET_MODES, () -> this)
                               .build();
         backing = MidiSystem.getSequencer(false);
         this.sequence = sequence;
         this.sequence.add(MidiSequence.Channel.SetTracks, this::onSetParts);
-        audience.add(Channel.SetState, new STARTER());
+        audience.add(Channel.SET_STATE, new STARTER());
     }
 
     private static MidiDevice newOutputDevice() throws MidiUnavailableException {
@@ -82,7 +82,7 @@ public class MidiPlayer extends Sender<MidiPlayer> {
             outputDevice.close();
             outputDevice = null;
             backing.close();
-            events.add(Channel.SetState);
+            events.add(Channel.SET_STATE);
         }
     }
 
@@ -94,8 +94,8 @@ public class MidiPlayer extends Sender<MidiPlayer> {
                 backing.getTransmitter().setReceiver(outputDevice.getReceiver());
                 backing.setSequence(sequence.backing());
                 backing.open();
-                events.add(Channel.SetState);
-                events.add(Channel.SetTempo);
+                events.add(Channel.SET_STATE);
+                events.add(Channel.SET_TEMPO);
             } catch (final Exception e) {
                 Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), e);
             }
@@ -109,8 +109,8 @@ public class MidiPlayer extends Sender<MidiPlayer> {
         }
 
         backing.setTickPosition(ticks);
-        events.add(Channel.SetPosition);
-        events.add(Channel.SetState);
+        events.add(Channel.SET_POSITION);
+        events.add(Channel.SET_STATE);
     }
 
     private void core_start(final Set<? super Channel> messages) {
@@ -120,7 +120,7 @@ public class MidiPlayer extends Sender<MidiPlayer> {
 
         if (!backing.isRunning()) {
             backing.start();
-            messages.add(Channel.SetState);
+            messages.add(Channel.SET_STATE);
         }
 
     }
@@ -128,7 +128,7 @@ public class MidiPlayer extends Sender<MidiPlayer> {
     private void core_stop(final Set<? super Channel> events) {
         if (backing.isRunning()) {
             backing.stop();
-            events.add(Channel.SetState);
+            events.add(Channel.SET_STATE);
         }
 
     }
@@ -199,7 +199,7 @@ public class MidiPlayer extends Sender<MidiPlayer> {
 
     public final void setTempo(final int tempo) {
         final Set<Channel> channels = EnumSet.noneOf(Channel.class);
-        channels.add(Channel.SetTempo);
+        channels.add(Channel.SET_TEMPO);
         backing.setTempoInBPM(tempo);
         sequence.setTempo(tempo);
         fire(channels);
@@ -223,7 +223,7 @@ public class MidiPlayer extends Sender<MidiPlayer> {
                 backing.setTrackMute(index, TrackMode.MUTE == newMode);
             }
             features.reset(Key.TRACK_MODES);
-            channels.add(Channel.SetModes);
+            channels.add(Channel.SET_MODES);
         }
         fire(channels);
     }
@@ -266,17 +266,17 @@ public class MidiPlayer extends Sender<MidiPlayer> {
 
         public final void run() {
             final Set<Channel> channels = EnumSet.noneOf(Channel.class);
-            channels.add(Channel.SetPosition);
+            channels.add(Channel.SET_POSITION);
             if (!backing.isRunning()) {
                 cancel();
-                channels.add(Channel.SetState);
+                channels.add(Channel.SET_STATE);
             }
 
             synchronized (this) {
                 final int tempo = getTempo();
                 if (tempo != lastTempo) {
                     lastTempo = tempo;
-                    channels.add(Channel.SetTempo);
+                    channels.add(Channel.SET_TEMPO);
                 }
             }
             fire(channels);
@@ -284,10 +284,10 @@ public class MidiPlayer extends Sender<MidiPlayer> {
     }
 
     public enum Channel implements de.team33.patterns.notes.alpha.Channel<MidiPlayer> {
-        SetModes,
-        SetPosition,
-        SetState,
-        SetTempo
+        SET_MODES,
+        SET_POSITION,
+        SET_STATE,
+        SET_TEMPO
     }
 
     @SuppressWarnings("ClassNameSameAsAncestorName")

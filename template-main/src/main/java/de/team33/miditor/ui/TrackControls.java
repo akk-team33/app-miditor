@@ -102,7 +102,7 @@ public abstract class TrackControls {
         private MUTE_BUTTON() {
             super("mute");
             getContext().getPlayer()
-                        .add(MidiPlayer.Channel.SetModes, this::onSetModes);
+                        .add(MidiPlayer.Channel.SET_MODES, this::onSetModes);
         }
 
         public final void actionPerformed(final ActionEvent e) {
@@ -136,7 +136,7 @@ public abstract class TrackControls {
         public SOLO_BUTTON() {
             super("solo");
             getContext().getPlayer()
-                        .add(MidiPlayer.Channel.SetModes, this::onSetModes);
+                        .add(MidiPlayer.Channel.SET_MODES, this::onSetModes);
         }
 
         public final void actionPerformed(final ActionEvent e) {
