@@ -1,4 +1,4 @@
-package de.team33.midix;
+package de.team33.midi;
 
 public enum TrackMode {
 

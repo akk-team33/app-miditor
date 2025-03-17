@@ -2,6 +2,7 @@ package de.team33.midi;
 
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.Sequence;
+import javax.sound.midi.Sequencer;
 import javax.sound.midi.Track;
 import java.util.Optional;
 import java.util.stream.IntStream;
@@ -42,5 +43,15 @@ final class Util {
 
     static int idCode(final Track track) {
         return System.identityHashCode(track);
+    }
+
+    static int tracksSize(final Sequencer sequencer) {
+        return Optional.ofNullable(sequencer.getSequence())
+                       .map(Util::tracksSize)
+                       .orElse(0);
+    }
+
+    static int tracksSize(final Sequence sequence) {
+        return sequence.getTracks().length;
     }
 }

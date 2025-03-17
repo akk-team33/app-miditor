@@ -1,8 +1,8 @@
 package de.team33.miditor.ui;
 
 import de.team33.midi.MidiPlayer;
-import de.team33.midi.MidiPlayer.Mode;
 import de.team33.midi.MidiTrack;
+import de.team33.midi.TrackMode;
 import de.team33.miditor.ui.track.Context;
 import de.team33.selection.Selection;
 import de.team33.swing.XTextField;
@@ -107,17 +107,17 @@ public abstract class TrackControls {
 
         public final void actionPerformed(final ActionEvent e) {
             if (isSelected()) {
-                getContext().getPlayer().setMode(getContext().getIndex(), Mode.MUTE);
+                getContext().getPlayer().setMode(getContext().getIndex(), TrackMode.MUTE);
             } else {
-                getContext().getPlayer().setMode(getContext().getIndex(), Mode.NORMAL);
+                getContext().getPlayer().setMode(getContext().getIndex(), TrackMode.NORMAL);
             }
 
         }
 
         private void onSetModes(final MidiPlayer player) {
             final int index = getContext().getIndex();
-            final MidiPlayer.Mode mode = player.getMode(index);
-            setSelected(Mode.MUTE == mode);
+            final TrackMode mode = player.getMode(index);
+            setSelected(TrackMode.MUTE == mode);
         }
     }
 
@@ -141,17 +141,17 @@ public abstract class TrackControls {
 
         public final void actionPerformed(final ActionEvent e) {
             if (isSelected()) {
-                getContext().getPlayer().setMode(getContext().getIndex(), Mode.SOLO);
+                getContext().getPlayer().setMode(getContext().getIndex(), TrackMode.SOLO);
             } else {
-                getContext().getPlayer().setMode(getContext().getIndex(), Mode.NORMAL);
+                getContext().getPlayer().setMode(getContext().getIndex(), TrackMode.NORMAL);
             }
 
         }
 
         private void onSetModes(final MidiPlayer player) {
             final int index = getContext().getIndex();
-            final MidiPlayer.Mode mode = player.getMode(index);
-            setSelected(Mode.SOLO == mode);
+            final TrackMode mode = player.getMode(index);
+            setSelected(TrackMode.SOLO == mode);
         }
     }
 

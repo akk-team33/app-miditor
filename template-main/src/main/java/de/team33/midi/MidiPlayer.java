@@ -12,24 +12,26 @@ import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Sequencer;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.prefs.Preferences;
+import java.util.stream.IntStream;
 
 @SuppressWarnings("ClassWithTooManyMethods")
 public class MidiPlayer extends Sender<MidiPlayer> {
 
     private static final Preferences PREFS = Preferences.userRoot().node(ClassUtil.getPathString(MidiPlayer.class));
-    private static final Mode[] EMPTY_MODES = new Mode[0];
 
     private final Audience audience;
     private final Mapping mapping;
     private final MidiSequence sequence;
     private final Sequencer backing;
     private MidiDevice outputDevice;
-    private Mode[] modes;
+    private final Features features = new Features();
 
     public MidiPlayer(final MidiSequence sequence) throws MidiUnavailableException {
         super(MidiPlayer.class);
@@ -84,41 +86,6 @@ public class MidiPlayer extends Sender<MidiPlayer> {
         }
     }
 
-    private void core_clrModes(final Set<? super Channel> events) {
-        modes = null;
-        events.add(Channel.SetModes);
-    }
-
-    private Mode[] core_Modes() {
-        if (null == modes) {
-            final javax.sound.midi.Sequence seq = backing.getSequence();
-            if (null != seq) {
-                final int length = seq.getTracks().length;
-                int nNormal = 0;
-                int iNormal = -1;
-                modes = new Mode[length];
-
-                for (int i = 0; i < length; ++i) {
-                    if (backing.getTrackMute(i)) {
-                        modes[i] = Mode.MUTE;
-                    } else {
-                        modes[i] = Mode.NORMAL;
-                        ++nNormal;
-                        iNormal = i;
-                    }
-                }
-
-                if (1 == nNormal) {
-                    modes[iNormal] = Mode.SOLO;
-                }
-            } else {
-                modes = EMPTY_MODES;
-            }
-        }
-
-        return modes;
-    }
-
     private void core_open(final Set<? super Channel> events) {
         if (!backing.isOpen()) {
             try {
@@ -144,14 +111,6 @@ public class MidiPlayer extends Sender<MidiPlayer> {
         backing.setTickPosition(ticks);
         events.add(Channel.SetPosition);
         events.add(Channel.SetState);
-    }
-
-    private void core_setTrackMute(final int trackIndex, final boolean muted, final Set<? super Channel> events) {
-        if (backing.getTrackMute(trackIndex) != muted) {
-            backing.setTrackMute(trackIndex, muted);
-            core_clrModes(events);
-        }
-
     }
 
     private void core_start(final Set<? super Channel> messages) {
@@ -184,8 +143,9 @@ public class MidiPlayer extends Sender<MidiPlayer> {
         return mapping;
     }
 
-    public final Mode getMode(final int index) {
-        return ((0 <= index) && (index < core_Modes().length)) ? core_Modes()[index] : Mode.NORMAL;
+    public final TrackMode getMode(final int index) {
+        final List<TrackMode> trackModes = features.get(Key.TRACK_MODES);
+        return (0 <= index) && (index < trackModes.size()) ? trackModes.get(index) : TrackMode.NORMAL;
     }
 
     public final long getPosition() {
@@ -255,31 +215,23 @@ public class MidiPlayer extends Sender<MidiPlayer> {
         return sequence.getTiming();
     }
 
-    public final void setMode(final int index, final Mode newMode) {
-        final Mode oldMode = getMode(index);
+    public final void setMode(final int index, final TrackMode newMode) {
+        final Set<Channel> channels = EnumSet.noneOf(Channel.class);
+        final TrackMode oldMode = getMode(index);
         if (oldMode != newMode) {
-            final Set<Channel> channels = EnumSet.noneOf(Channel.class);
-            final int length;
-            int i;
-            if (Mode.SOLO != oldMode) {
-                if (Mode.SOLO == newMode) {
-                    length = sequence.getTracks().size();
-
-                    for (i = 0; i < length; ++i) {
-                        core_setTrackMute(i, i != index, channels);
-                    }
-                } else {
-                    core_setTrackMute(index, Mode.MUTE == newMode, channels);
-                }
+            if (TrackMode.SOLO == newMode) {
+                IntStream.range(0, Util.tracksSize(backing))
+                         .forEach(ix -> backing.setTrackMute(ix, ix != index));
+            } else if ((TrackMode.SOLO == oldMode) && (TrackMode.NORMAL == newMode)) {
+                IntStream.range(0, Util.tracksSize(backing))
+                         .forEach(ix -> backing.setTrackMute(ix, false));
             } else {
-                length = sequence.getTracks().size();
-
-                for (i = 0; i < length; ++i) {
-                    core_setTrackMute(i, i == index && Mode.MUTE == newMode, channels);
-                }
+                backing.setTrackMute(index, TrackMode.MUTE == newMode);
             }
-            fire(channels);
+            features.reset(Key.TRACK_MODES);
+            channels.add(Channel.SetModes);
         }
+        fire(channels);
     }
 
     private void onSetParts(final MidiSequence midiSequence) {
@@ -337,12 +289,6 @@ public class MidiPlayer extends Sender<MidiPlayer> {
         }
     }
 
-    public enum Mode {
-        NORMAL,
-        SOLO,
-        MUTE
-    }
-
     public enum State {
         IDLE,
         STOP,
@@ -355,5 +301,41 @@ public class MidiPlayer extends Sender<MidiPlayer> {
         SetPosition,
         SetState,
         SetTempo
+    }
+
+    @SuppressWarnings("ClassNameSameAsAncestorName")
+    @FunctionalInterface
+    interface Key<R> extends de.team33.patterns.features.alpha.Features.Key<Features, R> {
+
+        Key<List<TrackMode>> TRACK_MODES = Features::newTrackModes;
+    }
+
+    @SuppressWarnings("ClassNameSameAsAncestorName")
+    private final class Features extends de.team33.patterns.features.alpha.Features<Features> {
+
+        private Features() {
+            super(ConcurrentHashMap::new);
+        }
+
+        @Override
+        protected final Features host() {
+            return this;
+        }
+
+        private List<TrackMode> newTrackModes() {
+            final List<TrackMode> stage = IntStream.range(0, Util.tracksSize(backing))
+                                                   .mapToObj(this::mapMode)
+                                                   .toList();
+            final boolean normal = (1L != stage.stream()
+                                               .filter(TrackMode.NORMAL::equals)
+                                               .count());
+            return normal ? stage : stage.stream()
+                                         .map(mode -> (TrackMode.NORMAL == mode) ? TrackMode.SOLO : mode)
+                                         .toList();
+        }
+
+        private TrackMode mapMode(final int index) {
+            return backing.getTrackMute(index) ? TrackMode.MUTE : TrackMode.NORMAL;
+        }
     }
 }

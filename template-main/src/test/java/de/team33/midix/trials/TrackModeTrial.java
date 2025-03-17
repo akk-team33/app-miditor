@@ -1,8 +1,8 @@
 package de.team33.midix.trials;
 
+import de.team33.midi.TrackMode;
 import de.team33.midix.MidiCenter;
 import de.team33.midix.MidiPlayer;
-import de.team33.midix.TrackMode;
 
 import javax.sound.midi.InvalidMidiDataException;
 import java.io.IOException;
