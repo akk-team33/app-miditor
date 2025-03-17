@@ -1,5 +1,8 @@
 package de.team33.midi;
 
+import de.team33.patterns.exceptional.dione.Converter;
+import de.team33.patterns.exceptional.dione.Wrapping;
+
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Sequencer;
@@ -12,6 +15,8 @@ import static de.team33.midix.Midi.MetaMessage.Type.SET_TEMPO;
 import static de.team33.midix.Midi.MetaMessage.Type.TIME_SIGNATURE;
 
 final class Util {
+
+    static final Converter CNV = Converter.using(Wrapping.method(IllegalStateException::new));
 
     static final double MSPMQN = 6.0E7; // microseconds per MIDI quarter-note
 

@@ -22,7 +22,7 @@ public enum PlayState {
         this.condition = condition;
     }
 
-    @Deprecated // make package private
+    @Deprecated // make package private asap!
     public static PlayState of(final Sequencer sequencer) {
         return VALUES.findAny(state -> state.condition.test(sequencer))
                      .orElse(READY);

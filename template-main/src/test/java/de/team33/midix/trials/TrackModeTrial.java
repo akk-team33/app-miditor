@@ -3,6 +3,7 @@ package de.team33.midix.trials;
 import de.team33.midi.TrackMode;
 import de.team33.midix.MidiCenter;
 import de.team33.midix.MidiPlayer;
+import de.team33.midix.PlayTrigger;
 
 import javax.sound.midi.InvalidMidiDataException;
 import java.io.IOException;
@@ -22,7 +23,7 @@ class TrackModeTrial {
                        .player()
                        .add(MidiPlayer.Channel.SET_STATE, state -> out.printf("Player state: %s%n", state))
                        .add(MidiPlayer.Channel.SET_STATE, state -> out.printf("Effective triggers: %s%n",
-                                                                              MidiPlayer.Trigger.allEffectiveOn(state)))
+                                                                              PlayTrigger.allEffectiveOn(state)))
                        .add(MidiPlayer.Channel.SET_TRACK_MODE, modes -> out.printf("Track modes: %s%n", modes));
     }
 
@@ -33,9 +34,9 @@ class TrackModeTrial {
 
     private void run() throws InterruptedException {
         final MidiPlayer player = midiCenter.player()
-                                            .push(MidiPlayer.Trigger.ON)
+                                            .push(PlayTrigger.ON)
                                             .setPosition(30000)
-                                            .push(MidiPlayer.Trigger.START);
+                                            .push(PlayTrigger.START);
         Thread.sleep(5000);
 
         player.setTrackMode(3, TrackMode.MUTE);
@@ -62,7 +63,7 @@ class TrackModeTrial {
         player.setTrackMode(8, TrackMode.NORMAL);
         Thread.sleep(5000);
 
-        player.push(MidiPlayer.Trigger.OFF);
+        player.push(PlayTrigger.OFF);
         out.printf("- Quit - - - - - - - - - - - - - - - - - - - - - - - - - - - -%n");
     }
 }

@@ -2,29 +2,19 @@ package de.team33.midix;
 
 import de.team33.midi.PlayState;
 import de.team33.midi.TrackMode;
-import de.team33.patterns.enums.pan.Values;
 import de.team33.patterns.notes.alpha.Audience;
 import de.team33.patterns.notes.alpha.Mapping;
 import de.team33.patterns.notes.alpha.Sender;
 
 import javax.sound.midi.MetaMessage;
 import javax.sound.midi.Sequencer;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import static de.team33.midix.Midi.MetaMessage.Type.SET_TEMPO;
-import static de.team33.midix.Util.CNV;
 import static de.team33.midix.Util.sleep;
 
 @SuppressWarnings("UnusedReturnValue")
@@ -114,7 +104,7 @@ public class MidiPlayer extends Sender<MidiPlayer> {
         return PlayState.of(sequencer);
     }
 
-    public final MidiPlayer push(final Trigger trigger) {
+    public final MidiPlayer push(final PlayTrigger trigger) {
         final Set<Channel<?>> results = trigger.apply(sequencer, getState());
         return fire(results);
     }
@@ -160,85 +150,6 @@ public class MidiPlayer extends Sender<MidiPlayer> {
             channels.add(Channel.SET_TRACK_MODE);
         }
         return fire(channels);
-    }
-
-    @SuppressWarnings("WeakerAccess")
-    public enum Trigger {
-
-        ON(Choice.on(PlayState.OFF).apply(Action.OPEN)),
-        START(Choice.on(PlayState.OFF).apply(Action.OPEN, Action.START),
-              Choice.on(PlayState.READY).apply(Action.START),
-              Choice.on(PlayState.PAUSED).apply(Action.START)),
-        STOP(Choice.on(PlayState.PAUSED).apply(Action.RESET),
-             Choice.on(PlayState.RUNNING).apply(Action.STOP, Action.RESET)),
-        PAUSE(Choice.on(PlayState.RUNNING).apply(Action.STOP)),
-        OFF(Choice.on(PlayState.READY).apply(Action.CLOSE, Action.RESET),
-            Choice.on(PlayState.RUNNING).apply(Action.CLOSE, Action.RESET),
-            Choice.on(PlayState.PAUSED).apply(Action.CLOSE, Action.RESET));
-
-        private static final Values<Trigger> VALUES = Values.of(Trigger.class);
-        private static final Map<PlayState, Set<Trigger>> effectiveMap = new ConcurrentHashMap<>(0);
-
-        private final Map<PlayState, List<Action>> map;
-
-        Trigger(final Choice... choices) {
-            this.map = Stream.of(choices).collect(HashMap::new, Trigger::put, Map::putAll);
-        }
-
-        private static void put(final Map<? super PlayState, ? super List<Action>> map, final Choice choice) {
-            map.put(choice.state, choice.methods);
-        }
-
-        public static Set<Trigger> allEffectiveOn(final PlayState state) {
-            return effectiveMap.computeIfAbsent(state, Trigger::newEffectiveSet);
-        }
-
-        private static Set<Trigger> newEffectiveSet(final PlayState state) {
-            return VALUES.stream()
-                         .filter(value -> value.hasEffectOn(state))
-                         .collect(Collectors.toUnmodifiableSet());
-        }
-
-        private Set<Channel<?>> apply(final Sequencer sequencer, final PlayState state) {
-            return Optional.ofNullable(map.get(state))
-                           .orElseGet(List::of)
-                           .stream()
-                           .map(action -> action.apply(sequencer))
-                           .collect(Collectors.toSet());
-        }
-
-        public final boolean hasEffectOn(final PlayState state) {
-            return map.containsKey(state);
-        }
-
-        @FunctionalInterface
-        private interface Action extends Function<Sequencer, Channel<?>> {
-
-            Action OPEN = act(CNV.consumer(Sequencer::open), Channel.SET_STATE);
-            Action START = act(Sequencer::start, Channel.SET_STATE);
-            Action STOP = act(Sequencer::stop, Channel.SET_STATE);
-            Action RESET = act(seq -> seq.setTickPosition(0L), Channel.SET_POSITION);
-            Action CLOSE = act(Sequencer::close, Channel.SET_STATE);
-
-            @SuppressWarnings("BoundedWildcard")
-            static Action act(final Consumer<Sequencer> consumer, final Channel<?> result) {
-                return sequencer -> {
-                    consumer.accept(sequencer);
-                    return result;
-                };
-            }
-        }
-
-        private record Choice(PlayState state, List<Action> methods) {
-
-            static Stage on(final PlayState state) {
-                return actions -> new Choice(state, Arrays.asList(actions));
-            }
-
-            private interface Stage {
-                Choice apply(Action... actions);
-            }
-        }
     }
 
     @SuppressWarnings("ClassNameSameAsAncestorName")

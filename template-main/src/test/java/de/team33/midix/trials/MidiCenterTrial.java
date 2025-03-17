@@ -2,6 +2,7 @@ package de.team33.midix.trials;
 
 import de.team33.midix.MidiCenter;
 import de.team33.midix.MidiPlayer;
+import de.team33.midix.PlayTrigger;
 
 import javax.sound.midi.InvalidMidiDataException;
 import java.io.IOException;
@@ -26,27 +27,27 @@ class MidiCenterTrial {
         final MidiPlayer player = midiCenter.player();
         System.out.printf("Player state: %s%n", player.getState());
 
-        player.push(MidiPlayer.Trigger.START);
+        player.push(PlayTrigger.START);
         System.out.printf("Player state: %s%n", player.getState());
         Thread.sleep(5000);
 
-        player.push(MidiPlayer.Trigger.PAUSE);
+        player.push(PlayTrigger.PAUSE);
         System.out.printf("Player state: %s%n", player.getState());
         Thread.sleep(2500);
 
-        player.push(MidiPlayer.Trigger.START);
+        player.push(PlayTrigger.START);
         System.out.printf("Player state: %s%n", player.getState());
         Thread.sleep(5000);
 
-        player.push(MidiPlayer.Trigger.STOP);
+        player.push(PlayTrigger.STOP);
         System.out.printf("Player state: %s%n", player.getState());
         Thread.sleep(2500);
 
-        player.push(MidiPlayer.Trigger.START);
+        player.push(PlayTrigger.START);
         System.out.printf("Player state: %s%n", player.getState());
         Thread.sleep(5000);
 
-        player.push(MidiPlayer.Trigger.OFF);
+        player.push(PlayTrigger.OFF);
         System.out.printf("Player state: %s%n", player.getState());
         System.out.printf("- Quit - - - - - - -%n");
     }
