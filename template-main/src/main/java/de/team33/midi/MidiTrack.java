@@ -1,7 +1,7 @@
 package de.team33.midi;
 
 import de.team33.midix.Midi;
-import de.team33.patterns.features.beta.FeaturesBase;
+import de.team33.patterns.lazy.narvi.LazyFeatures;
 import de.team33.patterns.notes.alpha.Audience;
 import de.team33.patterns.notes.alpha.Listeners;
 import de.team33.patterns.notes.alpha.Mapping;
@@ -17,7 +17,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -222,7 +221,7 @@ public final class MidiTrack extends Sender<MidiTrack> {
 
     @SuppressWarnings("ClassNameSameAsAncestorName")
     @FunctionalInterface
-    private interface Key<R> extends FeaturesBase.Key<Features, R> {
+    private interface Key<R> extends LazyFeatures.Key<Features, R> {
 
         Key<List<MidiEvent>> LIST = Features::newList;
         Key<SortedSet<Integer>> MIDI_CHANNELS = Features::newMidiChannels;
@@ -257,10 +256,11 @@ public final class MidiTrack extends Sender<MidiTrack> {
         }
     }
 
-    private final class Features extends FeaturesBase<Features> {
+    private final class Features extends LazyFeatures<Features> {
 
-        private Features() {
-            super(Features.class, ConcurrentHashMap::new);
+        @Override
+        protected final Features host() {
+            return this;
         }
 
         private List<MidiEvent> newList() {

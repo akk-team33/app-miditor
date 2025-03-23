@@ -1,7 +1,7 @@
 package de.team33.midi;
 
 import de.team33.midix.Timing;
-import de.team33.patterns.features.beta.FeaturesBase;
+import de.team33.patterns.lazy.narvi.LazyFeatures;
 import de.team33.patterns.mutable.alpha.Mutable;
 import de.team33.patterns.notes.alpha.Audience;
 import de.team33.patterns.notes.alpha.Mapping;
@@ -17,7 +17,6 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
@@ -246,7 +245,7 @@ public class MidiSequence extends Sender<MidiSequence> {
 
     @SuppressWarnings("ClassNameSameAsAncestorName")
     @FunctionalInterface
-    private interface Key<R> extends FeaturesBase.Key<Features, R> {
+    private interface Key<R> extends LazyFeatures.Key<Features, R> {
 
         Key<List<MidiTrack>> TRACKS = Features::newTrackList;
         Key<Integer> TEMPO = Features::newTempo;
@@ -254,10 +253,11 @@ public class MidiSequence extends Sender<MidiSequence> {
     }
 
     @SuppressWarnings("ClassNameSameAsAncestorName")
-    private final class Features extends FeaturesBase<Features> {
+    private final class Features extends LazyFeatures<Features> {
 
-        private Features() {
-            super(Features.class, ConcurrentHashMap::new);
+        @Override
+        protected final Features host() {
+            return this;
         }
 
         private List<MidiTrack> newTrackList() {

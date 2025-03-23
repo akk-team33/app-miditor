@@ -3,6 +3,7 @@ package de.team33.midi;
 import de.team33.midi.util.ClassUtil;
 import de.team33.midix.Timing;
 import de.team33.patterns.execution.metis.SimpleAsyncExecutor;
+import de.team33.patterns.lazy.narvi.LazyFeatures;
 import de.team33.patterns.notes.alpha.Audience;
 import de.team33.patterns.notes.alpha.Mapping;
 import de.team33.patterns.notes.alpha.Sender;
@@ -17,7 +18,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.prefs.Preferences;
 import java.util.stream.IntStream;
@@ -237,17 +237,12 @@ public class MidiPlayer extends Sender<MidiPlayer> {
 
     @SuppressWarnings("ClassNameSameAsAncestorName")
     @FunctionalInterface
-    interface Key<R> extends de.team33.patterns.features.alpha.Features.Key<Features, R> {
+    interface Key<R> extends LazyFeatures.Key<Features, R> {
 
         Key<List<TrackMode>> TRACK_MODES = Features::newTrackModes;
     }
 
-    @SuppressWarnings("ClassNameSameAsAncestorName")
-    private final class Features extends de.team33.patterns.features.alpha.Features<Features> {
-
-        private Features() {
-            super(ConcurrentHashMap::new);
-        }
+    private final class Features extends LazyFeatures<Features> {
 
         @Override
         protected final Features host() {
