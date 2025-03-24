@@ -14,6 +14,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.Serial;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -56,7 +57,7 @@ public abstract class TrackList extends JScrollPane {
             setSelected(false);
         }
 
-        protected abstract void doActionWith(Iterable<MidiTrack> var1);
+        protected abstract void doActionWith(Collection<MidiTrack> var1);
 
         private void onUpdate(final Set<?> selection) {
             final boolean superMin = min <= selection.size();
@@ -70,7 +71,7 @@ public abstract class TrackList extends JScrollPane {
             super("del", 1);
         }
 
-        protected void doActionWith(final Iterable<MidiTrack> trcks) {
+        protected void doActionWith(final Collection<MidiTrack> trcks) {
             getContext().getSequence().delete(trcks);
         }
     }
@@ -80,7 +81,7 @@ public abstract class TrackList extends JScrollPane {
             super("join", 2);
         }
 
-        protected void doActionWith(final Iterable<MidiTrack> trcks) {
+        protected void doActionWith(final Collection<MidiTrack> trcks) {
             getContext().getSequence().join(trcks);
         }
     }

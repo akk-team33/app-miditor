@@ -66,6 +66,11 @@ class TrackList {
         return result;
     }
 
+    final List<Track> tracks() {
+        synchronized (sequence) {
+            return List.of(sequence.getTracks());
+        }
+    }
 
     /**
      * Returns the index of specified element in <em>this</em> list,

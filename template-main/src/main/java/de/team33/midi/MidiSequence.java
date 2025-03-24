@@ -15,11 +15,13 @@ import javax.sound.midi.Track;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.UnaryOperator;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -33,10 +35,10 @@ public class MidiSequence extends Sender<MidiSequence> {
 
     private final Audience audience;
     private final Mapping mapping;
-    private final Sequence backing;
+    private final TrackList trackList;
     private final Mutable<Path> path;
-    private final ModificationCenter modificationCenter;
     private final MidiTrack.Factory trackFactory;
+    private final AtomicLong modCounter = new AtomicLong();
     private final Features features = new Features();
 
     MidiSequence(final Path path, final Sequence backing, final Executor executor) {
@@ -47,15 +49,9 @@ public class MidiSequence extends Sender<MidiSequence> {
                               .put(Channel.SetModified, () -> this)
                               .put(Channel.SetTracks, () -> this)
                               .build();
-        this.backing = backing;
+        this.trackList = new TrackList(backing, executor);
         this.path = new Mutable<>(NORMALIZER, path);
-        this.modificationCenter = new ModificationCenter(executor);
-        this.trackFactory = MidiTrack.factory(modificationCenter, executor);
-
-        modificationCenter.registry()
-                          .add(ModificationCenter.Channel.MODIFIED, this::onModified)
-                          .add(ModificationCenter.Channel.RESET, this::onModified)
-                          .add(ModificationCenter.Channel.SUB_MODIFIED, this::onSubModified);
+        this.trackFactory = MidiTrack.factory(trackList);
     }
 
     public static Loader loader(final Executor executor) {
@@ -70,14 +66,6 @@ public class MidiSequence extends Sender<MidiSequence> {
                             .map(MidiTrack::backing);
     }
 
-    private void onModified(final Void unused) {
-        fire(Channel.SetModified);
-    }
-
-    private void onSubModified(final int id) {
-        modificationCenter.increment();
-    }
-
     @Override
     protected final Audience audience() {
         return audience;
@@ -89,9 +77,9 @@ public class MidiSequence extends Sender<MidiSequence> {
     }
 
     public final MidiSequence save() throws IOException {
-        synchronized (backing) {
-            final int mode = (1 < backing.getTracks().length) ? 1 : 0;
-            MidiSystem.write(backing, mode, path.get().toFile());
+        synchronized (backing()) {
+            final int mode = (1 < backing().getTracks().length) ? 1 : 0;
+            MidiSystem.write(backing(), mode, path.get().toFile());
         }
         return resetModified();
     }
@@ -103,7 +91,7 @@ public class MidiSequence extends Sender<MidiSequence> {
     }
 
     final Sequence backing() {
-        return backing;
+        return trackList.sequence();
     }
 
     @SuppressWarnings("OverloadedVarargsMethod")
@@ -112,61 +100,39 @@ public class MidiSequence extends Sender<MidiSequence> {
     }
 
     public final MidiSequence create(final Iterable<? extends MidiEvent> events) {
-        synchronized (backing) {
-            createTrack(events);
-        }
+        createBase(events);
         return setModified();
     }
 
-    private Track newTrack() {
-        final Track result = backing.createTrack();
-        modificationCenter.increment(Util.idCode(result));
-        return result;
-    }
-
-    private void createTrack(final Iterable<? extends MidiEvent> events) {
-        final Track track = newTrack();
+    private void createBase(final Iterable<? extends MidiEvent> events) {
+        final Track track = trackList.create();
         for (final MidiEvent event : events) {
             track.add(event);
         }
     }
 
-    @SuppressWarnings("OverloadedVarargsMethod")
     public final MidiSequence delete(final MidiTrack... tracks) {
         return delete(Arrays.asList(tracks));
     }
 
-    public final MidiSequence delete(final Iterable<? extends MidiTrack> tracks) {
-        synchronized (backing) {
-            for (final MidiTrack track : tracks) {
-                backing.deleteTrack(track.backing());
-            }
-        }
+    public final MidiSequence delete(final Collection<? extends MidiTrack> tracks) {
+        trackList.delete(tracks.stream().map(MidiTrack::backing).toList());
         return setModified();
     }
 
-    public final MidiSequence join(final Iterable<? extends MidiTrack> tracks) {
-        synchronized (backing) {
-            final Track newTrack = newTrack();
-            streamOf(tracks).flatMap(Util::stream)
-                            .forEach(newTrack::add);
-            streamOf(tracks).forEach(backing::deleteTrack);
-        }
-        return setModified();
+    public final MidiSequence join(final Collection<? extends MidiTrack> tracks) {
+        final Track track = trackList.create();
+        streamOf(tracks).flatMap(Util::stream)
+                        .forEach(track::add);
+        return delete(tracks);
     }
 
     public final MidiSequence split(final MidiTrack track) {
-        if (getTracks().contains(track)) {
-            final Map<Integer, List<MidiEvent>> extracted = track.extractChannels();
-            synchronized (backing) {
-                for (final List<MidiEvent> events : extracted.values()) {
-                    createTrack(events);
-                }
-            }
-            return setModified();
-        } else {
-            throw new IllegalArgumentException("<track> is not part of this sequence");
+        final Map<Integer, List<MidiEvent>> extracted = track.extractChannels();
+        for (final List<MidiEvent> events : extracted.values()) {
+            createBase(events);
         }
+        return setModified();
     }
 
     public final List<MidiTrack> getTracks() {
@@ -174,22 +140,18 @@ public class MidiSequence extends Sender<MidiSequence> {
     }
 
     public final boolean isModified() {
-        return 0L != modificationCenter.get();
+        return 0L != modCounter.get();
     }
 
     private MidiSequence setModified() {
-        features.peek(Key.TRACKS)
-                .orElseGet(List::of)
-                .forEach(MidiTrack::release);
         features.reset();
-        modificationCenter.increment();
-        modificationCenter.keep(Util.stream(backing).map(Util::idCode).collect(Collectors.toSet()));
-        return fire(Channel.SetTracks);
+        modCounter.incrementAndGet();
+        return fire(Channel.SetTracks, Channel.SetModified);
     }
 
     private MidiSequence resetModified() {
-        modificationCenter.reset();
-        return this;
+        modCounter.set(0);
+        return fire(Channel.SetModified);
     }
 
     public final Path getPath() {
@@ -223,8 +185,8 @@ public class MidiSequence extends Sender<MidiSequence> {
     }
 
     public final long getTickLength() {
-        synchronized (backing) {
-            return backing.getTickLength();
+        synchronized (backing()) {
+            return backing().getTickLength();
         }
     }
 
@@ -261,42 +223,43 @@ public class MidiSequence extends Sender<MidiSequence> {
         }
 
         private List<MidiTrack> newTrackList() {
-            synchronized (backing) {
-                final Track[] tracks = backing.getTracks();
-                return IntStream.range(0, tracks.length)
-                                .mapToObj(index -> trackFactory.create(index, tracks[index]))
-                                .toList();
-            }
+            return trackList.tracks().stream()
+                            .map(trackFactory::create)
+                            .toList();
         }
 
-        @SuppressWarnings({"NumericCastThatLosesPrecision", "MagicNumber"})
         private int newTempo() {
-            synchronized (backing) {
-                final Track[] tracks = backing.getTracks();
-                if (0 < tracks.length) {
-                    final MidiEvent event = Util.firstTempoEvent(tracks[0])
-                                                .orElse(null);
-                    if (null != event) {
-                        final byte[] bytes = event.getMessage().getMessage();
-                        int mpqn = 0;
-                        for (int i = 3; 6 > i; ++i) {
-                            mpqn <<= 8;
-                            mpqn += (bytes[i] & 0xff);
-                        }
-                        return (int) Math.round(Util.MSPMQN / mpqn);
-                    }
-                }
-                return 0;
+            return trackList.tracks().stream()
+                            .flatMapToInt(Features::newTempo)
+                            .findFirst()
+                            .orElse(0);
+        }
+
+        private static IntStream newTempo(final Track track) {
+            return Util.firstTempoEvent(track).stream()
+                       .mapToInt(Features::newTempo);
+        }
+
+        private static int newTempo(final MidiEvent event) {
+            final byte[] bytes = event.getMessage().getMessage();
+            int mpqn = 0;
+            for (int i = 3; 6 > i; ++i) {
+                mpqn <<= 8;
+                mpqn += (bytes[i] & 0xff);
             }
+            return (int) Math.round(Util.MSPMQN / mpqn);
         }
 
         private Timing newTiming() {
-            synchronized (backing) {
-                return Util.firstTimeSignature(backing.getTracks()[0])
-                           .map(MidiEvent::getMessage)
-                           .map(message -> Timing.of(message, backing))
-                           .orElseGet(() -> Timing.of(backing));
-            }
+            return trackList.tracks().stream().findFirst()
+                            .flatMap(this::newTiming)
+                            .orElseGet(() -> Timing.of(backing()));
+        }
+
+        private Optional<Timing> newTiming(final Track track) {
+            return Util.firstTimeSignature(track)
+                       .map(MidiEvent::getMessage)
+                       .map(message -> Timing.of(message, backing()));
         }
     }
 }
