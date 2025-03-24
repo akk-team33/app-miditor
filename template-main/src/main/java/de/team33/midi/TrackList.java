@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -74,6 +75,13 @@ class TrackList {
         synchronized (sequence) {
             return Arrays.asList(sequence.getTracks())
                          .indexOf(track);
+        }
+    }
+
+    final Entry entryOf(final Track track) {
+        synchronized (sequence) {
+            return Optional.ofNullable(backing.get(track))
+                           .orElseThrow();
         }
     }
 

@@ -3,7 +3,6 @@ package de.team33.midi;
 import de.team33.midix.Midi;
 import de.team33.patterns.lazy.narvi.LazyFeatures;
 import de.team33.patterns.notes.alpha.Audience;
-import de.team33.patterns.notes.alpha.Listeners;
 import de.team33.patterns.notes.alpha.Mapping;
 import de.team33.patterns.notes.alpha.Sender;
 
@@ -17,10 +16,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.groupingBy;
@@ -28,40 +25,28 @@ import static java.util.stream.Collectors.groupingBy;
 @SuppressWarnings({"ClassNamePrefixedWithPackageName", "ClassWithTooManyMethods"})
 public final class MidiTrack extends Sender<MidiTrack> {
 
-    private final Audience audience;
+    private final TrackList trackList;
+    private final TrackList.Entry entry;
     private final Mapping mapping;
-    private final int index;
-    private final Track backing;
-    private final ModificationCenter modificationCenter;
     private final Features features = new Features();
-    private final Listeners listeners = new Listeners();
 
-    private MidiTrack(final int index,
-              final Track backing,
-              final ModificationCenter modificationCenter,
-              final Executor executor) {
+    private MidiTrack(final TrackList trackList, final TrackList.Entry entry) {
         super(MidiTrack.class);
-        this.audience = new Audience(executor);
+        this.trackList = trackList;
+        this.entry = entry;
         this.mapping = Mapping.builder()
                               .put(Channel.SetEvents, () -> this)
                               .put(Channel.SetModified, () -> this)
                               .put(Channel.SetChannels, () -> this)
                               .put(Channel.SetName, () -> this)
                               .build();
-        this.index = index;
-        this.backing = backing;
-        this.modificationCenter = modificationCenter;
 
         addPlain(Channel.SetEvents, new SetName());
         addPlain(Channel.SetEvents, new SetMidiChannels());
-
-        modificationCenter.registry()
-                          .add(ModificationCenter.Channel.SUB_MODIFIED, listeners.add(this::onModified))
-                          .add(ModificationCenter.Channel.RESET, listeners.add(ignored -> fire(Channel.SetModified)));
     }
 
-    static Factory factory(final ModificationCenter modificationCenter, final Executor executor) {
-        return (index1, track) -> new MidiTrack(index1, track, modificationCenter, executor);
+    static Factory factory(final TrackList trackList) {
+        return track -> new MidiTrack(trackList, trackList.entryOf(track));
     }
 
     private static boolean isChannelEvent(final MidiEvent midiEvent) {
@@ -88,15 +73,9 @@ public final class MidiTrack extends Sender<MidiTrack> {
         }
     }
 
-    private void onModified(final int id) {
-        if (id == Util.idCode(backing)) {
-            fire(Channel.SetModified);
-        }
-    }
-
     @Override
     protected final Audience audience() {
-        return audience;
+        return entry.audience();
     }
 
     @Override
@@ -105,8 +84,7 @@ public final class MidiTrack extends Sender<MidiTrack> {
     }
 
     private Stream<MidiEvent> stream() {
-        return IntStream.range(0, backing.size())
-                        .mapToObj(backing::get);
+        return Util.stream(entry.track());
     }
 
     public final List<MidiEvent> list() {
@@ -127,9 +105,9 @@ public final class MidiTrack extends Sender<MidiTrack> {
     }
 
     public final MidiTrack add(final Iterable<? extends MidiEvent> events) {
-        synchronized (backing) {
+        synchronized (entry.track()) {
             for (final MidiEvent event : events) {
-                backing.add(event);
+                entry.track().add(event);
             }
         }
         return setModified();
@@ -141,47 +119,47 @@ public final class MidiTrack extends Sender<MidiTrack> {
     }
 
     public final MidiTrack remove(final Iterable<? extends MidiEvent> events) {
-        synchronized (backing) {
+        synchronized (entry.track()) {
             for (final MidiEvent event : events) {
-                backing.remove(event);
+                entry.track().remove(event);
             }
         }
         return setModified();
     }
 
-    @SuppressWarnings("ParameterHidesMemberVariable")
     public final MidiEvent get(final int index) {
-        synchronized (backing) {
-            return backing.get(index);
+        synchronized (entry.track()) {
+            return entry.track().get(index);
         }
     }
 
     public final int size() {
-        synchronized (backing) {
-            return backing.size();
+        synchronized (entry.track()) {
+            return entry.track().size();
         }
     }
 
     public final String getPrefix() {
-        return String.format("Track %02d", index);
+        return String.format("Track %02d", trackList.indexOf(entry.track()));
     }
 
     final Track backing() {
-        return backing;
+        return entry.track();
     }
 
     public final boolean isModified() {
-        return 0L != modificationCenter.get(Util.idCode(backing));
+        return 0L != entry.modCounter().get();
     }
 
     private MidiTrack setModified() {
         features.reset();
-        modificationCenter.increment(Util.idCode(backing));
-        return fire(Channel.SetEvents);
+        entry.modCounter().incrementAndGet();
+        return fire(Channel.SetEvents, Channel.SetModified);
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     public final MidiTrack shift(final long delta) {
-        synchronized (backing) {
+        synchronized (entry.track()) {
             stream().toList()
                     .forEach(midiEvent -> shift(midiEvent, delta));
         }
@@ -190,19 +168,30 @@ public final class MidiTrack extends Sender<MidiTrack> {
 
     final Map<Integer, List<MidiEvent>> extractChannels() {
         final Map<Integer, List<MidiEvent>> result;
-        synchronized (backing) {
+        synchronized (entry.track()) {
             result = stream().filter(MidiTrack::isChannelEvent)
                              .collect(groupingBy(MidiTrack::channelOf));
             result.values().stream()
                   .flatMap(List::stream)
-                  .forEach(backing::remove);
+                  .forEach(event -> entry.track().remove(event));
         }
         setModified();
         return result;
     }
 
-    final void release() {
-        listeners.removeFrom(modificationCenter.registry());
+    @Override
+    public final boolean equals(final Object obj) {
+        return (this == obj) || ((obj instanceof final MidiTrack other) && (entry.track() == other.entry.track()));
+    }
+
+    @Override
+    public final int hashCode() {
+        return entry.track().hashCode();
+    }
+
+    @Override
+    public final String toString() {
+        return getClass().getSimpleName() + "(\"%s\", %d)".formatted(name(), size());
     }
 
     @SuppressWarnings("ClassNameSameAsAncestorName")
@@ -216,7 +205,7 @@ public final class MidiTrack extends Sender<MidiTrack> {
 
     @FunctionalInterface
     interface Factory {
-        MidiTrack create(int index, Track track);
+        MidiTrack create(Track track);
     }
 
     @SuppressWarnings("ClassNameSameAsAncestorName")
@@ -264,13 +253,13 @@ public final class MidiTrack extends Sender<MidiTrack> {
         }
 
         private List<MidiEvent> newList() {
-            synchronized (backing) {
+            synchronized (entry.track()) {
                 return stream().toList();
             }
         }
 
         private SortedSet<Integer> newMidiChannels() {
-            synchronized (backing) {
+            synchronized (entry.track()) {
                 final SortedSet<Integer> result =
                         stream().map(MidiEvent::getMessage)
                                 .map(MidiMessage::getStatus)
@@ -282,7 +271,7 @@ public final class MidiTrack extends Sender<MidiTrack> {
         }
 
         private String newName() {
-            synchronized (backing) {
+            synchronized (entry.track()) {
                 return stream().map(MidiEvent::getMessage)
                                .filter(Midi.MetaMessage.Type.TRACK_NAME::isValid)
                                .map(Midi.MetaMessage::trackName)
