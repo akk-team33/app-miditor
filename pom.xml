@@ -41,8 +41,8 @@
     </properties>
 
     <modules>
-        <module>meditor-main</module>
-        <module>template-fat</module>
+        <module>miditor-main</module>
+        <module>miditor-fat</module>
     </modules>
 
     <dependencyManagement>

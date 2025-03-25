@@ -10,7 +10,7 @@
         <version>1.0.4-SNAPSHOT</version>
     </parent>
 
-    <artifactId>meditor-main</artifactId>
+    <artifactId>miditor-main</artifactId>
     <packaging>jar</packaging>
 
     <name>CMD Template Main</name>

@@ -9,7 +9,7 @@
         <version>1.0.4-SNAPSHOT</version>
     </parent>
 
-    <artifactId>template-fat</artifactId>
+    <artifactId>miditor-fat</artifactId>
     <packaging>pom</packaging>
 
     <name>CMD Template Fat Jar</name>
@@ -19,7 +19,7 @@
     <dependencies>
         <dependency>
             <groupId>de.team33.cmd.template</groupId>
-            <artifactId>meditor-main</artifactId>
+            <artifactId>miditor-main</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>
