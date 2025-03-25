@@ -49,9 +49,14 @@ public class MidiSequence extends Sender<MidiSequence> {
                               .put(Channel.SetModified, () -> this)
                               .put(Channel.SetTracks, () -> this)
                               .build();
-        this.trackList = new TrackList(backing, executor);
+        this.trackList = new TrackList(backing, executor, this::onModifiedTrack);
         this.path = new Mutable<>(NORMALIZER, path);
         this.trackFactory = MidiTrack.factory(trackList);
+    }
+
+    private void onModifiedTrack() {
+        modCounter.incrementAndGet();
+        fire(Channel.SetModified);
     }
 
     public static Loader loader(final Executor executor) {
@@ -61,7 +66,7 @@ public class MidiSequence extends Sender<MidiSequence> {
         };
     }
 
-    private static Stream<Track> streamOf(final Iterable<? extends MidiTrack> tracks) {
+    private static Stream<Track> streamOf(final Iterable<MidiTrack> tracks) {
         return StreamSupport.stream(tracks.spliterator(), false)
                             .map(MidiTrack::backing);
     }
@@ -115,12 +120,12 @@ public class MidiSequence extends Sender<MidiSequence> {
         return delete(Arrays.asList(tracks));
     }
 
-    public final MidiSequence delete(final Collection<? extends MidiTrack> tracks) {
+    public final MidiSequence delete(final Collection<MidiTrack> tracks) {
         trackList.delete(tracks.stream().map(MidiTrack::backing).toList());
         return setModified();
     }
 
-    public final MidiSequence join(final Collection<? extends MidiTrack> tracks) {
+    public final MidiSequence join(final Collection<MidiTrack> tracks) {
         final Track track = trackList.create();
         streamOf(tracks).flatMap(Util::stream)
                         .forEach(track::add);
@@ -151,6 +156,7 @@ public class MidiSequence extends Sender<MidiSequence> {
 
     private MidiSequence resetModified() {
         modCounter.set(0);
+        features.get(Key.TRACKS).forEach(MidiTrack::resetModified);
         return fire(Channel.SetModified);
     }
 
@@ -162,6 +168,7 @@ public class MidiSequence extends Sender<MidiSequence> {
         return features.get(Key.TEMPO);
     }
 
+    @SuppressWarnings({"NumericCastThatLosesPrecision", "MagicNumber"})
     final void setTempo(final int tempo) {
         if (getTracks().isEmpty()) {
             create();
@@ -175,9 +182,8 @@ public class MidiSequence extends Sender<MidiSequence> {
         if (0 < tempo) {
             final byte[] data = new byte[3];
             long mpqn = Math.round(Util.MSPMQN / tempo);
-            for (int i = 0; i < data.length; ++i) {
-                //noinspection NumericCastThatLosesPrecision,MagicNumber
-                data[2 - i] = (byte) (mpqn & 0xff);
+            for (int i = data.length - 1; i >= 0; --i) {
+                data[i] = (byte) (mpqn & 0xff);
                 mpqn >>= 8;
             }
             track.add(new MidiEvent(SET_TEMPO.newMessage(data), 0L));
@@ -201,6 +207,7 @@ public class MidiSequence extends Sender<MidiSequence> {
         SetTracks
     }
 
+    @FunctionalInterface
     public interface Loader {
         MidiSequence load(final Path path) throws InvalidMidiDataException, IOException;
     }
@@ -240,6 +247,7 @@ public class MidiSequence extends Sender<MidiSequence> {
                        .mapToInt(Features::newTempo);
         }
 
+        @SuppressWarnings({"MagicNumber", "NumericCastThatLosesPrecision"})
         private static int newTempo(final MidiEvent event) {
             final byte[] bytes = event.getMessage().getMessage();
             int mpqn = 0;

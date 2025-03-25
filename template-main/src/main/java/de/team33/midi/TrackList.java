@@ -18,22 +18,24 @@ class TrackList {
 
     private final Executor executor;
     private final Sequence sequence;
-    private final Map<Track, Entry> backing;
+    private final Map<Track, Entry> entryMap;
+    private final Runnable onModifiedTrack;
 
-    TrackList(final Sequence sequence, final Executor executor) {
+    TrackList(final Sequence sequence, final Executor executor, final Runnable onModifiedTrack) {
         this.executor = executor;
         this.sequence = sequence;
-        this.backing = Util.stream(sequence)
-                           .map(this::newEntry)
-                           .collect(HashMap::new, TrackList::put, Map::putAll);
+        this.onModifiedTrack = onModifiedTrack;
+        this.entryMap = Util.stream(sequence)
+                            .map(track -> newEntry(track, 0))
+                            .collect(HashMap::new, TrackList::put, Map::putAll);
     }
 
-    private static void put(final Map<Track, Entry> map, final Entry entry) {
+    private static void put(final Map<? super Track, ? super Entry> map, final Entry entry) {
         map.put(entry.track(), entry);
     }
 
-    private Entry newEntry(final Track track) {
-        return new Entry(track, new Audience(executor), new AtomicLong(0));
+    private Entry newEntry(final Track track, final long initialModCount) {
+        return new Entry(track, new Audience(executor), new AtomicLong(initialModCount));
     }
 
     final Executor executor() {
@@ -45,12 +47,11 @@ class TrackList {
     }
 
     final Track create() {
-        final Track track;
         synchronized (sequence) {
-            track = sequence.createTrack();
-            backing.put(track, newEntry(track));
+            final Track track = sequence.createTrack();
+            entryMap.put(track, newEntry(track, 1));
+            return track;
         }
-        return track;
     }
 
     final List<Track> delete(final Collection<? extends Track> tracks) {
@@ -58,7 +59,7 @@ class TrackList {
         synchronized (sequence) {
             for (final Track track : tracks) {
                 if (sequence.deleteTrack(track)) {
-                    backing.remove(track);
+                    entryMap.remove(track);
                     result.add(track);
                 }
             }
@@ -85,9 +86,13 @@ class TrackList {
 
     final Entry entryOf(final Track track) {
         synchronized (sequence) {
-            return Optional.ofNullable(backing.get(track))
+            return Optional.ofNullable(entryMap.get(track))
                            .orElseThrow();
         }
+    }
+
+    final void onModifiedTrack() {
+        onModifiedTrack.run();
     }
 
     record Entry(Track track, Audience audience, AtomicLong modCounter) {}

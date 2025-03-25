@@ -27,13 +27,17 @@ class MidiTrackTest extends MidiTestBase {
 
     private final Track rawTrack;
     private final MidiTrack midiTrack;
-    private final ModificationCenter modificationCenter;
+    private final TrackList trackList;
 
     MidiTrackTest() throws InvalidMidiDataException, IOException {
-        rawTrack = sequence().getTracks()[1];
-        modificationCenter = new ModificationCenter(Runnable::run);
-        midiTrack = MidiTrack.factory(modificationCenter, Runnable::run)
-                             .create(1, rawTrack);
+        trackList = new TrackList(sequence(), Runnable::run, this::onModifiedTrack);
+        rawTrack = trackList.tracks().get(1);
+        midiTrack = MidiTrack.factory(trackList)
+                             .create(rawTrack);
+    }
+
+    private void onModifiedTrack() {
+        // nothing to do
     }
 
     @SuppressWarnings("SameParameterValue")
@@ -118,7 +122,7 @@ class MidiTrackTest extends MidiTestBase {
         setName.set(null);
         setChannels.set(null);
 
-        modificationCenter.reset();
+        midiTrack.resetModified();
 
         assertFalse(midiTrack.isModified());
         assertEquals(midiTrack.isModified(), setModified.get());
@@ -140,7 +144,7 @@ class MidiTrackTest extends MidiTestBase {
         assertFalse(midiTrack.isModified());
         midiTrack.add(newEvents());
         assertTrue(midiTrack.isModified());
-        modificationCenter.reset();
+        midiTrack.resetModified();
         assertFalse(midiTrack.isModified());
     }
 
