@@ -41,7 +41,7 @@
     </properties>
 
     <modules>
-        <module>template-main</module>
+        <module>meditor-main</module>
         <module>template-fat</module>
     </modules>
 

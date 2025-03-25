@@ -12,16 +12,16 @@ import java.io.File;
 import java.io.IOException;
 import java.util.prefs.Preferences;
 
-public class MiditorStub implements Runnable {
+public class Miditor implements Runnable {
     private static final Preferences PREFS = Preferences.userRoot().node("net.team33/Miditor");
     private final String[] args;
 
-    public MiditorStub(String[] args) {
+    public Miditor(String[] args) {
         this.args = args;
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(new MiditorStub(args));
+        SwingUtilities.invokeLater(new Miditor(args));
     }
 
     public void run() {

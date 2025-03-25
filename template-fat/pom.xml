@@ -19,7 +19,7 @@
     <dependencies>
         <dependency>
             <groupId>de.team33.cmd.template</groupId>
-            <artifactId>template-main</artifactId>
+            <artifactId>meditor-main</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>
@@ -42,7 +42,7 @@
                             <archive>
                                 <manifest>
                                     <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-                                    <mainClass>de.team33.cmd.template.Main</mainClass>
+                                    <mainClass>de.team33.miditor.Miditor</mainClass>
                                 </manifest>
                             </archive>
                             <descriptors>

@@ -15,7 +15,7 @@ class MidiPlayerTrial {
 
     private MidiPlayerTrial(final String[] args) throws InvalidMidiDataException, IOException {
         this.args = args;
-        this.midiCenter = new MidiCenter().load(Path.of("template-main/src/test/resources/de/team33/midi/testing/Jammin.mid"));
+        this.midiCenter = new MidiCenter().load(Path.of("miditor-main/src/test/resources/de/team33/midi/testing/Jammin.mid"));
         this.midiCenter.add(MidiCenter.Channel.SET_PATH,
                             path -> System.out.printf("Center path: %s%n", path));
         this.midiCenter.player().add(MidiPlayer.Channel.SET_STATE,

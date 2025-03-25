@@ -7,7 +7,6 @@ import org.junit.jupiter.params.provider.EnumSource;
 
 import javax.sound.midi.MidiMessage;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
