@@ -2,15 +2,14 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>de.team33.cmd.template</groupId>
-    <artifactId>template-root</artifactId>
+    <groupId>de.team33.miditor</groupId>
+    <artifactId>miditor-root</artifactId>
     <version>1.0.4-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <name>CMD Template Root</name>
-    <description>[Project template]
-        A command line tool to perform various tasks on the file system - root module.</description>
-    <url>http://team33.de/dev/cmd-mm-template</url>
+    <name>Miditor Root</name>
+    <description>A simple midi file player - root module.</description>
+    <url>https://github.com/akk-team33/app-miditor</url>
 
     <licenses>
         <license>
@@ -27,9 +26,9 @@
         </developer>
     </developers>
     <scm>
-        <connection>scm:git:git://github.com/akk-team33/cmd-mm-template.git</connection>
-        <developerConnection>scm:git:ssh://github.com:akk-team33/cmd-mm-template.git</developerConnection>
-        <url>https://github.com/akk-team33/cmd-mm-template</url>
+        <connection>scm:git:git://github.com/akk-team33/app-miditor.git</connection>
+        <developerConnection>scm:git:ssh://github.com:akk-team33/app-miditor.git</developerConnection>
+        <url>https://github.com/akk-team33/app-miditor</url>
     </scm>
 
     <properties>

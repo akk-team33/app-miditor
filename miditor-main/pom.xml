@@ -5,8 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>de.team33.cmd.template</groupId>
-        <artifactId>template-root</artifactId>
+        <groupId>de.team33.miditor</groupId>
+        <artifactId>miditor-root</artifactId>
         <version>1.0.4-SNAPSHOT</version>
     </parent>
 

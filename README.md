@@ -1,6 +1,6 @@
-# cmd-mm-template
+# app-miditor
 
-    A template command-line multi-module project
+    A simple midi file player
     
     Version 1
 
