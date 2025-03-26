@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.util.prefs.Preferences;
 
 public class Miditor implements Runnable {
-    private static final Preferences PREFS = Preferences.userRoot().node("net.team33/Miditor");
+    private static final Preferences PREFS = Preferences.userRoot().node("de.team33/Miditor");
     private final String[] args;
 
     public Miditor(String[] args) {
