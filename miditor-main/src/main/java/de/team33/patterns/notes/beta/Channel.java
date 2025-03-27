@@ -32,9 +32,9 @@ import java.util.function.Consumer;
  * In principle, this is not necessary, but it simplifies the structuring and formulation of the individual constants.
  *
  * @see Registry#add(Channel, Consumer) Registry.add(Channel&lt;M&gt;, Consumer&lt;? super M&gt;)
- * @see Audience#send(Channel, Object) Audience.send(Channel&lt;M&gt;, M)
+ * @see Audience#fire(Channel, Object) Audience.send(Channel&lt;M&gt;, M)
  * @see Registry#add(Channel, Consumer)
- * @see Audience#send(Channel, Object)
+ * @see Audience#fire(Channel, Object)
  *
  * @param <M> The message type.
  */
