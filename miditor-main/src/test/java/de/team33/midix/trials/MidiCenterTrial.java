@@ -16,7 +16,7 @@ class MidiCenterTrial {
 
     private MidiCenterTrial(final String[] args) throws InvalidMidiDataException, IOException {
         this.args = args;
-        this.midiCenter = new MidiCenter(new SimpleAsyncExecutor()).load(Path.of("Beatles-Let_it_be-B.mid"));
+        this.midiCenter = new MidiCenter(new SimpleAsyncExecutor()).load(Path.of("miditor-main/src/test/resources/de/team33/midi/testing/Respect.mid"));
     }
 
     @SuppressWarnings({"OverlyBroadThrowsClause", "ProhibitedExceptionDeclared"})

@@ -19,7 +19,7 @@ class TrackModeTrial {
 
     private TrackModeTrial(final String[] args) throws InvalidMidiDataException, IOException {
         this.args = args;
-        this.midiCenter = new MidiCenter(new SimpleAsyncExecutor()).load(Path.of("Beatles-Let_it_be-B.mid"));
+        this.midiCenter = new MidiCenter(new SimpleAsyncExecutor()).load(Path.of("miditor-main/src/test/resources/de/team33/midi/testing/Respect.mid"));
         this.midiCenter.registry()
                        .add(MidiCenter.Channel.SET_PATH, path -> out.printf("Center path: %s%n", path));
         this.midiCenter.player().registry()
