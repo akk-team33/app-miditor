@@ -101,7 +101,7 @@ public abstract class TrackControls {
     private class MUTE_BUTTON extends SmallButton {
         private MUTE_BUTTON() {
             super("mute");
-            getContext().getPlayer()
+            getContext().getPlayer().registry()
                         .add(MidiPlayer.Channel.SET_MODES, this::onSetModes);
         }
 
@@ -135,7 +135,7 @@ public abstract class TrackControls {
     private class SOLO_BUTTON extends SmallButton {
         public SOLO_BUTTON() {
             super("solo");
-            getContext().getPlayer()
+            getContext().getPlayer().registry()
                         .add(MidiPlayer.Channel.SET_MODES, this::onSetModes);
         }
 

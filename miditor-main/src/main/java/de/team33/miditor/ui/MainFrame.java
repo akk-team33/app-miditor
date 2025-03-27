@@ -7,6 +7,7 @@ import de.team33.midi.PlayTrigger;
 import de.team33.miditor.controller.UIController;
 import de.team33.miditor.model.PartSelection;
 import de.team33.miditor.ui.sequence.Context;
+import de.team33.patterns.execution.metis.SimpleAsyncExecutor;
 import de.team33.selection.Selection;
 import de.team33.swing.XFrame;
 
@@ -56,7 +57,7 @@ public class MainFrame extends XFrame {
         super("?", prefs);
         this.sequence = sequence;
         selection = new PartSelection(this.sequence);
-        player = new MidiPlayer(this.sequence);
+        player = new MidiPlayer(this.sequence, new SimpleAsyncExecutor());
         m_EventEditor = new TRACK_EDITOR();
         setIconImage(Rsrc.MAIN_ICON.getImage());
         setContentPane(new MAIN_PANE());

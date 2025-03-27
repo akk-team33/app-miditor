@@ -94,7 +94,7 @@ public abstract class DriveControl extends JPanel {
         SBUTTON(final PlayTrigger trigger) {
             super(Rsrc.dcIcon(trigger));
             this.trigger = trigger;
-            getContext().getPlayer()
+            getContext().getPlayer().registry()
                         .add(MidiPlayer.Channel.SET_STATE, this::onSetState);
             getContext().getWindow()
                         .addWindowListener(new CLIENT3());

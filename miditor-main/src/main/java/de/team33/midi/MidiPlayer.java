@@ -2,22 +2,20 @@ package de.team33.midi;
 
 import de.team33.midi.util.ClassUtil;
 import de.team33.midix.Timing;
-import de.team33.patterns.execution.metis.SimpleAsyncExecutor;
 import de.team33.patterns.lazy.narvi.LazyFeatures;
-import de.team33.patterns.notes.alpha.Audience;
-import de.team33.patterns.notes.alpha.Mapping;
-import de.team33.patterns.notes.alpha.Sender;
+import de.team33.patterns.notes.beta.Sender;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Sequencer;
-import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.prefs.Preferences;
 import java.util.stream.IntStream;
@@ -27,27 +25,18 @@ public class MidiPlayer extends Sender<MidiPlayer> {
 
     private static final Preferences PREFS = Preferences.userRoot().node(ClassUtil.getPathString(MidiPlayer.class));
 
-    private final Audience audience;
-    private final Mapping mapping;
     private final MidiSequence sequence;
     @Deprecated // make package private asap!
     final Sequencer backing;
     private MidiDevice outputDevice;
     private final Features features = new Features();
 
-    public MidiPlayer(final MidiSequence sequence) throws MidiUnavailableException {
-        super(MidiPlayer.class);
-        this.audience = new Audience(new SimpleAsyncExecutor());
-        this.mapping = Mapping.builder()
-                              .put(Channel.SET_POSITION, () -> this)
-                              .put(Channel.SET_STATE, () -> this)
-                              .put(Channel.SET_TEMPO, () -> this)
-                              .put(Channel.SET_MODES, () -> this)
-                              .build();
+    public MidiPlayer(final MidiSequence sequence, final Executor executor) throws MidiUnavailableException {
+        super(MidiPlayer.class, executor, Channel.VALUES);
         backing = MidiSystem.getSequencer(false);
         this.sequence = sequence;
         this.sequence.registry().add(MidiSequence.Channel.SetTracks, this::onSetParts);
-        audience.add(Channel.SET_STATE, new STARTER());
+        audience().add(Channel.SET_STATE, new STARTER());
     }
 
     private static MidiDevice newOutputDevice() throws MidiUnavailableException {
@@ -101,16 +90,6 @@ public class MidiPlayer extends Sender<MidiPlayer> {
         }
     }
 
-    @Override
-    protected final Audience audience() {
-        return audience;
-    }
-
-    @Override
-    protected final Mapping mapping() {
-        return mapping;
-    }
-
     public final TrackMode getMode(final int index) {
         final List<TrackMode> trackModes = features.get(Key.TRACK_MODES);
         return (0 <= index) && (index < trackModes.size()) ? trackModes.get(index) : TrackMode.NORMAL;
@@ -153,7 +132,7 @@ public class MidiPlayer extends Sender<MidiPlayer> {
     }
 
     public final void setMode(final int index, final TrackMode newMode) {
-        final Set<Channel> channels = EnumSet.noneOf(Channel.class);
+        final Set<Channel> channels = new HashSet<>(0);
         final TrackMode oldMode = getMode(index);
         if (oldMode != newMode) {
             if (TrackMode.SOLO == newMode) {
@@ -209,7 +188,7 @@ public class MidiPlayer extends Sender<MidiPlayer> {
         private volatile int lastTempo = 0;
 
         public final void run() {
-            final Set<Channel> channels = EnumSet.noneOf(Channel.class);
+            final Set<Channel> channels = new HashSet<>(0);
             channels.add(Channel.SET_POSITION);
             if (!backing.isRunning()) {
                 cancel();
@@ -227,12 +206,17 @@ public class MidiPlayer extends Sender<MidiPlayer> {
         }
     }
 
+    @FunctionalInterface
     @SuppressWarnings("ClassNameSameAsAncestorName")
-    public enum Channel implements de.team33.patterns.notes.alpha.Channel<MidiPlayer> {
-        SET_MODES,
-        SET_POSITION,
-        SET_STATE,
-        SET_TEMPO
+    public interface Channel extends Sender.Channel<MidiPlayer, MidiPlayer> {
+
+        Channel SET_MODES = midiPlayer -> midiPlayer;
+        Channel SET_POSITION = midiPlayer -> midiPlayer;
+        Channel SET_STATE = midiPlayer -> midiPlayer;
+        Channel SET_TEMPO = midiPlayer -> midiPlayer;
+
+        @SuppressWarnings("StaticMethodOnlyUsedInOneClass")
+        Set<Channel> VALUES = Set.of(SET_MODES, SET_POSITION, SET_STATE, SET_TEMPO);
     }
 
     @SuppressWarnings("ClassNameSameAsAncestorName")
@@ -246,7 +230,6 @@ public class MidiPlayer extends Sender<MidiPlayer> {
 
         @Override
         protected final Features host() {
-            //noinspection ReturnOfInnerClass
             return this;
         }
 

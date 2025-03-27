@@ -89,7 +89,7 @@ public abstract class Locator extends JPanel {
         LOC_PANE() {
             setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 4));
             setFont(new Font(getFont().getName(), 1, 17));
-            getContext().getPlayer()
+            getContext().getPlayer().registry()
                         .add(MidiPlayer.Channel.SET_POSITION, this::onSetPosition);
         }
 
