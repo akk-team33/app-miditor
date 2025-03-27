@@ -1,5 +1,6 @@
 package de.team33.miditor.ui;
 
+import de.team33.midi.MidiCenter;
 import de.team33.midi.MidiPlayer;
 import de.team33.midi.MidiSequence;
 import de.team33.midi.MidiTrack;
@@ -7,11 +8,9 @@ import de.team33.midi.PlayTrigger;
 import de.team33.miditor.controller.UIController;
 import de.team33.miditor.model.PartSelection;
 import de.team33.miditor.ui.sequence.Context;
-import de.team33.patterns.execution.metis.SimpleAsyncExecutor;
 import de.team33.selection.Selection;
 import de.team33.swing.XFrame;
 
-import javax.sound.midi.MidiUnavailableException;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
@@ -45,25 +44,23 @@ public class MainFrame extends XFrame {
     }
 
     private final Selection<MidiTrack> selection;
-    private final MidiSequence sequence;
-    private final MidiPlayer player;
+    private final MidiCenter midiCenter;
     private final EventEditor m_EventEditor;
     private final WindowListener m_WindowListener = new WINDOW_ADAPTER();
     private final CONTEXT context = new CONTEXT();
     private final PLAY_CTRLS playCtrls = new PLAY_CTRLS();
     private final SONG_CTRLS songCtrls = new SONG_CTRLS();
 
-    public MainFrame(final MidiSequence sequence, final Preferences prefs) throws MidiUnavailableException {
+    public MainFrame(final MidiCenter midiCenter, final Preferences prefs) {
         super("?", prefs);
-        this.sequence = sequence;
-        selection = new PartSelection(this.sequence);
-        player = new MidiPlayer(this.sequence, new SimpleAsyncExecutor());
+        this.midiCenter = midiCenter;
+        selection = new PartSelection(midiCenter.sequence());
         m_EventEditor = new TRACK_EDITOR();
         setIconImage(Rsrc.MAIN_ICON.getImage());
         setContentPane(new MAIN_PANE());
         setLocationByPlatform(true);
         addWindowListener(m_WindowListener);
-        player.getSequence().registry().add(MidiSequence.Channel.SetPath, this::onSetFile);
+        midiCenter.sequence().registry().add(MidiSequence.Channel.SetPath, this::onSetFile);
     }
 
 //    protected void finalize() throws Throwable {
@@ -87,7 +84,7 @@ public class MainFrame extends XFrame {
         }
 
         public MidiPlayer getPlayer() {
-            return player;
+            return midiCenter.sequencer();
         }
 
         public Selection<MidiTrack> getSelection() {
@@ -95,7 +92,7 @@ public class MainFrame extends XFrame {
         }
 
         public MidiSequence getSequence() {
-            return sequence;
+            return midiCenter.sequence();
         }
 
         public UIController getTrackHandler() {
@@ -151,18 +148,18 @@ public class MainFrame extends XFrame {
 
     private class TRACK_EDITOR extends EventEditor {
         protected MidiSequence getSequence() {
-            return player.getSequence();
+            return midiCenter.sequence();
         }
     }
 
     private class WINDOW_ADAPTER extends WindowAdapter {
 
         public void windowClosed(final WindowEvent e) {
-            player.push(PlayTrigger.OFF);
+            midiCenter.sequencer().push(PlayTrigger.OFF);
         }
 
         public void windowOpened(final WindowEvent e) {
-            player.push(PlayTrigger.ON);
+            midiCenter.sequencer().push(PlayTrigger.ON);
         }
     }
 }

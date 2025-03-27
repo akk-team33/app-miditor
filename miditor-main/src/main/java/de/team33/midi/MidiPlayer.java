@@ -31,9 +31,9 @@ public class MidiPlayer extends Sender<MidiPlayer> {
     private MidiDevice outputDevice;
     private final Features features = new Features();
 
-    public MidiPlayer(final MidiSequence sequence, final Executor executor) throws MidiUnavailableException {
+    MidiPlayer(final MidiSequence sequence, final Executor executor) {
         super(MidiPlayer.class, executor, Channel.VALUES);
-        backing = MidiSystem.getSequencer(false);
+        backing = Util.CNV.get(() -> MidiSystem.getSequencer(false));
         this.sequence = sequence;
         this.sequence.registry().add(MidiSequence.Channel.SetTracks, this::onSetParts);
         audience().add(Channel.SET_STATE, new STARTER());
