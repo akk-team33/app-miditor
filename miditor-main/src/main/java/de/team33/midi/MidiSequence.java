@@ -3,9 +3,7 @@ package de.team33.midi;
 import de.team33.midix.Timing;
 import de.team33.patterns.lazy.narvi.LazyFeatures;
 import de.team33.patterns.mutable.alpha.Mutable;
-import de.team33.patterns.notes.alpha.Audience;
-import de.team33.patterns.notes.alpha.Mapping;
-import de.team33.patterns.notes.alpha.Sender;
+import de.team33.patterns.notes.beta.Sender;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiEvent;
@@ -19,6 +17,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.UnaryOperator;
@@ -33,8 +32,6 @@ public class MidiSequence extends Sender<MidiSequence> {
 
     private static final UnaryOperator<Path> NORMALIZER = path -> path.toAbsolutePath().normalize();
 
-    private final Audience audience;
-    private final Mapping mapping;
     private final TrackList trackList;
     private final Mutable<Path> path;
     private final MidiTrack.Factory trackFactory;
@@ -42,13 +39,7 @@ public class MidiSequence extends Sender<MidiSequence> {
     private final Features features = new Features();
 
     MidiSequence(final Path path, final Sequence backing, final Executor executor) {
-        super(MidiSequence.class);
-        this.audience = new Audience(executor);
-        this.mapping = Mapping.builder()
-                              .put(Channel.SetPath, () -> this)
-                              .put(Channel.SetModified, () -> this)
-                              .put(Channel.SetTracks, () -> this)
-                              .build();
+        super(MidiSequence.class, executor, Channel.VALUES);
         this.trackList = new TrackList(backing, executor, this::onModifiedTrack);
         this.path = new Mutable<>(NORMALIZER, path);
         this.trackFactory = MidiTrack.factory(trackList);
@@ -69,16 +60,6 @@ public class MidiSequence extends Sender<MidiSequence> {
     private static Stream<Track> streamOf(final Iterable<MidiTrack> tracks) {
         return StreamSupport.stream(tracks.spliterator(), false)
                             .map(MidiTrack::backing);
-    }
-
-    @Override
-    protected final Audience audience() {
-        return audience;
-    }
-
-    @Override
-    protected final Mapping mapping() {
-        return mapping;
     }
 
     public final MidiSequence save() throws IOException {
@@ -200,11 +181,16 @@ public class MidiSequence extends Sender<MidiSequence> {
         return features.get(Key.TIMING);
     }
 
+    @FunctionalInterface
     @SuppressWarnings("ClassNameSameAsAncestorName")
-    public enum Channel implements de.team33.patterns.notes.alpha.Channel<MidiSequence> {
-        SetModified,
-        SetPath,
-        SetTracks
+    public interface Channel extends Sender.Channel<MidiSequence, MidiSequence> {
+
+        Channel SetModified = midiSequence -> midiSequence;
+        Channel SetPath = midiSequence -> midiSequence;
+        Channel SetTracks = midiSequence -> midiSequence;
+
+        @SuppressWarnings("StaticMethodOnlyUsedInOneClass")
+        Set<Channel> VALUES = Set.of(SetModified, SetPath, SetTracks);
     }
 
     @FunctionalInterface

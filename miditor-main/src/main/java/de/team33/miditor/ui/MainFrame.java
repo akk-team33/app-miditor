@@ -62,7 +62,7 @@ public class MainFrame extends XFrame {
         setContentPane(new MAIN_PANE());
         setLocationByPlatform(true);
         addWindowListener(m_WindowListener);
-        player.getSequence().add(MidiSequence.Channel.SetPath, this::onSetFile);
+        player.getSequence().registry().add(MidiSequence.Channel.SetPath, this::onSetFile);
     }
 
 //    protected void finalize() throws Throwable {

@@ -32,7 +32,7 @@ public abstract class FileControl extends JPanel {
         public SAVE_BTTN() {
             super(Rsrc.SAVEICON);
             setToolTipText("MIDI-Sequenz speichern");
-            getContext().getSequence().add(MidiSequence.Channel.SetModified, this::onSetModified);
+            getContext().getSequence().registry().add(MidiSequence.Channel.SetModified, this::onSetModified);
         }
 
         public void actionPerformed(final ActionEvent e) {

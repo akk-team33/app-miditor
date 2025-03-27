@@ -7,7 +7,7 @@ import de.team33.selection.SelectionImpl;
 public class PartSelection extends SelectionImpl<MidiTrack> {
 
     public PartSelection(final MidiSequence sequence) {
-        sequence.add(MidiSequence.Channel.SetTracks, this::onSetParts);
+        sequence.registry().add(MidiSequence.Channel.SetTracks, this::onSetParts);
     }
 
     private void onSetParts(final MidiSequence sequence) {

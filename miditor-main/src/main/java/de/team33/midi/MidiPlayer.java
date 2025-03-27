@@ -46,7 +46,7 @@ public class MidiPlayer extends Sender<MidiPlayer> {
                               .build();
         backing = MidiSystem.getSequencer(false);
         this.sequence = sequence;
-        this.sequence.add(MidiSequence.Channel.SetTracks, this::onSetParts);
+        this.sequence.registry().add(MidiSequence.Channel.SetTracks, this::onSetParts);
         audience.add(Channel.SET_STATE, new STARTER());
     }
 

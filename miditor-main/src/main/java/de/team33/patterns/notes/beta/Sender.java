@@ -9,6 +9,7 @@ import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class Sender<S extends Sender<S>> extends SelfReferring<S> {
 
     private final Audience audience;
