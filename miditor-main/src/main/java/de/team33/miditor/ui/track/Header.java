@@ -23,6 +23,6 @@ public class Header extends JLabel {
 
     private void onSetTrack(final UIController controller) {
         Optional.ofNullable(controller.getTrack())
-                .ifPresent(track -> track.add(MidiTrack.Channel.SetName, this::onSetName));
+                .ifPresent(track -> track.registry().add(MidiTrack.Channel.SetName, this::onSetName));
     }
 }

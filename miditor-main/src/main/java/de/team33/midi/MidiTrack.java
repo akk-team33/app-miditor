@@ -2,9 +2,7 @@ package de.team33.midi;
 
 import de.team33.midix.Midi;
 import de.team33.patterns.lazy.narvi.LazyFeatures;
-import de.team33.patterns.notes.alpha.Audience;
-import de.team33.patterns.notes.alpha.Mapping;
-import de.team33.patterns.notes.alpha.Sender;
+import de.team33.patterns.notes.beta.Sender;
 
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.MidiMessage;
@@ -28,26 +26,17 @@ public final class MidiTrack extends Sender<MidiTrack> {
 
     private final TrackList trackList;
     private final Track track;
-    private final Audience audience;
     private final AtomicLong modCounter;
-    private final Mapping mapping;
     private final Features features = new Features();
 
     private MidiTrack(final TrackList trackList, final TrackList.Entry entry) {
-        super(MidiTrack.class);
+        super(MidiTrack.class, entry.audience(), Channel.VALUES);
         this.trackList = trackList;
         this.track = entry.track();
-        this.audience = entry.audience();
         this.modCounter = entry.modCounter();
-        this.mapping = Mapping.builder()
-                              .put(Channel.SetEvents, () -> this)
-                              .put(Channel.SetModified, () -> this)
-                              .put(Channel.SetChannels, () -> this)
-                              .put(Channel.SetName, () -> this)
-                              .build();
 
-        addPlain(Channel.SetEvents, new SetName());
-        addPlain(Channel.SetEvents, new SetMidiChannels());
+        audience().add(Channel.SetEvents, new SetName());
+        audience().add(Channel.SetEvents, new SetMidiChannels());
     }
 
     static Factory factory(final TrackList trackList) {
@@ -76,16 +65,6 @@ public final class MidiTrack extends Sender<MidiTrack> {
             final long newTime = Math.max(0L, oldTime + delta);
             midiEvent.setTick(newTime);
         }
-    }
-
-    @Override
-    protected final Audience audience() {
-        return audience;
-    }
-
-    @Override
-    protected final Mapping mapping() {
-        return mapping;
     }
 
     private Stream<MidiEvent> stream() {
@@ -205,13 +184,16 @@ public final class MidiTrack extends Sender<MidiTrack> {
         return getClass().getSimpleName() + "(\"%s\", %d)".formatted(name(), size());
     }
 
-    @SuppressWarnings("ClassNameSameAsAncestorName")
-    public enum Channel implements de.team33.patterns.notes.alpha.Channel<MidiTrack> {
-        // TODO?: Released,
-        SetChannels,
-        SetEvents,
-        SetModified,
-        SetName
+    @FunctionalInterface
+    public interface Channel extends Sender.Channel<MidiTrack, MidiTrack> {
+
+        Channel SetChannels = midiTrack -> midiTrack;
+        Channel SetEvents = midiTrack -> midiTrack;
+        Channel SetModified = midiTrack -> midiTrack;
+        Channel SetName = midiTrack -> midiTrack;
+
+        @SuppressWarnings("StaticMethodOnlyUsedInOneClass")
+        Set<Channel> VALUES = Set.of(SetChannels, SetEvents, SetModified, SetName);
     }
 
     @FunctionalInterface

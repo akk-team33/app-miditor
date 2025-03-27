@@ -36,7 +36,7 @@ public abstract class TrackControls {
     private class CHANNEL_PANE extends JPanel {
         CHANNEL_PANE() {
             super(new BorderLayout());
-            getContext().getTrack().add(MidiTrack.Channel.SetChannels, this::onSetChannels);
+            getContext().getTrack().registry().add(MidiTrack.Channel.SetChannels, this::onSetChannels);
         }
 
         private void onSetChannels(final MidiTrack track) {
@@ -68,7 +68,7 @@ public abstract class TrackControls {
     private class INDEX_PANE extends JCheckBox {
         public INDEX_PANE() {
             super(getContext().getTrack().getPrefix());
-            getContext().getTrack().add(MidiTrack.Channel.SetModified, this::onSetModified);
+            getContext().getTrack().registry().add(MidiTrack.Channel.SetModified, this::onSetModified);
             getContext().getSelection().addListener(Selection.Event.UPDATE, this::onSelection);
             addActionListener(this::onAction);
         }
@@ -124,7 +124,7 @@ public abstract class TrackControls {
     private class NAME_PANE extends XTextField {
         public NAME_PANE() {
             super(12);
-            getContext().getTrack().add(MidiTrack.Channel.SetName, this::onSetName);
+            getContext().getTrack().registry().add(MidiTrack.Channel.SetName, this::onSetName);
         }
 
         private void onSetName(final MidiTrack track) {

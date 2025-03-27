@@ -1,6 +1,6 @@
 package de.team33.midi;
 
-import de.team33.patterns.notes.alpha.Audience;
+import de.team33.patterns.notes.beta.Audience;
 
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Track;

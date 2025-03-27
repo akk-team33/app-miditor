@@ -23,17 +23,17 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@SuppressWarnings("ClassNamePrefixedWithPackageName")
 class MidiTrackTest extends MidiTestBase {
 
-    private final Track rawTrack;
+    private final Track track;
     private final MidiTrack midiTrack;
-    private final TrackList trackList;
 
     MidiTrackTest() throws InvalidMidiDataException, IOException {
-        trackList = new TrackList(sequence(), Runnable::run, this::onModifiedTrack);
-        rawTrack = trackList.tracks().get(1);
+        final TrackList trackList = new TrackList(sequence(), Runnable::run, this::onModifiedTrack);
+        track = trackList.tracks().get(1);
         midiTrack = MidiTrack.factory(trackList)
-                             .create(rawTrack);
+                             .create(track);
     }
 
     private void onModifiedTrack() {
@@ -58,7 +58,7 @@ class MidiTrackTest extends MidiTestBase {
 
     @Test
     final void list() {
-        final List<MidiEvent> expected = Util.stream(rawTrack).toList();
+        final List<MidiEvent> expected = Util.stream(track).toList();
         final List<MidiEvent> result = midiTrack.list();
         assertEquals(expected, result);
     }
@@ -74,11 +74,11 @@ class MidiTrackTest extends MidiTestBase {
     }
 
     @Test
-    final void name() throws InvalidMidiDataException {
-        Util.stream(rawTrack)
+    final void name() {
+        Util.stream(track)
             .filter(event -> TRACK_NAME.isTypeOf(event.getMessage()))
             .toList()
-            .forEach(rawTrack::remove);
+            .forEach(track::remove);
         assertEquals("[undefined]", midiTrack.name());
 
         final String expected = "track 01";
@@ -98,18 +98,19 @@ class MidiTrackTest extends MidiTestBase {
     }
 
     @Test
-    final void setModified() throws InterruptedException {
+    final void setModified() {
         final Mutable<Boolean> setModified = new Mutable<>(null);
         final Mutable<List<MidiEvent>> setEvents = new Mutable<>(null);
         final Mutable<Set<Integer>> setChannels = new Mutable<>(null);
         final Mutable<String> setName = new Mutable<>(null);
 
         final MidiEvent[] events = newEvents();
-        midiTrack.add(MidiTrack.Channel.SetEvents, t -> setEvents.set(t.list()))
+        midiTrack.add(events)
+                 .registry()
+                 .add(MidiTrack.Channel.SetEvents, t -> setEvents.set(t.list()))
                  .add(MidiTrack.Channel.SetChannels, t -> setChannels.set(t.midiChannels()))
                  .add(MidiTrack.Channel.SetModified, t -> setModified.set(t.isModified()))
-                 .add(MidiTrack.Channel.SetName, t -> setName.set(t.name()))
-                 .add(events);
+                 .add(MidiTrack.Channel.SetName, t -> setName.set(t.name()));
 
         assertTrue(midiTrack.isModified());
         assertEquals(midiTrack.isModified(), setModified.get());
