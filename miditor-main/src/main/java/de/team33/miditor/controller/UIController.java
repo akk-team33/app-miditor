@@ -1,7 +1,7 @@
 package de.team33.miditor.controller;
 
 import de.team33.midi.MidiTrack;
-import de.team33.patterns.notes.alpha.Channel;
+import de.team33.patterns.notes.beta.Channel;
 
 import java.util.function.Consumer;
 

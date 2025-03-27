@@ -3,15 +3,14 @@ package de.team33.midix;
 import de.team33.midi.PlayState;
 import de.team33.midi.TrackMode;
 import de.team33.patterns.lazy.narvi.LazyFeatures;
-import de.team33.patterns.notes.alpha.Audience;
-import de.team33.patterns.notes.alpha.Mapping;
-import de.team33.patterns.notes.alpha.Sender;
+import de.team33.patterns.notes.beta.Sender;
 
 import javax.sound.midi.MetaMessage;
 import javax.sound.midi.Sequencer;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Executor;
 import java.util.stream.IntStream;
 
 import static de.team33.midix.Midi.MetaMessage.Type.SET_TEMPO;
@@ -22,23 +21,14 @@ public class MidiPlayer extends Sender<MidiPlayer> {
 
     private static final int INTERVAL = 50;
 
-    private final Audience audience;
     private final Sequencer sequencer;
-    private final Mapping mapping;
     private final Features features = new Features();
 
-    MidiPlayer(final Audience audience, final Sequencer sequencer) {
-        super(MidiPlayer.class);
-        this.audience = audience;
+    MidiPlayer(final Executor executor, final Sequencer sequencer) {
+        super(MidiPlayer.class, executor, Channel.VALUES);
         this.sequencer = sequencer;
-        this.mapping = Mapping.builder()
-                              .put(Channel.SET_STATE, this::getState)
-                              .put(Channel.SET_POSITION, this::getPosition)
-                              .put(Channel.SET_TEMPO, this::getTempo)
-                              .put(Channel.SET_TRACK_MODE, this::getTrackModes)
-                              .build();
         sequencer.addMetaEventListener(this::onMetaEvent);
-        audience.add(Channel.SET_STATE, this::onSetState);
+        audience().add(Channel.SET_STATE, this::onSetState);
     }
 
     private void onSetState(final PlayState state) {
@@ -60,16 +50,6 @@ public class MidiPlayer extends Sender<MidiPlayer> {
         if (SET_TEMPO.isValid(metaMessage)) {
             fire(Channel.SET_TEMPO);
         }
-    }
-
-    @Override
-    protected final Audience audience() {
-        return audience;
-    }
-
-    @Override
-    protected final Mapping mapping() {
-        return mapping;
     }
 
     public final int getTempo() {
@@ -154,27 +134,29 @@ public class MidiPlayer extends Sender<MidiPlayer> {
 
     @SuppressWarnings("ClassNameSameAsAncestorName")
     @FunctionalInterface
-    public interface Channel<M> extends de.team33.patterns.notes.alpha.Channel<M> {
+    public interface Channel<M> extends Sender.Channel<MidiPlayer, M> {
 
         /**
          * Symbolizes a change of the current player state.
          */
-        Channel<PlayState> SET_STATE = () -> "SET_STATE";
+        Channel<PlayState> SET_STATE = MidiPlayer::getState;
 
         /**
          * Symbolizes a change of the current player position.
          */
-        Channel<Long> SET_POSITION = () -> "SET_POSITION";
+        Channel<Long> SET_POSITION = MidiPlayer::getPosition;
 
         /**
          * Symbolizes a change of the current player tempo.
          */
-        Channel<Integer> SET_TEMPO = () -> "SET_TEMPO";
+        Channel<Integer> SET_TEMPO = MidiPlayer::getTempo;
 
         /**
          * Symbolizes a change of the current player track modes.
          */
-        Channel<List<TrackMode>> SET_TRACK_MODE = () -> "SET_TRACK_MODE";
+        Channel<List<TrackMode>> SET_TRACK_MODE = MidiPlayer::getTrackModes;
+
+        Set<Channel<?>> VALUES = Set.of(SET_STATE, SET_POSITION, SET_TEMPO, SET_TRACK_MODE);
     }
 
     @SuppressWarnings("ClassNameSameAsAncestorName")

@@ -1,6 +1,6 @@
 package de.team33.selection;
 
-import de.team33.patterns.notes.alpha.Audience;
+import de.team33.patterns.notes.beta.Audience;
 
 import java.util.AbstractSet;
 import java.util.Collection;
@@ -11,7 +11,7 @@ import java.util.function.Consumer;
 public class SelectionImpl<E> extends AbstractSet<E> implements Selection<E> {
 
     private final HashSet<E> core;
-    private final Audience audience = new Audience();
+    private final Audience audience = new Audience(Runnable::run);
 
     public SelectionImpl() {
         this(new HashSet());
@@ -34,7 +34,7 @@ public class SelectionImpl<E> extends AbstractSet<E> implements Selection<E> {
     public final boolean add(final E element) {
         final boolean result = core.add(element);
         if (result) {
-            audience.send(Event.UPDATE, this);
+            audience.fire(Event.UPDATE, this);
         }
         return result;
     }
@@ -42,7 +42,7 @@ public class SelectionImpl<E> extends AbstractSet<E> implements Selection<E> {
     public final boolean addAll(final Collection<? extends E> source) {
         final boolean result = core.addAll(source);
         if (result) {
-            audience.send(Event.UPDATE, this);
+            audience.fire(Event.UPDATE, this);
         }
         return result;
     }
@@ -50,7 +50,7 @@ public class SelectionImpl<E> extends AbstractSet<E> implements Selection<E> {
     public final void clear() {
         if (0 < core.size()) {
             super.clear();
-            audience.send(Event.UPDATE, this);
+            audience.fire(Event.UPDATE, this);
         }
     }
 
@@ -61,7 +61,7 @@ public class SelectionImpl<E> extends AbstractSet<E> implements Selection<E> {
     public final boolean remove(final Object element) {
         final boolean result = core.remove(element);
         if (result) {
-            audience.send(Event.UPDATE, this);
+            audience.fire(Event.UPDATE, this);
         }
         return result;
     }
@@ -69,7 +69,7 @@ public class SelectionImpl<E> extends AbstractSet<E> implements Selection<E> {
     public final boolean removeAll(final Collection<?> source) {
         final boolean result = core.removeAll(source);
         if (result) {
-            audience.send(Event.UPDATE, this);
+            audience.fire(Event.UPDATE, this);
         }
         return result;
     }
@@ -77,7 +77,7 @@ public class SelectionImpl<E> extends AbstractSet<E> implements Selection<E> {
     public final boolean retainAll(final Collection<?> source) {
         final boolean result = core.retainAll(source);
         if (result) {
-            audience.send(Event.UPDATE, this);
+            audience.fire(Event.UPDATE, this);
         }
         return result;
     }
@@ -104,7 +104,7 @@ public class SelectionImpl<E> extends AbstractSet<E> implements Selection<E> {
 
         public final void remove() {
             core.remove();
-            audience.send(Event.UPDATE, SelectionImpl.this);
+            audience.fire(Event.UPDATE, SelectionImpl.this);
         }
     }
 }

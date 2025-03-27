@@ -1,7 +1,7 @@
 package de.team33.miditor.controller;
 
 import de.team33.midi.MidiTrack;
-import de.team33.patterns.notes.alpha.Audience;
+import de.team33.patterns.notes.beta.Audience;
 
 import java.util.Arrays;
 import java.util.Set;
@@ -11,7 +11,7 @@ public class UIControllerImpl implements UIController {
 
     private static final Set<Event> INITIAL_EVENTS = Set.of(Event.SetTrack, Event.SetTrackSelection);
 
-    private final Audience audience = new Audience();
+    private final Audience audience = new Audience(Runnable::run);
     private int[] m_Selection = new int[0];
     private MidiTrack m_Track = null;
 
@@ -28,9 +28,9 @@ public class UIControllerImpl implements UIController {
     }
 
     public void setTrack(final MidiTrack track) {
-        audience.send(Event.UnsetTrack, this);
+        audience.fire(Event.UnsetTrack, this);
         this.m_Track = track;
-        audience.send(Event.SetTrack, this);
+        audience.fire(Event.SetTrack, this);
     }
 
     public int[] getTrackSelection() {
@@ -40,7 +40,7 @@ public class UIControllerImpl implements UIController {
     public void setTrackSelection(final int[] selected) {
         if (!Arrays.equals(this.m_Selection, selected)) {
             this.m_Selection = selected;
-            audience.send(Event.SetTrackSelection, this);
+            audience.fire(Event.SetTrackSelection, this);
         }
     }
 }

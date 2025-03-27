@@ -1,6 +1,6 @@
 package de.team33.miditor.model;
 
-import de.team33.patterns.notes.alpha.Channel;
+import de.team33.patterns.notes.beta.Channel;
 
 import java.util.function.Consumer;
 

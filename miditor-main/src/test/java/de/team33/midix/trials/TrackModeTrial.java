@@ -4,6 +4,7 @@ import de.team33.midi.TrackMode;
 import de.team33.midix.MidiCenter;
 import de.team33.midix.MidiPlayer;
 import de.team33.midix.PlayTrigger;
+import de.team33.patterns.execution.metis.SimpleAsyncExecutor;
 
 import javax.sound.midi.InvalidMidiDataException;
 import java.io.IOException;
@@ -18,9 +19,10 @@ class TrackModeTrial {
 
     private TrackModeTrial(final String[] args) throws InvalidMidiDataException, IOException {
         this.args = args;
-        this.midiCenter = new MidiCenter().load(Path.of("Beatles-Let_it_be-B.mid"));
-        this.midiCenter.add(MidiCenter.Channel.SET_PATH, path -> out.printf("Center path: %s%n", path))
-                       .player()
+        this.midiCenter = new MidiCenter(new SimpleAsyncExecutor()).load(Path.of("Beatles-Let_it_be-B.mid"));
+        this.midiCenter.registry()
+                       .add(MidiCenter.Channel.SET_PATH, path -> out.printf("Center path: %s%n", path));
+        this.midiCenter.player().registry()
                        .add(MidiPlayer.Channel.SET_STATE, state -> out.printf("Player state: %s%n", state))
                        .add(MidiPlayer.Channel.SET_STATE, state -> out.printf("Effective triggers: %s%n",
                                                                               PlayTrigger.allEffectiveOn(state)))

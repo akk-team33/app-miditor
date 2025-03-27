@@ -2,7 +2,7 @@ package de.team33.miditor.model;
 
 import de.team33.midi.util.TimingUtil;
 import de.team33.midix.Timing;
-import de.team33.patterns.notes.alpha.Audience;
+import de.team33.patterns.notes.beta.Audience;
 
 import java.util.List;
 import java.util.Set;
@@ -12,7 +12,7 @@ public abstract class TimeShiftBase implements TimeShift {
 
     private static final Set<Event> INITIAL_EVENTS = Set.of(Event.SetDivisor, Event.SetDividend);
 
-    private final Audience audience = new Audience();
+    private final Audience audience = new Audience(Runnable::run);
     private long dividend = getTiming().barNumerator();
     private long divisor = getTiming().barDenominator();
     private List<Integer> divisors = null;
@@ -32,7 +32,7 @@ public abstract class TimeShiftBase implements TimeShift {
     public final void setDividend(final int dividend) {
         if (this.dividend != dividend) {
             this.dividend = dividend;
-            audience.send(Event.SetDividend, this);
+            audience.fire(Event.SetDividend, this);
         }
     }
 
@@ -43,7 +43,7 @@ public abstract class TimeShiftBase implements TimeShift {
     public final void setDivisor(final int divisor) {
         if (getDivisors().contains(divisor)) {
             this.divisor = divisor;
-            audience.send(Event.SetDivisor, this);
+            audience.fire(Event.SetDivisor, this);
         }
     }
 
@@ -67,7 +67,7 @@ public abstract class TimeShiftBase implements TimeShift {
         return getDivisors().get(getPrevDivisorIndex());
     }
 
-    private final int getPrevDivisorIndex() {
+    private int getPrevDivisorIndex() {
         final int ret = getDivisors().indexOf(getDivisor());
         return 0 == ret ? getDivisors().size() - 1 : ret - 1;
     }

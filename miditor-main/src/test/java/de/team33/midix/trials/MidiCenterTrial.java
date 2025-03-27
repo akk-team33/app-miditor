@@ -3,6 +3,7 @@ package de.team33.midix.trials;
 import de.team33.midix.MidiCenter;
 import de.team33.midix.MidiPlayer;
 import de.team33.midix.PlayTrigger;
+import de.team33.patterns.execution.metis.SimpleAsyncExecutor;
 
 import javax.sound.midi.InvalidMidiDataException;
 import java.io.IOException;
@@ -15,7 +16,7 @@ class MidiCenterTrial {
 
     private MidiCenterTrial(final String[] args) throws InvalidMidiDataException, IOException {
         this.args = args;
-        this.midiCenter = new MidiCenter().load(Path.of("Beatles-Let_it_be-B.mid"));
+        this.midiCenter = new MidiCenter(new SimpleAsyncExecutor()).load(Path.of("Beatles-Let_it_be-B.mid"));
     }
 
     @SuppressWarnings({"OverlyBroadThrowsClause", "ProhibitedExceptionDeclared"})

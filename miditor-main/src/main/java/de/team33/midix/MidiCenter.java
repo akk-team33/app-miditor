@@ -1,9 +1,6 @@
 package de.team33.midix;
 
-import de.team33.patterns.execution.metis.SimpleAsyncExecutor;
-import de.team33.patterns.notes.alpha.Audience;
-import de.team33.patterns.notes.alpha.Mapping;
-import de.team33.patterns.notes.alpha.Sender;
+import de.team33.patterns.notes.beta.Sender;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiSystem;
@@ -11,6 +8,7 @@ import javax.sound.midi.Sequencer;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Set;
 import java.util.concurrent.Executor;
 
 import static de.team33.midix.Util.CNV;
@@ -18,32 +16,16 @@ import static de.team33.midix.Util.CNV;
 public class MidiCenter extends Sender<MidiCenter> {
 
     private final Executor executor;
-    private final Audience audience;
-    private final Mapping mapping;
     private final Sequencer sequencer;
     private final MidiPlayer midiPlayer;
     private final Mutable<Path> filePath;
 
-    public MidiCenter() {
-        super(MidiCenter.class);
-        this.executor = new SimpleAsyncExecutor();
-        this.audience = new Audience(executor);
+    public MidiCenter(final Executor executor) {
+        super(MidiCenter.class, executor, Set.of(Channel.SET_PATH));
+        this.executor = executor;
         this.sequencer = CNV.get(() -> MidiSystem.getSequencer(true));
-        this.midiPlayer = new MidiPlayer(audience, sequencer);
+        this.midiPlayer = new MidiPlayer(executor, sequencer);
         this.filePath = new Mutable<Path>(p -> p.toAbsolutePath().normalize()).set(Path.of("no-name.mid"));
-        this.mapping = Mapping.builder()
-                              .put(Channel.SET_PATH, filePath::get)
-                              .build();
-    }
-
-    @Override
-    protected final Audience audience() {
-        return audience;
-    }
-
-    @Override
-    protected final Mapping mapping() {
-        return mapping;
     }
 
     public final MidiCenter load(final Path path) throws InvalidMidiDataException, IOException {
@@ -59,8 +41,8 @@ public class MidiCenter extends Sender<MidiCenter> {
 
     @SuppressWarnings("ClassNameSameAsAncestorName")
     @FunctionalInterface
-    public interface Channel<M> extends de.team33.patterns.notes.alpha.Channel<M> {
+    public interface Channel<M> extends Sender.Channel<MidiCenter, M> {
 
-        Channel<Path> SET_PATH = () -> "SET_PATH";
+        Channel<Path> SET_PATH = midiCenter -> midiCenter.filePath.get();
     }
 }
