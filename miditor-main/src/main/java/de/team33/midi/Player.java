@@ -13,28 +13,28 @@ import javax.sound.midi.Sequencer;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.Executor;
-import java.util.function.Consumer;
 import java.util.prefs.Preferences;
 import java.util.stream.IntStream;
 
-@SuppressWarnings("ClassNamePrefixedWithPackageName")
+import static de.team33.midi.Util.sleep;
+
 public class Player extends Sender<Player> {
 
     private static final Preferences PREFS = Preferences.userRoot().node(ClassUtil.getPathString(Player.class));
+    private static final int INTERVAL = 50;
 
     private final Sequence sequence;
     private final Sequencer sequencer;
-    private MidiDevice outputDevice;
     private final Features features = new Features();
+    private MidiDevice outputDevice;
 
     Player(final Sequencer sequencer, final Sequence sequence, final Executor executor) {
         super(Player.class, executor, Channel.VALUES);
         this.sequencer = sequencer;
         this.sequence = sequence;
-        audience().add(Channel.SET_STATE, new STARTER());
+        audience().add(Channel.SET_STATE, this::onSetState);
+        push(PlayTrigger.ON);
     }
 
     private static MidiDevice newOutputDevice() throws MidiUnavailableException {
@@ -64,6 +64,13 @@ public class Player extends Sender<Player> {
 
         PREFS.put("preferedOutputDeviceName", result.getDeviceInfo().getName());
         return result;
+    }
+
+    private void onSetState(final PlayState state) {
+        if (PlayState.RUNNING == state) {
+            //noinspection ObjectToString
+            new Thread(new StateObserver(), this + ":stateObserver").start();
+        }
     }
 
     @Deprecated // make private asap!
@@ -107,7 +114,7 @@ public class Player extends Sender<Player> {
     }
 
     public final void push(final PlayTrigger trigger) {
-        final Set<Channel> results = trigger.apply(this, getState());
+        final Set<Channel<?>> results = trigger.apply(this, getState());
         fire(results);
     }
 
@@ -121,7 +128,7 @@ public class Player extends Sender<Player> {
     }
 
     public final void setMode(final int index, final TrackMode newMode) {
-        final Set<Channel> channels = new HashSet<>(0);
+        final Set<Channel<?>> channels = new HashSet<>(0);
         final TrackMode oldMode = getMode(index);
         if (oldMode != newMode) {
             if (TrackMode.SOLO == newMode) {
@@ -158,58 +165,17 @@ public class Player extends Sender<Player> {
         return sequencer;
     }
 
-    @SuppressWarnings("SynchronizeOnThis")
-    private class STARTER implements Consumer<Player> {
-
-        private volatile PlayState lastState = null;
-
-        public final void accept(final Player player) {
-            synchronized (this) {
-                final PlayState state = player.getState();
-                if (PlayState.RUNNING == state && state != lastState) {
-                    // TODO?: Timer: static? member?
-                    (new Timer()).schedule(Player.this.new Task(), 100L, 50L);
-                }
-                lastState = state;
-            }
-        }
-    }
-
-    @SuppressWarnings("SynchronizeOnThis")
-    private class Task extends TimerTask {
-
-        private volatile int lastTempo = 0;
-
-        public final void run() {
-            final Set<Channel> channels = new HashSet<>(0);
-            channels.add(Channel.SET_POSITION);
-            if (!sequencer.isRunning()) {
-                cancel();
-                channels.add(Channel.SET_STATE);
-            }
-
-            synchronized (this) {
-                final int tempo = getTempo();
-                if (tempo != lastTempo) {
-                    lastTempo = tempo;
-                    channels.add(Channel.SET_TEMPO);
-                }
-            }
-            fire(channels);
-        }
-    }
-
     @FunctionalInterface
     @SuppressWarnings("ClassNameSameAsAncestorName")
-    public interface Channel extends Sender.Channel<Player, Player> {
+    public interface Channel<M> extends Sender.Channel<Player, M> {
 
-        Channel SET_MODES = midiPlayer -> midiPlayer;
-        Channel SET_POSITION = midiPlayer -> midiPlayer;
-        Channel SET_STATE = midiPlayer -> midiPlayer;
-        Channel SET_TEMPO = midiPlayer -> midiPlayer;
+        Channel<Player> SET_MODES = midiPlayer -> midiPlayer;
+        Channel<Player> SET_POSITION = midiPlayer -> midiPlayer;
+        Channel<PlayState> SET_STATE = Player::getState;
+        Channel<Player> SET_TEMPO = midiPlayer -> midiPlayer;
 
         @SuppressWarnings("StaticMethodOnlyUsedInOneClass")
-        Set<Channel> VALUES = Set.of(SET_MODES, SET_POSITION, SET_STATE, SET_TEMPO);
+        Set<Channel<?>> VALUES = Set.of(SET_MODES, SET_POSITION, SET_STATE, SET_TEMPO);
     }
 
     @SuppressWarnings("ClassNameSameAsAncestorName")
@@ -217,6 +183,44 @@ public class Player extends Sender<Player> {
     interface Key<R> extends LazyFeatures.Key<Features, R> {
 
         Key<List<TrackMode>> TRACK_MODES = Features::newTrackModes;
+    }
+
+    private final class StateObserver implements Runnable {
+
+        private long lastPosition = sequencer.getTickPosition();
+        private float lastTempo = sequencer.getTempoInBPM();
+
+        @Override
+        public void run() {
+            do {
+                sleep(INTERVAL);
+                checkTempo();
+                checkPosition();
+            } while (sequencer.isRunning());
+            checkState();
+        }
+
+        private void checkState() {
+            if (sequencer.getTickPosition() >= sequencer.getTickLength()) {
+                fire(Channel.SET_STATE);
+            }
+        }
+
+        private void checkPosition() {
+            final long newPosition = sequencer.getTickPosition();
+            if (newPosition != lastPosition) {
+                lastPosition = newPosition;
+                fire(Channel.SET_POSITION);
+            }
+        }
+
+        private void checkTempo() {
+            final float newTempo = sequencer.getTempoInBPM();
+            if (newTempo != lastTempo) {
+                lastTempo = newTempo;
+                fire(Channel.SET_TEMPO);
+            }
+        }
     }
 
     private final class Features extends LazyFeatures<Features> {

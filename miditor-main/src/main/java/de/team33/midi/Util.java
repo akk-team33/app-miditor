@@ -23,6 +23,15 @@ final class Util {
     private Util() {
     }
 
+    static void sleep(final long millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (final InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException(e.getMessage(), e);
+        }
+    }
+
     static Stream<MidiEvent> stream(final Track track) {
         return IntStream.range(0, track.size())
                         .mapToObj(track::get);

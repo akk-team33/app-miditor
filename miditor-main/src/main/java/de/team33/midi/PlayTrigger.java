@@ -52,7 +52,7 @@ public enum PlayTrigger {
                      .collect(Collectors.toUnmodifiableSet());
     }
 
-    final Set<Player.Channel> apply(final Player player, final PlayState state) {
+    final Set<Player.Channel<?>> apply(final Player player, final PlayState state) {
         return Optional.ofNullable(map.get(state))
                        .orElseGet(List::of)
                        .stream()
@@ -64,8 +64,9 @@ public enum PlayTrigger {
         return map.containsKey(state);
     }
 
+    @SuppressWarnings({"resource", "InnerClassFieldHidesOuterClassField"})
     @FunctionalInterface
-    private interface Action extends Function<Player, Player.Channel> {
+    private interface Action extends Function<Player, Player.Channel<?>> {
 
         Action OPEN = act(CNV.consumer(Player::open), Player.Channel.SET_STATE);
         Action START = act(mp -> mp.backing().start(), Player.Channel.SET_STATE);
@@ -74,7 +75,7 @@ public enum PlayTrigger {
         Action CLOSE = act(Player::close, Player.Channel.SET_STATE);
 
         @SuppressWarnings("BoundedWildcard")
-        static Action act(final Consumer<Player> consumer, final Player.Channel result) {
+        static Action act(final Consumer<Player> consumer, final Player.Channel<?> result) {
             return sequencer -> {
                 consumer.accept(sequencer);
                 return result;
@@ -84,10 +85,12 @@ public enum PlayTrigger {
 
     private record Choice(PlayState state, List<Action> methods) {
 
+        @SuppressWarnings("StaticMethodOnlyUsedInOneClass")
         static Stage on(final PlayState state) {
             return actions -> new Choice(state, Arrays.asList(actions));
         }
 
+        @FunctionalInterface
         private interface Stage {
             Choice apply(Action... actions);
         }

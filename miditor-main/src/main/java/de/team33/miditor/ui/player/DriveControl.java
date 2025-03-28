@@ -126,8 +126,7 @@ public abstract class DriveControl extends JPanel {
             getContext().getPlayer().push(trigger);
         }
 
-        private void onSetState(final Player player) {
-            final PlayState state = player.getState();
+        private void onSetState(final PlayState state) {
             _setState(state);
         }
 
