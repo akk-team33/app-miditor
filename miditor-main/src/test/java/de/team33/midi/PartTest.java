@@ -24,16 +24,16 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SuppressWarnings("ClassNamePrefixedWithPackageName")
-class MidiTrackTest extends MidiTestBase {
+class PartTest extends MidiTestBase {
 
     private final Track track;
-    private final MidiTrack midiTrack;
+    private final Part part;
 
-    MidiTrackTest() throws InvalidMidiDataException, IOException {
+    PartTest() throws InvalidMidiDataException, IOException {
         final TrackList trackList = new TrackList(sequence(), Runnable::run, this::onModifiedTrack);
         track = trackList.tracks().get(1);
-        midiTrack = MidiTrack.factory(trackList)
-                             .create(track);
+        part = Part.factory(trackList)
+                   .create(track);
     }
 
     private void onModifiedTrack() {
@@ -59,18 +59,18 @@ class MidiTrackTest extends MidiTestBase {
     @Test
     final void list() {
         final List<MidiEvent> expected = Util.stream(track).toList();
-        final List<MidiEvent> result = midiTrack.list();
+        final List<MidiEvent> result = part.list();
         assertEquals(expected, result);
     }
 
     @Test
     final void midiChannels() {
-        assertEquals(Set.of(0), midiTrack.midiChannels());
+        assertEquals(Set.of(0), part.midiChannels());
 
         final Set<Integer> expected = Set.of(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
-        midiTrack.add(newEvents());
+        part.add(newEvents());
 
-        assertEquals(expected, midiTrack.midiChannels());
+        assertEquals(expected, part.midiChannels());
     }
 
     @Test
@@ -79,22 +79,22 @@ class MidiTrackTest extends MidiTestBase {
             .filter(event -> TRACK_NAME.isTypeOf(event.getMessage()))
             .toList()
             .forEach(track::remove);
-        assertEquals("[undefined]", midiTrack.name());
+        assertEquals("[undefined]", part.name());
 
         final String expected = "track 01";
         final byte[] bytes = expected.getBytes(StandardCharsets.UTF_8);
-        midiTrack.add(new MidiEvent(TRACK_NAME.newMessage(bytes), 0L));
+        part.add(new MidiEvent(TRACK_NAME.newMessage(bytes), 0L));
 
-        assertEquals(expected, midiTrack.name());
+        assertEquals(expected, part.name());
     }
 
     @Test
     final void add() {
         final MidiEvent[] events = newEvents();
-        midiTrack.remove(midiTrack.list())
-                 .add(events);
+        part.remove(part.list())
+            .add(events);
 
-        assertEquals(Arrays.asList(events), midiTrack.list().subList(0, events.length));
+        assertEquals(Arrays.asList(events), part.list().subList(0, events.length));
     }
 
     @Test
@@ -105,28 +105,28 @@ class MidiTrackTest extends MidiTestBase {
         final Mutable<String> setName = new Mutable<>(null);
 
         final MidiEvent[] events = newEvents();
-        midiTrack.add(events)
-                 .registry()
-                 .add(MidiTrack.Channel.SetEvents, t -> setEvents.set(t.list()))
-                 .add(MidiTrack.Channel.SetChannels, t -> setChannels.set(t.midiChannels()))
-                 .add(MidiTrack.Channel.SetModified, t -> setModified.set(t.isModified()))
-                 .add(MidiTrack.Channel.SetName, t -> setName.set(t.name()));
+        part.add(events)
+            .registry()
+            .add(Part.Channel.SetEvents, t -> setEvents.set(t.list()))
+            .add(Part.Channel.SetChannels, t -> setChannels.set(t.midiChannels()))
+            .add(Part.Channel.SetModified, t -> setModified.set(t.isModified()))
+            .add(Part.Channel.SetName, t -> setName.set(t.name()));
 
-        assertTrue(midiTrack.isModified());
-        assertEquals(midiTrack.isModified(), setModified.get());
-        assertEquals(midiTrack.list(), setEvents.get());
-        assertEquals(midiTrack.midiChannels(), setChannels.get());
-        assertEquals(midiTrack.name(), setName.get());
+        assertTrue(part.isModified());
+        assertEquals(part.isModified(), setModified.get());
+        assertEquals(part.list(), setEvents.get());
+        assertEquals(part.midiChannels(), setChannels.get());
+        assertEquals(part.name(), setName.get());
 
         setModified.set(null);
         setEvents.set(null);
         setName.set(null);
         setChannels.set(null);
 
-        midiTrack.resetModified();
+        part.resetModified();
 
-        assertFalse(midiTrack.isModified());
-        assertEquals(midiTrack.isModified(), setModified.get());
+        assertFalse(part.isModified());
+        assertEquals(part.isModified(), setModified.get());
         assertNull(setEvents.get());
         assertNull(setChannels.get());
         assertNull(setName.get());
@@ -135,34 +135,34 @@ class MidiTrackTest extends MidiTestBase {
     @Test
     final void remove_array() {
         final List<MidiEvent> expected = List.of();
-        final MidiEvent[] array = midiTrack.list().toArray(MidiEvent[]::new);
-        midiTrack.remove(array);
-        assertEquals(expected, midiTrack.list());
+        final MidiEvent[] array = part.list().toArray(MidiEvent[]::new);
+        part.remove(array);
+        assertEquals(expected, part.list());
     }
 
     @Test
     final void isModified() {
-        assertFalse(midiTrack.isModified());
-        midiTrack.add(newEvents());
-        assertTrue(midiTrack.isModified());
-        midiTrack.resetModified();
-        assertFalse(midiTrack.isModified());
+        assertFalse(part.isModified());
+        part.add(newEvents());
+        assertTrue(part.isModified());
+        part.resetModified();
+        assertFalse(part.isModified());
     }
 
     @Test
     final void shift() {
-        midiTrack.shift(10000);
-        midiTrack.list()
-                 .forEach(midiEvent -> assertTrue(10000 <= midiEvent.getTick()));
+        part.shift(10000);
+        part.list()
+            .forEach(midiEvent -> assertTrue(10000 <= midiEvent.getTick()));
     }
 
     @Test
     final void extractChannels() {
-        assertFalse(midiTrack.isModified());
-        final Set<Integer> expected = midiTrack.add(newEvents())
-                                               .midiChannels();
-        final Map<Integer, List<MidiEvent>> result = midiTrack.extractChannels();
+        assertFalse(part.isModified());
+        final Set<Integer> expected = part.add(newEvents())
+                                          .midiChannels();
+        final Map<Integer, List<MidiEvent>> result = part.extractChannels();
         assertEquals(expected, result.keySet());
-        assertTrue(midiTrack.isModified());
+        assertTrue(part.isModified());
     }
 }

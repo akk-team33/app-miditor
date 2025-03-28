@@ -1,7 +1,7 @@
 package de.team33.miditor.ui;
 
 import de.team33.midi.FullScore;
-import de.team33.midi.MidiTrack;
+import de.team33.midi.Part;
 import de.team33.miditor.controller.UIController;
 import de.team33.miditor.controller.UIControllerImpl;
 import de.team33.miditor.ui.event.TableRenderer;
@@ -101,10 +101,10 @@ public abstract class EventEditor extends UIControllerImpl {
     }
 
     private void onSetParts(final FullScore sequence) {
-        final List<MidiTrack> parts = sequence.getTracks();
+        final List<Part> parts = sequence.getTracks();
         final int size = parts.size();
         for (int index = 0; index < size; ++index) {
-            final MidiTrack track = parts.get(index);
+            final Part track = parts.get(index);
             if (track == getTrack()) {
                 return;
             }

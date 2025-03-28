@@ -1,7 +1,7 @@
 package de.team33.miditor.ui.sequence;
 
 import de.team33.midi.FullScore;
-import de.team33.midi.MidiTrack;
+import de.team33.midi.Part;
 import de.team33.miditor.model.TimeShift;
 import de.team33.miditor.model.TimeShiftBase;
 import de.team33.midix.Timing;
@@ -27,7 +27,7 @@ public abstract class TimeShiftControl extends JPanel {
 
     protected abstract FullScore getSequence();
 
-    protected abstract Selection<MidiTrack> getSelection();
+    protected abstract Selection<Part> getSelection();
 
     public class DIVIDEND_INPUT extends XSpinner {
         DIVIDEND_INPUT() {
@@ -128,7 +128,7 @@ public abstract class TimeShiftControl extends JPanel {
         }
 
         public void actionPerformed(final ActionEvent e) {
-            for (final MidiTrack p : getSelection()) {
+            for (final Part p : getSelection()) {
                 p.shift(((long) m_TimeShift.getTicks() * m_Factor));
             }
         }

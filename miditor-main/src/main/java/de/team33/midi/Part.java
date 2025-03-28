@@ -22,15 +22,15 @@ import java.util.stream.Stream;
 import static java.util.stream.Collectors.groupingBy;
 
 @SuppressWarnings({"ClassNamePrefixedWithPackageName", "ClassWithTooManyMethods"})
-public final class MidiTrack extends Sender<MidiTrack> {
+public final class Part extends Sender<Part> {
 
     private final TrackList trackList;
     private final Track track;
     private final AtomicLong modCounter;
     private final Features features = new Features();
 
-    private MidiTrack(final TrackList trackList, final TrackList.Entry entry) {
-        super(MidiTrack.class, entry.audience(), Channel.VALUES);
+    private Part(final TrackList trackList, final TrackList.Entry entry) {
+        super(Part.class, entry.audience(), Channel.VALUES);
         this.trackList = trackList;
         this.track = entry.track();
         this.modCounter = entry.modCounter();
@@ -40,7 +40,7 @@ public final class MidiTrack extends Sender<MidiTrack> {
     }
 
     static Factory factory(final TrackList trackList) {
-        return track -> new MidiTrack(trackList, trackList.entryOf(track));
+        return track -> new Part(trackList, trackList.entryOf(track));
     }
 
     private static boolean isChannelEvent(final MidiEvent midiEvent) {
@@ -84,11 +84,11 @@ public final class MidiTrack extends Sender<MidiTrack> {
     }
 
     @SuppressWarnings("OverloadedVarargsMethod")
-    public final MidiTrack add(final MidiEvent... events) {
+    public final Part add(final MidiEvent... events) {
         return add(Arrays.asList(events));
     }
 
-    public final MidiTrack add(final Iterable<? extends MidiEvent> events) {
+    public final Part add(final Iterable<? extends MidiEvent> events) {
         synchronized (track) {
             for (final MidiEvent event : events) {
                 track.add(event);
@@ -98,11 +98,11 @@ public final class MidiTrack extends Sender<MidiTrack> {
     }
 
     @SuppressWarnings("OverloadedVarargsMethod")
-    public final MidiTrack remove(final MidiEvent... events) {
+    public final Part remove(final MidiEvent... events) {
         return remove(Arrays.asList(events));
     }
 
-    public final MidiTrack remove(final Iterable<? extends MidiEvent> events) {
+    public final Part remove(final Iterable<? extends MidiEvent> events) {
         synchronized (track) {
             for (final MidiEvent event : events) {
                 track.remove(event);
@@ -135,7 +135,7 @@ public final class MidiTrack extends Sender<MidiTrack> {
         return 0L != modCounter.get();
     }
 
-    private MidiTrack setModified() {
+    private Part setModified() {
         features.reset();
         modCounter.incrementAndGet();
         trackList.onModifiedTrack();
@@ -148,7 +148,7 @@ public final class MidiTrack extends Sender<MidiTrack> {
     }
 
     @SuppressWarnings("UnusedReturnValue")
-    public final MidiTrack shift(final long delta) {
+    public final Part shift(final long delta) {
         synchronized (track) {
             stream().toList()
                     .forEach(midiEvent -> shift(midiEvent, delta));
@@ -159,8 +159,8 @@ public final class MidiTrack extends Sender<MidiTrack> {
     final Map<Integer, List<MidiEvent>> extractChannels() {
         final Map<Integer, List<MidiEvent>> result;
         synchronized (track) {
-            result = stream().filter(MidiTrack::isChannelEvent)
-                             .collect(groupingBy(MidiTrack::channelOf));
+            result = stream().filter(Part::isChannelEvent)
+                             .collect(groupingBy(Part::channelOf));
             result.values().stream()
                   .flatMap(List::stream)
                   .forEach(track::remove);
@@ -171,7 +171,7 @@ public final class MidiTrack extends Sender<MidiTrack> {
 
     @Override
     public final boolean equals(final Object obj) {
-        return (this == obj) || ((obj instanceof final MidiTrack other) && (track == other.track));
+        return (this == obj) || ((obj instanceof final Part other) && (track == other.track));
     }
 
     @Override
@@ -185,7 +185,7 @@ public final class MidiTrack extends Sender<MidiTrack> {
     }
 
     @FunctionalInterface
-    public interface Channel extends Sender.Channel<MidiTrack, MidiTrack> {
+    public interface Channel extends Sender.Channel<Part, Part> {
 
         Channel SetChannels = midiTrack -> midiTrack;
         Channel SetEvents = midiTrack -> midiTrack;
@@ -198,7 +198,7 @@ public final class MidiTrack extends Sender<MidiTrack> {
 
     @FunctionalInterface
     interface Factory {
-        MidiTrack create(Track track);
+        Part create(Track track);
     }
 
     @SuppressWarnings("ClassNameSameAsAncestorName")
@@ -210,12 +210,12 @@ public final class MidiTrack extends Sender<MidiTrack> {
         Key<String> NAME = Features::newName;
     }
 
-    private static final class SetMidiChannels implements Consumer<MidiTrack> {
+    private static final class SetMidiChannels implements Consumer<Part> {
 
         private Set<Integer> lastMidiChannels = null;
 
         @Override
-        public void accept(final MidiTrack track) {
+        public void accept(final Part track) {
             final Set<Integer> newMidiChannels = track.features.get(Key.MIDI_CHANNELS);
             if (!newMidiChannels.equals(lastMidiChannels)) {
                 lastMidiChannels = newMidiChannels;
@@ -224,12 +224,12 @@ public final class MidiTrack extends Sender<MidiTrack> {
         }
     }
 
-    private static final class SetName implements Consumer<MidiTrack> {
+    private static final class SetName implements Consumer<Part> {
 
         private String lastName = null;
 
         @Override
-        public final void accept(final MidiTrack track) {
+        public final void accept(final Part track) {
             final String newName = track.features.get(Key.NAME);
             if (!newName.equals(lastName)) {
                 lastName = newName;
@@ -256,7 +256,7 @@ public final class MidiTrack extends Sender<MidiTrack> {
                 final SortedSet<Integer> result =
                         stream().map(MidiEvent::getMessage)
                                 .map(MidiMessage::getStatus)
-                                .filter(MidiTrack::isChannelStatus) // <-> isChannelMessage
+                                .filter(Part::isChannelStatus) // <-> isChannelMessage
                                 .map(status -> status & 0x0f)
                                 .collect(Collectors.toCollection(TreeSet::new));
                 return Collections.unmodifiableSortedSet(result);

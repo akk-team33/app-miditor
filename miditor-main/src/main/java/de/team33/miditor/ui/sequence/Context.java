@@ -1,7 +1,7 @@
 package de.team33.miditor.ui.sequence;
 
 import de.team33.midi.FullScore;
-import de.team33.midi.MidiTrack;
+import de.team33.midi.Part;
 import de.team33.midi.PieceOfMusic;
 import de.team33.midi.Player;
 import de.team33.miditor.controller.UIController;
@@ -19,7 +19,7 @@ public interface Context {
 
     Player getPlayer();
 
-    Selection<MidiTrack> getSelection();
+    Selection<Part> getSelection();
 
     UIController getTrackHandler();
 }

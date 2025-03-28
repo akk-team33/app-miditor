@@ -28,7 +28,7 @@ final class Util {
                         .mapToObj(track::get);
     }
 
-    static Stream<MidiEvent> stream(final MidiTrack track) {
+    static Stream<MidiEvent> stream(final Part track) {
         return stream(track.backing());
     }
 

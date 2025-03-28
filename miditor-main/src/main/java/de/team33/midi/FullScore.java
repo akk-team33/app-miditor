@@ -25,14 +25,14 @@ import static de.team33.midix.Midi.MetaMessage.Type.SET_TEMPO;
 public class FullScore extends Sender<FullScore> {
 
     private final TrackList trackList;
-    private final MidiTrack.Factory trackFactory;
+    private final Part.Factory trackFactory;
     private final AtomicLong modCounter = new AtomicLong();
     private final Features features = new Features();
 
     FullScore(final Sequence backing, final Executor executor) {
         super(FullScore.class, executor, Channel.VALUES);
         this.trackList = new TrackList(backing, executor, this::onModifiedTrack);
-        this.trackFactory = MidiTrack.factory(trackList);
+        this.trackFactory = Part.factory(trackList);
     }
 
     private void onModifiedTrack() {
@@ -40,9 +40,9 @@ public class FullScore extends Sender<FullScore> {
         fire(Channel.SetModified);
     }
 
-    private static Stream<Track> streamOf(final Iterable<MidiTrack> tracks) {
+    private static Stream<Track> streamOf(final Iterable<Part> tracks) {
         return StreamSupport.stream(tracks.spliterator(), false)
-                            .map(MidiTrack::backing);
+                            .map(Part::backing);
     }
 
     final Sequence backing() {
@@ -66,23 +66,23 @@ public class FullScore extends Sender<FullScore> {
         }
     }
 
-    public final FullScore delete(final MidiTrack... tracks) {
+    public final FullScore delete(final Part... tracks) {
         return delete(Arrays.asList(tracks));
     }
 
-    public final FullScore delete(final Collection<MidiTrack> tracks) {
-        trackList.delete(tracks.stream().map(MidiTrack::backing).toList());
+    public final FullScore delete(final Collection<Part> tracks) {
+        trackList.delete(tracks.stream().map(Part::backing).toList());
         return setModified();
     }
 
-    public final FullScore join(final Collection<MidiTrack> tracks) {
+    public final FullScore join(final Collection<Part> tracks) {
         final Track track = trackList.create();
         streamOf(tracks).flatMap(Util::stream)
                         .forEach(track::add);
         return delete(tracks);
     }
 
-    public final FullScore split(final MidiTrack track) {
+    public final FullScore split(final Part track) {
         final Map<Integer, List<MidiEvent>> extracted = track.extractChannels();
         for (final List<MidiEvent> events : extracted.values()) {
             createBase(events);
@@ -90,7 +90,7 @@ public class FullScore extends Sender<FullScore> {
         return setModified();
     }
 
-    public final List<MidiTrack> getTracks() {
+    public final List<Part> getTracks() {
         return features.get(Key.TRACKS);
     }
 
@@ -106,7 +106,7 @@ public class FullScore extends Sender<FullScore> {
 
     final FullScore resetModified() {
         modCounter.set(0);
-        features.get(Key.TRACKS).forEach(MidiTrack::resetModified);
+        features.get(Key.TRACKS).forEach(Part::resetModified);
         return fire(Channel.SetModified);
     }
 
@@ -119,7 +119,7 @@ public class FullScore extends Sender<FullScore> {
         if (getTracks().isEmpty()) {
             create();
         }
-        final MidiTrack track = getTracks().get(0);
+        final Part track = getTracks().get(0);
         track.remove(Util.stream(track)
                          .filter(SET_TEMPO::isTypeOf)
                          .filter(event -> 0L == event.getTick())
@@ -161,7 +161,7 @@ public class FullScore extends Sender<FullScore> {
     @FunctionalInterface
     private interface Key<R> extends LazyFeatures.Key<Features, R> {
 
-        Key<List<MidiTrack>> TRACKS = Features::newTrackList;
+        Key<List<Part>> TRACKS = Features::newTrackList;
         Key<Integer> TEMPO = Features::newTempo;
         Key<Timing> TIMING = Features::newTiming;
     }
@@ -174,7 +174,7 @@ public class FullScore extends Sender<FullScore> {
             return this;
         }
 
-        private List<MidiTrack> newTrackList() {
+        private List<Part> newTrackList() {
             return trackList.tracks().stream()
                             .map(trackFactory::create)
                             .toList();

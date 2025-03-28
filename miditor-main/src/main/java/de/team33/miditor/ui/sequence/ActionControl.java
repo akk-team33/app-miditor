@@ -1,7 +1,7 @@
 package de.team33.miditor.ui.sequence;
 
 import de.team33.midi.Metronome;
-import de.team33.midi.MidiTrack;
+import de.team33.midi.Part;
 import de.team33.miditor.ui.Rsrc;
 import de.team33.swing.XButton;
 
@@ -122,11 +122,11 @@ public abstract class ActionControl extends JPanel {
         protected abstract long getDelta();
 
         public void actionPerformed(final ActionEvent e) {
-            final List<MidiTrack> var5;
+            final List<Part> var5;
             final int var4 = (var5 = getContext().getSequence().getTracks()).size();
 
             for (int var3 = 0; var3 < var4; ++var3) {
-                final MidiTrack t = var5.get(var3);
+                final Part t = var5.get(var3);
                 t.shift(getDelta());
             }
         }

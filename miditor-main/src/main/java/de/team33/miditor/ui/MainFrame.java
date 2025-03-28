@@ -1,7 +1,7 @@
 package de.team33.miditor.ui;
 
 import de.team33.midi.FullScore;
-import de.team33.midi.MidiTrack;
+import de.team33.midi.Part;
 import de.team33.midi.PieceOfMusic;
 import de.team33.midi.PlayTrigger;
 import de.team33.midi.Player;
@@ -45,7 +45,7 @@ public class MainFrame extends XFrame {
         GBC_TRCK_EDIT = new GridBagConstraints(4, 1, 2, 1, 0.0, 1.0, 10, 1, GBC_INSETS, 0, 0);
     }
 
-    private final Selection<MidiTrack> selection;
+    private final Selection<Part> selection;
     private final PieceOfMusic music;
     private final EventEditor m_EventEditor;
     private final WindowListener m_WindowListener = new WINDOW_ADAPTER();
@@ -99,7 +99,7 @@ public class MainFrame extends XFrame {
             return music.player();
         }
 
-        public Selection<MidiTrack> getSelection() {
+        public Selection<Part> getSelection() {
             return selection;
         }
 
@@ -111,7 +111,7 @@ public class MainFrame extends XFrame {
             return m_EventEditor;
         }
 
-        public Selection<MidiTrack> getTrackSelection() {
+        public Selection<Part> getTrackSelection() {
             return selection;
         }
 

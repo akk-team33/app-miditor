@@ -1,6 +1,6 @@
 package de.team33.midi.util;
 
-import de.team33.midi.MidiTrack;
+import de.team33.midi.Part;
 
 import javax.sound.midi.MidiEvent;
 import java.util.List;
@@ -11,14 +11,14 @@ public final class TrackUtil {
     private TrackUtil() {
     }
 
-    private static List<MidiEvent> getEvents(final MidiTrack track, final int[] selection) {
+    private static List<MidiEvent> getEvents(final Part track, final int[] selection) {
         return IntStream.of(selection)
                         .filter(index -> (0 <= index) && (index < track.size()))
                         .mapToObj(track::get)
                         .toList();
     }
 
-    public static void remove(final MidiTrack track, final int[] selection) {
+    public static void remove(final Part track, final int[] selection) {
         track.remove(getEvents(track, selection));
     }
 }

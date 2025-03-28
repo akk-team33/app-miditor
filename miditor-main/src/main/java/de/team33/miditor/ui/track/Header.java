@@ -1,6 +1,6 @@
 package de.team33.miditor.ui.track;
 
-import de.team33.midi.MidiTrack;
+import de.team33.midi.Part;
 import de.team33.miditor.controller.UIController;
 
 import javax.swing.*;
@@ -17,12 +17,12 @@ public class Header extends JLabel {
         uiController.addListener(UIController.Event.SetTrack, this::onSetTrack);
     }
 
-    private void onSetName(final MidiTrack track) {
+    private void onSetName(final Part track) {
         setText(String.format("%s - %s", track.getPrefix(), track.name()));
     }
 
     private void onSetTrack(final UIController controller) {
         Optional.ofNullable(controller.getTrack())
-                .ifPresent(track -> track.registry().add(MidiTrack.Channel.SetName, this::onSetName));
+                .ifPresent(track -> track.registry().add(Part.Channel.SetName, this::onSetName));
     }
 }

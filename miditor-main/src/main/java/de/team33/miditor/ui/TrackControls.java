@@ -1,6 +1,6 @@
 package de.team33.miditor.ui;
 
-import de.team33.midi.MidiTrack;
+import de.team33.midi.Part;
 import de.team33.midi.Player;
 import de.team33.midi.TrackMode;
 import de.team33.miditor.ui.track.Context;
@@ -36,10 +36,10 @@ public abstract class TrackControls {
     private class CHANNEL_PANE extends JPanel {
         CHANNEL_PANE() {
             super(new BorderLayout());
-            getContext().getTrack().registry().add(MidiTrack.Channel.SetChannels, this::onSetChannels);
+            getContext().getTrack().registry().add(Part.Channel.SetChannels, this::onSetChannels);
         }
 
-        private void onSetChannels(final MidiTrack track) {
+        private void onSetChannels(final Part track) {
             setVisible(false);
             removeAll();
             final SortedSet<Integer> channels = track.midiChannels();
@@ -68,7 +68,7 @@ public abstract class TrackControls {
     private class INDEX_PANE extends JCheckBox {
         public INDEX_PANE() {
             super(getContext().getTrack().getPrefix());
-            getContext().getTrack().registry().add(MidiTrack.Channel.SetModified, this::onSetModified);
+            getContext().getTrack().registry().add(Part.Channel.SetModified, this::onSetModified);
             getContext().getSelection().addListener(Selection.Event.UPDATE, this::onSelection);
             addActionListener(this::onAction);
         }
@@ -81,7 +81,7 @@ public abstract class TrackControls {
             }
         }
 
-        private void onSetModified(final MidiTrack track) {
+        private void onSetModified(final Part track) {
             setForeground(track.isModified() ? Color.BLUE : Color.BLACK);
         }
 
@@ -124,10 +124,10 @@ public abstract class TrackControls {
     private class NAME_PANE extends XTextField {
         public NAME_PANE() {
             super(12);
-            getContext().getTrack().registry().add(MidiTrack.Channel.SetName, this::onSetName);
+            getContext().getTrack().registry().add(Part.Channel.SetName, this::onSetName);
         }
 
-        private void onSetName(final MidiTrack track) {
+        private void onSetName(final Part track) {
             setText(track.name());
         }
     }

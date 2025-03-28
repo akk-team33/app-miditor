@@ -29,11 +29,11 @@ class FullScoreTest extends MidiTestBase {
     final void getTracks() {
         final List<Integer> expected = Stream.of(sequence().getTracks()).map(Track::size).toList();
 
-        final List<MidiTrack> result = fullScore.getTracks();
+        final List<Part> result = fullScore.getTracks();
         assertEquals(14, result.size());
         assertSame(result, fullScore.getTracks(), "two subsequent calls should return the same list");
 
-        final List<Integer> sizes = result.stream().map(MidiTrack::size).toList();
+        final List<Integer> sizes = result.stream().map(Part::size).toList();
         assertEquals(expected, sizes);
     }
 
@@ -43,10 +43,10 @@ class FullScoreTest extends MidiTestBase {
                 Stream.of(sequence().getTracks()).map(Track::size),
                 Stream.of(1)).toList(); // 1 <-> EOT
 
-        final List<MidiTrack> result = fullScore.create().getTracks();
+        final List<Part> result = fullScore.create().getTracks();
         assertEquals(15, result.size());
 
-        final List<Integer> sizes = result.stream().map(MidiTrack::size).toList();
+        final List<Integer> sizes = result.stream().map(Part::size).toList();
         assertEquals(expected, sizes);
     }
 
@@ -57,11 +57,11 @@ class FullScoreTest extends MidiTestBase {
                 Stream.of(sequence().getTracks()[0]).map(Track::size)).toList();
 
         final List<MidiEvent> events = fullScore.getTracks().get(0).list();
-        final List<MidiTrack> result = fullScore.create(events)
-                                                .getTracks();
+        final List<Part> result = fullScore.create(events)
+                                           .getTracks();
         assertEquals(15, result.size());
 
-        final List<Integer> sizes = result.stream().map(MidiTrack::size).toList();
+        final List<Integer> sizes = result.stream().map(Part::size).toList();
         assertEquals(expected, sizes);
     }
 
@@ -73,7 +73,7 @@ class FullScoreTest extends MidiTestBase {
 
     @Test
     final void delete_array() {
-        delete(5, () -> fullScore.delete(fullScore.getTracks().stream().skip(5).toArray(MidiTrack[]::new)));
+        delete(5, () -> fullScore.delete(fullScore.getTracks().stream().skip(5).toArray(Part[]::new)));
     }
 
     @Test
@@ -86,9 +86,9 @@ class FullScoreTest extends MidiTestBase {
 
         deletion.run();
 
-        final List<MidiTrack> result = fullScore.getTracks();
+        final List<Part> result = fullScore.getTracks();
         assertEquals(keep, result.size());
-        final List<Integer> sizes = result.stream().map(MidiTrack::size).toList();
+        final List<Integer> sizes = result.stream().map(Part::size).toList();
         assertEquals(expected, sizes);
     }
 
@@ -108,7 +108,7 @@ class FullScoreTest extends MidiTestBase {
                  .split(fullScore.getTracks().get(0));
         assertEquals(13, fullScore.getTracks().size());
         assertEquals(List.of(29, 885, 2047, 817, 625, 1497, 155, 151, 71, 497, 2816, 87, 353),
-                     fullScore.getTracks().stream().map(MidiTrack::size).toList());
+                     fullScore.getTracks().stream().map(Part::size).toList());
     }
 
     @Test

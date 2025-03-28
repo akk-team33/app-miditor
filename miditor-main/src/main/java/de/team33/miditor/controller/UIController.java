@@ -1,15 +1,15 @@
 package de.team33.miditor.controller;
 
-import de.team33.midi.MidiTrack;
+import de.team33.midi.Part;
 import de.team33.patterns.notes.beta.Channel;
 
 import java.util.function.Consumer;
 
 public interface UIController {
 
-    MidiTrack getTrack();
+    Part getTrack();
 
-    void setTrack(MidiTrack track);
+    void setTrack(Part track);
 
     int[] getTrackSelection();
 
