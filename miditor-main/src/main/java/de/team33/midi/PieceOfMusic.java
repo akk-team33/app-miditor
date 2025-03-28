@@ -23,7 +23,7 @@ public final class PieceOfMusic extends Sender<PieceOfMusic> {
     private final Sequence sequence;
     private final Sequencer sequencer;
     private final FullScore fullScore;
-    private final MidiPlayer player;
+    private final Player player;
 
     private PieceOfMusic(final Path path, final Executor executor) throws InvalidMidiDataException, IOException {
         super(PieceOfMusic.class, executor, Channel.VALUES);
@@ -31,7 +31,7 @@ public final class PieceOfMusic extends Sender<PieceOfMusic> {
         this.sequence = MidiSystem.getSequence(path.toFile());
         this.sequencer = CNV.get(() -> MidiSystem.getSequencer(true));
         this.fullScore = new FullScore(sequence, executor);
-        this.player = new MidiPlayer(sequencer, sequence, executor);
+        this.player = new Player(sequencer, sequence, executor);
 
         fullScore.registry().add(FullScore.Channel.SetTracks, any -> player.onSetParts());
     }
@@ -53,7 +53,7 @@ public final class PieceOfMusic extends Sender<PieceOfMusic> {
         return fullScore;
     }
 
-    public final MidiPlayer player() {
+    public final Player player() {
         return player;
     }
 

@@ -1,7 +1,7 @@
 package de.team33.miditor.ui;
 
-import de.team33.midi.MidiPlayer;
 import de.team33.midi.MidiTrack;
+import de.team33.midi.Player;
 import de.team33.midi.TrackMode;
 import de.team33.miditor.ui.track.Context;
 import de.team33.selection.Selection;
@@ -102,7 +102,7 @@ public abstract class TrackControls {
         private MUTE_BUTTON() {
             super("mute");
             getContext().getPlayer().registry()
-                        .add(MidiPlayer.Channel.SET_MODES, this::onSetModes);
+                        .add(Player.Channel.SET_MODES, this::onSetModes);
         }
 
         public final void actionPerformed(final ActionEvent e) {
@@ -114,7 +114,7 @@ public abstract class TrackControls {
 
         }
 
-        private void onSetModes(final MidiPlayer player) {
+        private void onSetModes(final Player player) {
             final int index = getContext().getIndex();
             final TrackMode mode = player.getMode(index);
             setSelected(TrackMode.MUTE == mode);
@@ -136,7 +136,7 @@ public abstract class TrackControls {
         public SOLO_BUTTON() {
             super("solo");
             getContext().getPlayer().registry()
-                        .add(MidiPlayer.Channel.SET_MODES, this::onSetModes);
+                        .add(Player.Channel.SET_MODES, this::onSetModes);
         }
 
         public final void actionPerformed(final ActionEvent e) {
@@ -148,7 +148,7 @@ public abstract class TrackControls {
 
         }
 
-        private void onSetModes(final MidiPlayer player) {
+        private void onSetModes(final Player player) {
             final int index = getContext().getIndex();
             final TrackMode mode = player.getMode(index);
             setSelected(TrackMode.SOLO == mode);

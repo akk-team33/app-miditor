@@ -1,10 +1,10 @@
 package de.team33.miditor.ui;
 
 import de.team33.midi.FullScore;
-import de.team33.midi.MidiPlayer;
 import de.team33.midi.MidiTrack;
 import de.team33.midi.PieceOfMusic;
 import de.team33.midi.PlayTrigger;
+import de.team33.midi.Player;
 import de.team33.miditor.controller.UIController;
 import de.team33.miditor.model.PartSelection;
 import de.team33.miditor.ui.sequence.Context;
@@ -95,7 +95,7 @@ public class MainFrame extends XFrame {
             return music.fullScore().getTiming();
         }
 
-        public MidiPlayer getPlayer() {
+        public Player getPlayer() {
             return music.player();
         }
 

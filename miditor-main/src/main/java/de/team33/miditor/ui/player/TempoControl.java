@@ -1,6 +1,6 @@
 package de.team33.miditor.ui.player;
 
-import de.team33.midi.MidiPlayer;
+import de.team33.midi.Player;
 import de.team33.swing.XSpinner;
 
 import javax.swing.*;
@@ -20,7 +20,7 @@ public abstract class TempoControl {
         return m_RootComponent;
     }
 
-    protected abstract MidiPlayer getPlayer();
+    protected abstract Player getPlayer();
 
     private class LABEL extends XSpinner {
         private static final long serialVersionUID = -5125403795254334049L;
@@ -28,7 +28,7 @@ public abstract class TempoControl {
         public LABEL() {
             setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.GRAY), BorderFactory.createEmptyBorder(1, 4, 1, 4)));
             setFont(new Font(getFont().getName(), 1, 18));
-            getPlayer().registry().add(MidiPlayer.Channel.SET_TEMPO, this::onSetTempo);
+            getPlayer().registry().add(Player.Channel.SET_TEMPO, this::onSetTempo);
         }
 
         protected void decrease(final int exponent) {
@@ -55,7 +55,7 @@ public abstract class TempoControl {
             getPlayer().setTempo(getPlayer().getTempo() + delta);
         }
 
-        public void onSetTempo(final MidiPlayer player) {
+        public void onSetTempo(final Player player) {
             final int tempo = player.getTempo();
             setText(String.format("%03d", tempo));
         }

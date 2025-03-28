@@ -52,7 +52,7 @@ public enum PlayTrigger {
                      .collect(Collectors.toUnmodifiableSet());
     }
 
-    final Set<MidiPlayer.Channel> apply(final MidiPlayer player, final PlayState state) {
+    final Set<Player.Channel> apply(final Player player, final PlayState state) {
         return Optional.ofNullable(map.get(state))
                        .orElseGet(List::of)
                        .stream()
@@ -65,16 +65,16 @@ public enum PlayTrigger {
     }
 
     @FunctionalInterface
-    private interface Action extends Function<MidiPlayer, MidiPlayer.Channel> {
+    private interface Action extends Function<Player, Player.Channel> {
 
-        Action OPEN = act(CNV.consumer(MidiPlayer::open), MidiPlayer.Channel.SET_STATE);
-        Action START = act(mp -> mp.backing().start(), MidiPlayer.Channel.SET_STATE);
-        Action STOP = act(mp -> mp.backing().stop(), MidiPlayer.Channel.SET_STATE);
-        Action RESET = act(mp -> mp.backing().setTickPosition(0L), MidiPlayer.Channel.SET_POSITION);
-        Action CLOSE = act(MidiPlayer::close, MidiPlayer.Channel.SET_STATE);
+        Action OPEN = act(CNV.consumer(Player::open), Player.Channel.SET_STATE);
+        Action START = act(mp -> mp.backing().start(), Player.Channel.SET_STATE);
+        Action STOP = act(mp -> mp.backing().stop(), Player.Channel.SET_STATE);
+        Action RESET = act(mp -> mp.backing().setTickPosition(0L), Player.Channel.SET_POSITION);
+        Action CLOSE = act(Player::close, Player.Channel.SET_STATE);
 
         @SuppressWarnings("BoundedWildcard")
-        static Action act(final Consumer<MidiPlayer> consumer, final MidiPlayer.Channel result) {
+        static Action act(final Consumer<Player> consumer, final Player.Channel result) {
             return sequencer -> {
                 consumer.accept(sequencer);
                 return result;

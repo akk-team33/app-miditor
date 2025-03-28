@@ -21,17 +21,17 @@ import java.util.prefs.Preferences;
 import java.util.stream.IntStream;
 
 @SuppressWarnings("ClassNamePrefixedWithPackageName")
-public class MidiPlayer extends Sender<MidiPlayer> {
+public class Player extends Sender<Player> {
 
-    private static final Preferences PREFS = Preferences.userRoot().node(ClassUtil.getPathString(MidiPlayer.class));
+    private static final Preferences PREFS = Preferences.userRoot().node(ClassUtil.getPathString(Player.class));
 
     private final Sequence sequence;
     private final Sequencer sequencer;
     private MidiDevice outputDevice;
     private final Features features = new Features();
 
-    MidiPlayer(final Sequencer sequencer, final Sequence sequence, final Executor executor) {
-        super(MidiPlayer.class, executor, Channel.VALUES);
+    Player(final Sequencer sequencer, final Sequence sequence, final Executor executor) {
+        super(Player.class, executor, Channel.VALUES);
         this.sequencer = sequencer;
         this.sequence = sequence;
         audience().add(Channel.SET_STATE, new STARTER());
@@ -159,16 +159,16 @@ public class MidiPlayer extends Sender<MidiPlayer> {
     }
 
     @SuppressWarnings("SynchronizeOnThis")
-    private class STARTER implements Consumer<MidiPlayer> {
+    private class STARTER implements Consumer<Player> {
 
         private volatile PlayState lastState = null;
 
-        public final void accept(final MidiPlayer player) {
+        public final void accept(final Player player) {
             synchronized (this) {
                 final PlayState state = player.getState();
                 if (PlayState.RUNNING == state && state != lastState) {
                     // TODO?: Timer: static? member?
-                    (new Timer()).schedule(MidiPlayer.this.new Task(), 100L, 50L);
+                    (new Timer()).schedule(Player.this.new Task(), 100L, 50L);
                 }
                 lastState = state;
             }
@@ -201,7 +201,7 @@ public class MidiPlayer extends Sender<MidiPlayer> {
 
     @FunctionalInterface
     @SuppressWarnings("ClassNameSameAsAncestorName")
-    public interface Channel extends Sender.Channel<MidiPlayer, MidiPlayer> {
+    public interface Channel extends Sender.Channel<Player, Player> {
 
         Channel SET_MODES = midiPlayer -> midiPlayer;
         Channel SET_POSITION = midiPlayer -> midiPlayer;

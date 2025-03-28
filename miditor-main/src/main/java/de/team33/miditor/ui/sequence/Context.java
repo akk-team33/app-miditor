@@ -1,9 +1,9 @@
 package de.team33.miditor.ui.sequence;
 
 import de.team33.midi.FullScore;
-import de.team33.midi.MidiPlayer;
 import de.team33.midi.MidiTrack;
 import de.team33.midi.PieceOfMusic;
+import de.team33.midi.Player;
 import de.team33.miditor.controller.UIController;
 import de.team33.selection.Selection;
 
@@ -17,7 +17,7 @@ public interface Context {
 
     FullScore getSequence();
 
-    MidiPlayer getPlayer();
+    Player getPlayer();
 
     Selection<MidiTrack> getSelection();
 

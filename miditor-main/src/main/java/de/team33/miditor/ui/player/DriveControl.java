@@ -1,8 +1,8 @@
 package de.team33.miditor.ui.player;
 
-import de.team33.midi.MidiPlayer;
 import de.team33.midi.PlayState;
 import de.team33.midi.PlayTrigger;
+import de.team33.midi.Player;
 import de.team33.miditor.ui.Rsrc;
 
 import javax.swing.*;
@@ -95,7 +95,7 @@ public abstract class DriveControl extends JPanel {
             super(Rsrc.dcIcon(trigger));
             this.trigger = trigger;
             getContext().getPlayer().registry()
-                        .add(MidiPlayer.Channel.SET_STATE, this::onSetState);
+                        .add(Player.Channel.SET_STATE, this::onSetState);
             getContext().getWindow()
                         .addWindowListener(new CLIENT3());
             addActionListener(this::onActionPerformed);
@@ -126,7 +126,7 @@ public abstract class DriveControl extends JPanel {
             getContext().getPlayer().push(trigger);
         }
 
-        private void onSetState(final MidiPlayer player) {
+        private void onSetState(final Player player) {
             final PlayState state = player.getState();
             _setState(state);
         }
