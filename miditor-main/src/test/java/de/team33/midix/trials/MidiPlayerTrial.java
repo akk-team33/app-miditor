@@ -7,7 +7,6 @@ import de.team33.patterns.execution.metis.SimpleAsyncExecutor;
 
 import javax.sound.midi.InvalidMidiDataException;
 import java.io.IOException;
-import java.nio.file.Path;
 
 class MidiPlayerTrial {
 
@@ -16,7 +15,7 @@ class MidiPlayerTrial {
 
     private MidiPlayerTrial(final String[] args) throws InvalidMidiDataException, IOException {
         this.args = args;
-        this.midiCenter = new MidiCenter(new SimpleAsyncExecutor()).load(Path.of("miditor-main/src/test/resources/de/team33/midi/testing/Jammin.mid"));
+        this.midiCenter = new MidiCenter(new SimpleAsyncExecutor()); //.load(Path.of("miditor-main/src/test/resources/de/team33/midi/testing/Jammin.mid"));
         this.midiCenter.registry()
                        .add(MidiCenter.Channel.SET_PATH,
                             path -> System.out.printf("Center path: %s%n", path));
@@ -25,8 +24,8 @@ class MidiPlayerTrial {
                             state -> System.out.printf("Player state: %s%n", state))
                        .add(MidiPlayer.Channel.SET_STATE,
                             state -> System.out.printf("Effective triggers: %s%n", PlayTrigger.allEffectiveOn(state)))
-                       .add(MidiPlayer.Channel.SET_POSITION,
-                            position -> System.out.printf("Player position: %s%n", position))
+//                       .add(MidiPlayer.Channel.SET_POSITION,
+//                            position -> System.out.printf("Player position: %s%n", position))
                        .add(MidiPlayer.Channel.SET_TEMPO,
                             tempo -> System.out.printf("Player tempo: %s%n", tempo));
     }
