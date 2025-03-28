@@ -24,14 +24,14 @@ import static java.util.stream.Collectors.groupingBy;
 @SuppressWarnings({"ClassNamePrefixedWithPackageName", "ClassWithTooManyMethods"})
 public final class Part extends Sender<Part> {
 
-    private final TrackList trackList;
+    private final Parts parts;
     private final Track track;
     private final AtomicLong modCounter;
     private final Features features = new Features();
 
-    private Part(final TrackList trackList, final TrackList.Entry entry) {
+    private Part(final Parts parts, final Parts.Entry entry) {
         super(Part.class, entry.audience(), Channel.VALUES);
-        this.trackList = trackList;
+        this.parts = parts;
         this.track = entry.track();
         this.modCounter = entry.modCounter();
 
@@ -39,8 +39,8 @@ public final class Part extends Sender<Part> {
         audience().add(Channel.SetEvents, new SetMidiChannels());
     }
 
-    static Factory factory(final TrackList trackList) {
-        return track -> new Part(trackList, trackList.entryOf(track));
+    static Factory factory(final Parts parts) {
+        return track -> new Part(parts, parts.entryOf(track));
     }
 
     private static boolean isChannelEvent(final MidiEvent midiEvent) {
@@ -124,7 +124,7 @@ public final class Part extends Sender<Part> {
     }
 
     public final String getPrefix() {
-        return String.format("Track %02d", trackList.indexOf(track));
+        return String.format("Track %02d", parts.indexOf(track));
     }
 
     final Track backing() {
@@ -138,7 +138,7 @@ public final class Part extends Sender<Part> {
     private Part setModified() {
         features.reset();
         modCounter.incrementAndGet();
-        trackList.onModifiedTrack();
+        parts.onModifiedTrack();
         return fire(Channel.SetEvents, Channel.SetModified);
     }
 

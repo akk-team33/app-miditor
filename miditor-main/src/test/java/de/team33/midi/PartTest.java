@@ -30,9 +30,9 @@ class PartTest extends MidiTestBase {
     private final Part part;
 
     PartTest() throws InvalidMidiDataException, IOException {
-        final TrackList trackList = new TrackList(sequence(), Runnable::run, this::onModifiedTrack);
-        track = trackList.tracks().get(1);
-        part = Part.factory(trackList)
+        final Parts parts = new Parts(sequence(), Runnable::run, this::onModifiedTrack);
+        track = parts.tracks().get(1);
+        part = Part.factory(parts)
                    .create(track);
     }
 

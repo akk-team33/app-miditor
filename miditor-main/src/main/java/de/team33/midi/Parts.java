@@ -14,20 +14,20 @@ import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicLong;
 
-class TrackList {
+class Parts {
 
     private final Executor executor;
     private final Sequence sequence;
     private final Map<Track, Entry> entryMap;
     private final Runnable onModifiedTrack;
 
-    TrackList(final Sequence sequence, final Executor executor, final Runnable onModifiedTrack) {
+    Parts(final Sequence sequence, final Executor executor, final Runnable onModifiedTrack) {
         this.executor = executor;
         this.sequence = sequence;
         this.onModifiedTrack = onModifiedTrack;
         this.entryMap = Util.stream(sequence)
                             .map(track -> newEntry(track, 0))
-                            .collect(HashMap::new, TrackList::put, Map::putAll);
+                            .collect(HashMap::new, Parts::put, Map::putAll);
     }
 
     private static void put(final Map<? super Track, ? super Entry> map, final Entry entry) {

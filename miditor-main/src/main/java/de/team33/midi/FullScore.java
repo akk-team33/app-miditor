@@ -24,15 +24,15 @@ import static de.team33.midix.Midi.MetaMessage.Type.SET_TEMPO;
 @SuppressWarnings({"WeakerAccess", "UnusedReturnValue", "ClassNamePrefixedWithPackageName"})
 public class FullScore extends Sender<FullScore> {
 
-    private final TrackList trackList;
+    private final Parts parts;
     private final Part.Factory trackFactory;
     private final AtomicLong modCounter = new AtomicLong();
     private final Features features = new Features();
 
     FullScore(final Sequence backing, final Executor executor) {
         super(FullScore.class, executor, Channel.VALUES);
-        this.trackList = new TrackList(backing, executor, this::onModifiedTrack);
-        this.trackFactory = Part.factory(trackList);
+        this.parts = new Parts(backing, executor, this::onModifiedTrack);
+        this.trackFactory = Part.factory(parts);
     }
 
     private void onModifiedTrack() {
@@ -46,7 +46,7 @@ public class FullScore extends Sender<FullScore> {
     }
 
     final Sequence backing() {
-        return trackList.sequence();
+        return parts.sequence();
     }
 
     @SuppressWarnings("OverloadedVarargsMethod")
@@ -60,7 +60,7 @@ public class FullScore extends Sender<FullScore> {
     }
 
     private void createBase(final Iterable<? extends MidiEvent> events) {
-        final Track track = trackList.create();
+        final Track track = parts.create();
         for (final MidiEvent event : events) {
             track.add(event);
         }
@@ -71,12 +71,12 @@ public class FullScore extends Sender<FullScore> {
     }
 
     public final FullScore delete(final Collection<Part> tracks) {
-        trackList.delete(tracks.stream().map(Part::backing).toList());
+        parts.delete(tracks.stream().map(Part::backing).toList());
         return setModified();
     }
 
     public final FullScore join(final Collection<Part> tracks) {
-        final Track track = trackList.create();
+        final Track track = parts.create();
         streamOf(tracks).flatMap(Util::stream)
                         .forEach(track::add);
         return delete(tracks);
@@ -175,16 +175,16 @@ public class FullScore extends Sender<FullScore> {
         }
 
         private List<Part> newTrackList() {
-            return trackList.tracks().stream()
-                            .map(trackFactory::create)
-                            .toList();
+            return parts.tracks().stream()
+                        .map(trackFactory::create)
+                        .toList();
         }
 
         private int newTempo() {
-            return trackList.tracks().stream()
-                            .flatMapToInt(Features::newTempo)
-                            .findFirst()
-                            .orElse(0);
+            return parts.tracks().stream()
+                        .flatMapToInt(Features::newTempo)
+                        .findFirst()
+                        .orElse(0);
         }
 
         private static IntStream newTempo(final Track track) {
@@ -204,9 +204,9 @@ public class FullScore extends Sender<FullScore> {
         }
 
         private Timing newTiming() {
-            return trackList.tracks().stream().findFirst()
-                            .flatMap(this::newTiming)
-                            .orElseGet(() -> Timing.of(backing()));
+            return parts.tracks().stream().findFirst()
+                        .flatMap(this::newTiming)
+                        .orElseGet(() -> Timing.of(backing()));
         }
 
         private Optional<Timing> newTiming(final Track track) {
