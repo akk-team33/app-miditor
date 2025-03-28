@@ -8,11 +8,7 @@ import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.Track;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.LinkOption;
-import java.nio.file.Path;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -20,40 +16,13 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@SuppressWarnings("ClassNamePrefixedWithPackageName")
 class MidiSequenceTest extends MidiTestBase {
 
     private final MidiSequence midiSequence;
 
     MidiSequenceTest() throws InvalidMidiDataException, IOException {
-        this.midiSequence = new MidiSequence(path(), sequence(), Runnable::run);
-    }
-
-    @Test
-    final void load() throws Exception {
-        final MidiSequence other = MidiSequence.loader(Runnable::run)
-                                               .load(midiSequence.getPath());
-        assertEquals(midiSequence.getTracks().size(), other.getTracks().size());
-    }
-
-    @Test
-    final void save() throws IOException {
-        final long oldSize = Files.size(midiSequence.getPath());
-        midiSequence.delete(midiSequence.getTracks().get(1));
-
-        midiSequence.save();
-        final long newSize = Files.size(midiSequence.getPath());
-
-        assertTrue(oldSize > newSize);
-    }
-
-    @Test
-    final void saveAs() throws IOException {
-        final Path oldPath = midiSequence.getPath();
-        final Path newPath = oldPath.getParent().resolve(UUID.randomUUID() + ".mid");
-        assertFalse(Files.exists(newPath, LinkOption.NOFOLLOW_LINKS));
-
-        midiSequence.saveAs(newPath);
-        assertTrue(Files.exists(newPath, LinkOption.NOFOLLOW_LINKS));
+        this.midiSequence = new MidiSequence(sequence(), Runnable::run);
     }
 
     @Test

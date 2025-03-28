@@ -37,11 +37,11 @@ public abstract class FileControl extends JPanel {
 
         public void actionPerformed(final ActionEvent e) {
             try {
-                getContext().getSequence().save();
+                getContext().getMusic().save();
             } catch (final IOException var3) {
                 JOptionPane.showMessageDialog(getContext().getFrame(),
                                               "Die Datei\n\t" +
-                                              getContext().getSequence().getPath() +
+                                              getContext().getMusic().path() +
                                               "\nkonnte nicht gespeichert werden.\n" +
                                               "\nEventuell ist die Datei schreibgeschützt" +
                                               "\noder Ihnen fehlen die notwendigen Rechte.",
@@ -68,7 +68,7 @@ public abstract class FileControl extends JPanel {
         }
 
         public void actionPerformed(final ActionEvent e) {
-            final JFileChooser chooser = new JFileChooser(getContext().getSequence().getPath().getParent().toFile());
+            final JFileChooser chooser = new JFileChooser(getContext().getMusic().path().getParent().toFile());
             final CMidiFileFilter filter = new CMidiFileFilter();
             chooser.setDialogTitle("Song speichern");
             chooser.setFileFilter(filter);
@@ -80,7 +80,7 @@ public abstract class FileControl extends JPanel {
                         f = new File(f.getParentFile(), f.getName() + ".mid");
                     }
 
-                    getContext().getSequence().saveAs(f.toPath());
+                    getContext().getMusic().saveAs(f.toPath());
                 } catch (final IOException var6) {
                     JOptionPane.showMessageDialog(getContext().getFrame(),
                                                   "Die Datei\n\t" +

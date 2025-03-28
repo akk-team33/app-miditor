@@ -2,16 +2,11 @@ package de.team33.midi;
 
 import de.team33.midix.Timing;
 import de.team33.patterns.lazy.narvi.LazyFeatures;
-import de.team33.patterns.mutable.alpha.Mutable;
 import de.team33.patterns.notes.beta.Sender;
 
-import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiEvent;
-import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Track;
-import java.io.IOException;
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -20,28 +15,23 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.UnaryOperator;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static de.team33.midix.Midi.MetaMessage.Type.SET_TEMPO;
 
-@SuppressWarnings({"WeakerAccess", "UnusedReturnValue", "ClassNamePrefixedWithPackageName", "ClassWithTooManyMethods"})
+@SuppressWarnings({"WeakerAccess", "UnusedReturnValue", "ClassNamePrefixedWithPackageName"})
 public class MidiSequence extends Sender<MidiSequence> {
 
-    private static final UnaryOperator<Path> NORMALIZER = path -> path.toAbsolutePath().normalize();
-
     private final TrackList trackList;
-    private final Mutable<Path> path;
     private final MidiTrack.Factory trackFactory;
     private final AtomicLong modCounter = new AtomicLong();
     private final Features features = new Features();
 
-    MidiSequence(final Path path, final Sequence backing, final Executor executor) {
+    MidiSequence(final Sequence backing, final Executor executor) {
         super(MidiSequence.class, executor, Channel.VALUES);
         this.trackList = new TrackList(backing, executor, this::onModifiedTrack);
-        this.path = new Mutable<>(NORMALIZER, path);
         this.trackFactory = MidiTrack.factory(trackList);
     }
 
@@ -50,30 +40,9 @@ public class MidiSequence extends Sender<MidiSequence> {
         fire(Channel.SetModified);
     }
 
-    public static Loader loader(final Executor executor) {
-        return path -> {
-            final Sequence backing = MidiSystem.getSequence(path.toFile());
-            return new MidiSequence(path, backing, executor);
-        };
-    }
-
     private static Stream<Track> streamOf(final Iterable<MidiTrack> tracks) {
         return StreamSupport.stream(tracks.spliterator(), false)
                             .map(MidiTrack::backing);
-    }
-
-    public final MidiSequence save() throws IOException {
-        synchronized (backing()) {
-            final int mode = (1 < backing().getTracks().length) ? 1 : 0;
-            MidiSystem.write(backing(), mode, path.get().toFile());
-        }
-        return resetModified();
-    }
-
-    @SuppressWarnings("ParameterHidesMemberVariable")
-    public final MidiSequence saveAs(final Path path) throws IOException {
-        this.path.set(path);
-        return save().fire(Channel.SetPath);
     }
 
     final Sequence backing() {
@@ -135,14 +104,10 @@ public class MidiSequence extends Sender<MidiSequence> {
         return fire(Channel.SetTracks, Channel.SetModified);
     }
 
-    private MidiSequence resetModified() {
+    final MidiSequence resetModified() {
         modCounter.set(0);
         features.get(Key.TRACKS).forEach(MidiTrack::resetModified);
         return fire(Channel.SetModified);
-    }
-
-    public final Path getPath() {
-        return path.get();
     }
 
     public final int getTempo() {
@@ -186,16 +151,10 @@ public class MidiSequence extends Sender<MidiSequence> {
     public interface Channel extends Sender.Channel<MidiSequence, MidiSequence> {
 
         Channel SetModified = midiSequence -> midiSequence;
-        Channel SetPath = midiSequence -> midiSequence;
         Channel SetTracks = midiSequence -> midiSequence;
 
         @SuppressWarnings("StaticMethodOnlyUsedInOneClass")
-        Set<Channel> VALUES = Set.of(SetModified, SetPath, SetTracks);
-    }
-
-    @FunctionalInterface
-    public interface Loader {
-        MidiSequence load(final Path path) throws InvalidMidiDataException, IOException;
+        Set<Channel> VALUES = Set.of(SetModified, SetTracks);
     }
 
     @SuppressWarnings("ClassNameSameAsAncestorName")

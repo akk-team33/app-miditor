@@ -17,6 +17,7 @@ import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.nio.file.Path;
 import java.util.prefs.Preferences;
 
 public class MainFrame extends XFrame {
@@ -55,13 +56,13 @@ public class MainFrame extends XFrame {
     public MainFrame(final PieceOfMusic music, final Preferences prefs) {
         super("?", prefs);
         this.music = music;
-        selection = new PartSelection(music.fullScrore());
+        selection = new PartSelection(music.fullScore());
         m_EventEditor = new TRACK_EDITOR();
         setIconImage(Rsrc.MAIN_ICON.getImage());
         setContentPane(new MAIN_PANE());
         setLocationByPlatform(true);
         addWindowListener(m_WindowListener);
-        music.fullScrore().registry().add(MidiSequence.Channel.SetPath, this::onSetFile);
+        music.registry().add(PieceOfMusic.Channel.SET_PATH, this::onSetFile);
     }
 
 //    protected void finalize() throws Throwable {
@@ -85,8 +86,13 @@ public class MainFrame extends XFrame {
         }
 
         @Override
+        public PieceOfMusic getMusic() {
+            return music;
+        }
+
+        @Override
         public Timing getTiming() {
-            return music.fullScrore().getTiming();
+            return music.fullScore().getTiming();
         }
 
         public MidiPlayer getPlayer() {
@@ -98,7 +104,7 @@ public class MainFrame extends XFrame {
         }
 
         public MidiSequence getSequence() {
-            return music.fullScrore();
+            return music.fullScore();
         }
 
         public UIController getTrackHandler() {
@@ -142,8 +148,8 @@ public class MainFrame extends XFrame {
         }
     }
 
-    public void onSetFile(final MidiSequence sequence) {
-        setTitle(String.format("%s - Miditor 01a/12", sequence.getPath()));
+    public void onSetFile(final Path path) {
+        setTitle(String.format("%s - Miditor 01a/12", path));
     }
 
     private class SONG_CTRLS extends SongControls {
@@ -154,7 +160,7 @@ public class MainFrame extends XFrame {
 
     private class TRACK_EDITOR extends EventEditor {
         protected MidiSequence getSequence() {
-            return music.fullScrore();
+            return music.fullScore();
         }
     }
 

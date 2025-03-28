@@ -20,7 +20,6 @@ public final class PieceOfMusic extends Sender<PieceOfMusic> {
     private static final UnaryOperator<Path> NORMALIZER = path -> path.toAbsolutePath().normalize();
 
     private final Mutable<Path> path;
-    private final Executor executor;
     private final Sequence sequence;
     private final Sequencer sequencer;
     private final MidiSequence fullScore;
@@ -29,10 +28,9 @@ public final class PieceOfMusic extends Sender<PieceOfMusic> {
     private PieceOfMusic(final Path path, final Executor executor) throws InvalidMidiDataException, IOException {
         super(PieceOfMusic.class, executor, Channel.VALUES);
         this.path = new Mutable<>(NORMALIZER, path);
-        this.executor = executor;
         this.sequence = MidiSystem.getSequence(path.toFile());
         this.sequencer = CNV.get(() -> MidiSystem.getSequencer(true));
-        this.fullScore = new MidiSequence(path, sequence, executor);
+        this.fullScore = new MidiSequence(sequence, executor);
         this.player = new MidiPlayer(sequencer, sequence, executor);
 
         fullScore.registry().add(MidiSequence.Channel.SetTracks, any -> player.onSetParts());
@@ -51,12 +49,27 @@ public final class PieceOfMusic extends Sender<PieceOfMusic> {
         return fire(Channel.SET_PATH);
     }
 
-    public final MidiSequence fullScrore() {
+    public final MidiSequence fullScore() {
         return fullScore;
     }
 
     public final MidiPlayer player() {
         return player;
+    }
+
+    public final PieceOfMusic save() throws IOException {
+        synchronized (sequence) {
+            final int mode = (1 < sequence.getTracks().length) ? 1 : 0;
+            MidiSystem.write(sequence, mode, path.get().toFile());
+        }
+        fullScore.resetModified();
+        return this;
+    }
+
+    @SuppressWarnings("ParameterHidesMemberVariable")
+    public final PieceOfMusic saveAs(final Path path) throws IOException {
+        this.path.set(path);
+        return setPath(path).save();
     }
 
     @FunctionalInterface
