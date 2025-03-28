@@ -29,7 +29,7 @@ public final class PieceOfMusic extends Sender<PieceOfMusic> {
         super(PieceOfMusic.class, executor, Channel.VALUES);
         this.path = new Mutable<>(NORMALIZER, path);
         this.sequence = MidiSystem.getSequence(path.toFile());
-        this.sequencer = CNV.get(() -> MidiSystem.getSequencer(true));
+        this.sequencer = CNV.get(() -> MidiSystem.getSequencer(false));
         this.fullScore = new FullScore(sequence, executor);
         this.player = new Player(sequencer, sequence, executor);
 
