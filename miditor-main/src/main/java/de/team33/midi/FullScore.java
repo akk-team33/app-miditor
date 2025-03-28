@@ -45,7 +45,7 @@ public class FullScore extends Sender<FullScore> {
                             .map(Part::backing);
     }
 
-    final Sequence backing() {
+    final Sequence sequence() {
         return parts.sequence();
     }
 
@@ -137,8 +137,8 @@ public class FullScore extends Sender<FullScore> {
     }
 
     public final long getTickLength() {
-        synchronized (backing()) {
-            return backing().getTickLength();
+        synchronized (sequence()) {
+            return sequence().getTickLength();
         }
     }
 
@@ -206,13 +206,13 @@ public class FullScore extends Sender<FullScore> {
         private Timing newTiming() {
             return parts.tracks().stream().findFirst()
                         .flatMap(this::newTiming)
-                        .orElseGet(() -> Timing.of(backing()));
+                        .orElseGet(() -> Timing.of(sequence()));
         }
 
         private Optional<Timing> newTiming(final Track track) {
             return Util.firstTimeSignature(track)
                        .map(MidiEvent::getMessage)
-                       .map(message -> Timing.of(message, backing()));
+                       .map(message -> Timing.of(message, sequence()));
         }
     }
 }
