@@ -33,7 +33,9 @@ public final class PieceOfMusic extends Sender<PieceOfMusic> {
         this.sequence = MidiSystem.getSequence(path.toFile());
         this.sequencer = CNV.get(() -> MidiSystem.getSequencer(true));
         this.fullScore = new MidiSequence(path, sequence, executor);
-        this.player = new MidiPlayer(fullScore, executor);
+        this.player = new MidiPlayer(sequencer, sequence, executor);
+
+        fullScore.registry().add(MidiSequence.Channel.SetTracks, any -> player.onSetParts());
     }
 
     public static Loader loader(final Executor executor) {

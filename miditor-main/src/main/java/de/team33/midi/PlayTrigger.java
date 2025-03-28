@@ -60,7 +60,7 @@ public enum PlayTrigger {
                        .collect(Collectors.toSet());
     }
 
-    final boolean hasEffectOn(final PlayState state) {
+    private boolean hasEffectOn(final PlayState state) {
         return map.containsKey(state);
     }
 
@@ -68,9 +68,9 @@ public enum PlayTrigger {
     private interface Action extends Function<MidiPlayer, MidiPlayer.Channel> {
 
         Action OPEN = act(CNV.consumer(MidiPlayer::open), MidiPlayer.Channel.SET_STATE);
-        Action START = act(mp -> mp.backing.start(), MidiPlayer.Channel.SET_STATE);
-        Action STOP = act(mp -> mp.backing.stop(), MidiPlayer.Channel.SET_STATE);
-        Action RESET = act(mp -> mp.backing.setTickPosition(0L), MidiPlayer.Channel.SET_POSITION);
+        Action START = act(mp -> mp.backing().start(), MidiPlayer.Channel.SET_STATE);
+        Action STOP = act(mp -> mp.backing().stop(), MidiPlayer.Channel.SET_STATE);
+        Action RESET = act(mp -> mp.backing().setTickPosition(0L), MidiPlayer.Channel.SET_POSITION);
         Action CLOSE = act(MidiPlayer::close, MidiPlayer.Channel.SET_STATE);
 
         @SuppressWarnings("BoundedWildcard")

@@ -8,6 +8,7 @@ import de.team33.midi.PlayTrigger;
 import de.team33.miditor.controller.UIController;
 import de.team33.miditor.model.PartSelection;
 import de.team33.miditor.ui.sequence.Context;
+import de.team33.midix.Timing;
 import de.team33.selection.Selection;
 import de.team33.swing.XFrame;
 
@@ -81,6 +82,11 @@ public class MainFrame extends XFrame {
 
         public Component getFrame() {
             return MainFrame.this;
+        }
+
+        @Override
+        public Timing getTiming() {
+            return music.fullScrore().getTiming();
         }
 
         public MidiPlayer getPlayer() {

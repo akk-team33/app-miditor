@@ -1,7 +1,6 @@
 package de.team33.midi;
 
 import de.team33.midi.util.ClassUtil;
-import de.team33.midix.Timing;
 import de.team33.patterns.lazy.narvi.LazyFeatures;
 import de.team33.patterns.notes.beta.Sender;
 
@@ -9,6 +8,7 @@ import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
+import javax.sound.midi.Sequence;
 import javax.sound.midi.Sequencer;
 import java.util.HashSet;
 import java.util.List;
@@ -25,17 +25,15 @@ public class MidiPlayer extends Sender<MidiPlayer> {
 
     private static final Preferences PREFS = Preferences.userRoot().node(ClassUtil.getPathString(MidiPlayer.class));
 
-    private final MidiSequence sequence;
-    @Deprecated // make package private asap!
-    final Sequencer backing;
+    private final Sequence sequence;
+    private final Sequencer sequencer;
     private MidiDevice outputDevice;
     private final Features features = new Features();
 
-    MidiPlayer(final MidiSequence sequence, final Executor executor) {
+    MidiPlayer(final Sequencer sequencer, final Sequence sequence, final Executor executor) {
         super(MidiPlayer.class, executor, Channel.VALUES);
-        backing = Util.CNV.get(() -> MidiSystem.getSequencer(false));
+        this.sequencer = sequencer;
         this.sequence = sequence;
-        this.sequence.registry().add(MidiSequence.Channel.SetTracks, this::onSetParts);
         audience().add(Channel.SET_STATE, new STARTER());
     }
 
@@ -70,23 +68,23 @@ public class MidiPlayer extends Sender<MidiPlayer> {
 
     @Deprecated // make private asap!
     final void close() {
-        if (backing.isOpen()) {
-            if (backing.isRunning()) {
-                backing.stop();
+        if (sequencer.isOpen()) {
+            if (sequencer.isRunning()) {
+                sequencer.stop();
             }
-            backing.close();
+            sequencer.close();
             outputDevice.close();
         }
     }
 
     @Deprecated // make private asap!
     final void open() throws MidiUnavailableException, InvalidMidiDataException {
-        if (!backing.isOpen()) {
+        if (!sequencer.isOpen()) {
             outputDevice = newOutputDevice();
             outputDevice.open();
-            backing.getTransmitter().setReceiver(outputDevice.getReceiver());
-            backing.setSequence(sequence.backing());
-            backing.open();
+            sequencer.getTransmitter().setReceiver(outputDevice.getReceiver());
+            sequencer.setSequence(sequence);
+            sequencer.open();
         }
     }
 
@@ -96,20 +94,16 @@ public class MidiPlayer extends Sender<MidiPlayer> {
     }
 
     public final long getPosition() {
-        return backing.getTickPosition();
+        return sequencer.getTickPosition();
     }
 
     public final void setPosition(final long ticks) {
-        backing.setTickPosition(ticks);
+        sequencer.setTickPosition(ticks);
         fire(Channel.SET_POSITION);
     }
 
-    public final MidiSequence getSequence() {
-        return sequence;
-    }
-
     public final PlayState getState() {
-        return PlayState.of(backing);
+        return PlayState.of(sequencer);
     }
 
     public final void push(final PlayTrigger trigger) {
@@ -118,17 +112,12 @@ public class MidiPlayer extends Sender<MidiPlayer> {
     }
 
     public final int getTempo() {
-        return Math.round(backing.getTempoInBPM());
+        return Math.round(sequencer.getTempoInBPM());
     }
 
     public final void setTempo(final int tempo) {
-        backing.setTempoInBPM(tempo);
-        sequence.setTempo(tempo);
+        sequencer.setTempoInBPM(tempo);
         fire(Channel.SET_TEMPO);
-    }
-
-    public final Timing getTiming() {
-        return sequence.getTiming();
     }
 
     public final void setMode(final int index, final TrackMode newMode) {
@@ -136,13 +125,13 @@ public class MidiPlayer extends Sender<MidiPlayer> {
         final TrackMode oldMode = getMode(index);
         if (oldMode != newMode) {
             if (TrackMode.SOLO == newMode) {
-                IntStream.range(0, Util.tracksSize(backing))
-                         .forEach(ix -> backing.setTrackMute(ix, ix != index));
+                IntStream.range(0, Util.tracksSize(sequencer))
+                         .forEach(ix -> sequencer.setTrackMute(ix, ix != index));
             } else if ((TrackMode.SOLO == oldMode) && (TrackMode.NORMAL == newMode)) {
-                IntStream.range(0, Util.tracksSize(backing))
-                         .forEach(ix -> backing.setTrackMute(ix, false));
+                IntStream.range(0, Util.tracksSize(sequencer))
+                         .forEach(ix -> sequencer.setTrackMute(ix, false));
             } else {
-                backing.setTrackMute(index, TrackMode.MUTE == newMode);
+                sequencer.setTrackMute(index, TrackMode.MUTE == newMode);
             }
             features.reset(Key.TRACK_MODES);
             channels.add(Channel.SET_MODES);
@@ -150,19 +139,23 @@ public class MidiPlayer extends Sender<MidiPlayer> {
         fire(channels);
     }
 
-    private void onSetParts(final MidiSequence midiSequence) {
-        final boolean open = backing.isOpen();
-        final boolean running = backing.isRunning();
-        final long position = backing.getTickPosition();
+    final void onSetParts() {
+        final boolean open = sequencer.isOpen();
+        final boolean running = sequencer.isRunning();
+        final long position = sequencer.getTickPosition();
         close();
         if (open) {
             Util.CNV.run(this::open);
-            backing.setTickPosition(position);
+            sequencer.setTickPosition(position);
             if (running) {
-                backing.start();
+                sequencer.start();
             }
         }
         fire(Channel.SET_STATE, Channel.SET_POSITION);
+    }
+
+    final Sequencer backing() {
+        return sequencer;
     }
 
     @SuppressWarnings("SynchronizeOnThis")
@@ -190,7 +183,7 @@ public class MidiPlayer extends Sender<MidiPlayer> {
         public final void run() {
             final Set<Channel> channels = new HashSet<>(0);
             channels.add(Channel.SET_POSITION);
-            if (!backing.isRunning()) {
+            if (!sequencer.isRunning()) {
                 cancel();
                 channels.add(Channel.SET_STATE);
             }
@@ -234,7 +227,7 @@ public class MidiPlayer extends Sender<MidiPlayer> {
         }
 
         private List<TrackMode> newTrackModes() {
-            final List<TrackMode> stage = IntStream.range(0, Util.tracksSize(backing))
+            final List<TrackMode> stage = IntStream.range(0, Util.tracksSize(sequencer))
                                                    .mapToObj(this::mapMode)
                                                    .toList();
             final boolean normal = (1L != stage.stream()
@@ -246,7 +239,7 @@ public class MidiPlayer extends Sender<MidiPlayer> {
         }
 
         private TrackMode mapMode(final int index) {
-            return backing.getTrackMute(index) ? TrackMode.MUTE : TrackMode.NORMAL;
+            return sequencer.getTrackMute(index) ? TrackMode.MUTE : TrackMode.NORMAL;
         }
     }
 }
