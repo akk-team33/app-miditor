@@ -22,15 +22,15 @@ import java.util.stream.StreamSupport;
 import static de.team33.midix.Midi.MetaMessage.Type.SET_TEMPO;
 
 @SuppressWarnings({"WeakerAccess", "UnusedReturnValue", "ClassNamePrefixedWithPackageName"})
-public class MidiSequence extends Sender<MidiSequence> {
+public class FullScore extends Sender<FullScore> {
 
     private final TrackList trackList;
     private final MidiTrack.Factory trackFactory;
     private final AtomicLong modCounter = new AtomicLong();
     private final Features features = new Features();
 
-    MidiSequence(final Sequence backing, final Executor executor) {
-        super(MidiSequence.class, executor, Channel.VALUES);
+    FullScore(final Sequence backing, final Executor executor) {
+        super(FullScore.class, executor, Channel.VALUES);
         this.trackList = new TrackList(backing, executor, this::onModifiedTrack);
         this.trackFactory = MidiTrack.factory(trackList);
     }
@@ -50,11 +50,11 @@ public class MidiSequence extends Sender<MidiSequence> {
     }
 
     @SuppressWarnings("OverloadedVarargsMethod")
-    public final MidiSequence create(final MidiEvent... events) {
+    public final FullScore create(final MidiEvent... events) {
         return create(Arrays.asList(events));
     }
 
-    public final MidiSequence create(final Iterable<? extends MidiEvent> events) {
+    public final FullScore create(final Iterable<? extends MidiEvent> events) {
         createBase(events);
         return setModified();
     }
@@ -66,23 +66,23 @@ public class MidiSequence extends Sender<MidiSequence> {
         }
     }
 
-    public final MidiSequence delete(final MidiTrack... tracks) {
+    public final FullScore delete(final MidiTrack... tracks) {
         return delete(Arrays.asList(tracks));
     }
 
-    public final MidiSequence delete(final Collection<MidiTrack> tracks) {
+    public final FullScore delete(final Collection<MidiTrack> tracks) {
         trackList.delete(tracks.stream().map(MidiTrack::backing).toList());
         return setModified();
     }
 
-    public final MidiSequence join(final Collection<MidiTrack> tracks) {
+    public final FullScore join(final Collection<MidiTrack> tracks) {
         final Track track = trackList.create();
         streamOf(tracks).flatMap(Util::stream)
                         .forEach(track::add);
         return delete(tracks);
     }
 
-    public final MidiSequence split(final MidiTrack track) {
+    public final FullScore split(final MidiTrack track) {
         final Map<Integer, List<MidiEvent>> extracted = track.extractChannels();
         for (final List<MidiEvent> events : extracted.values()) {
             createBase(events);
@@ -98,13 +98,13 @@ public class MidiSequence extends Sender<MidiSequence> {
         return 0L != modCounter.get();
     }
 
-    private MidiSequence setModified() {
+    private FullScore setModified() {
         features.reset();
         modCounter.incrementAndGet();
         return fire(Channel.SetTracks, Channel.SetModified);
     }
 
-    final MidiSequence resetModified() {
+    final FullScore resetModified() {
         modCounter.set(0);
         features.get(Key.TRACKS).forEach(MidiTrack::resetModified);
         return fire(Channel.SetModified);
@@ -148,7 +148,7 @@ public class MidiSequence extends Sender<MidiSequence> {
 
     @FunctionalInterface
     @SuppressWarnings("ClassNameSameAsAncestorName")
-    public interface Channel extends Sender.Channel<MidiSequence, MidiSequence> {
+    public interface Channel extends Sender.Channel<FullScore, FullScore> {
 
         Channel SetModified = midiSequence -> midiSequence;
         Channel SetTracks = midiSequence -> midiSequence;

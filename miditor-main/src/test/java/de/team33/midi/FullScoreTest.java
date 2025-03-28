@@ -17,21 +17,21 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SuppressWarnings("ClassNamePrefixedWithPackageName")
-class MidiSequenceTest extends MidiTestBase {
+class FullScoreTest extends MidiTestBase {
 
-    private final MidiSequence midiSequence;
+    private final FullScore fullScore;
 
-    MidiSequenceTest() throws InvalidMidiDataException, IOException {
-        this.midiSequence = new MidiSequence(sequence(), Runnable::run);
+    FullScoreTest() throws InvalidMidiDataException, IOException {
+        this.fullScore = new FullScore(sequence(), Runnable::run);
     }
 
     @Test
     final void getTracks() {
         final List<Integer> expected = Stream.of(sequence().getTracks()).map(Track::size).toList();
 
-        final List<MidiTrack> result = midiSequence.getTracks();
+        final List<MidiTrack> result = fullScore.getTracks();
         assertEquals(14, result.size());
-        assertSame(result, midiSequence.getTracks(), "two subsequent calls should return the same list");
+        assertSame(result, fullScore.getTracks(), "two subsequent calls should return the same list");
 
         final List<Integer> sizes = result.stream().map(MidiTrack::size).toList();
         assertEquals(expected, sizes);
@@ -43,7 +43,7 @@ class MidiSequenceTest extends MidiTestBase {
                 Stream.of(sequence().getTracks()).map(Track::size),
                 Stream.of(1)).toList(); // 1 <-> EOT
 
-        final List<MidiTrack> result = midiSequence.create().getTracks();
+        final List<MidiTrack> result = fullScore.create().getTracks();
         assertEquals(15, result.size());
 
         final List<Integer> sizes = result.stream().map(MidiTrack::size).toList();
@@ -56,9 +56,9 @@ class MidiSequenceTest extends MidiTestBase {
                 Stream.of(sequence().getTracks()).map(Track::size),
                 Stream.of(sequence().getTracks()[0]).map(Track::size)).toList();
 
-        final List<MidiEvent> events = midiSequence.getTracks().get(0).list();
-        final List<MidiTrack> result = midiSequence.create(events)
-                                                   .getTracks();
+        final List<MidiEvent> events = fullScore.getTracks().get(0).list();
+        final List<MidiTrack> result = fullScore.create(events)
+                                                .getTracks();
         assertEquals(15, result.size());
 
         final List<Integer> sizes = result.stream().map(MidiTrack::size).toList();
@@ -67,18 +67,18 @@ class MidiSequenceTest extends MidiTestBase {
 
     @Test
     final void delete_single() {
-        delete(4, () -> midiSequence.getTracks().stream().skip(4)
-                                    .forEach(midiSequence::delete));
+        delete(4, () -> fullScore.getTracks().stream().skip(4)
+                                 .forEach(fullScore::delete));
     }
 
     @Test
     final void delete_array() {
-        delete(5, () -> midiSequence.delete(midiSequence.getTracks().stream().skip(5).toArray(MidiTrack[]::new)));
+        delete(5, () -> fullScore.delete(fullScore.getTracks().stream().skip(5).toArray(MidiTrack[]::new)));
     }
 
     @Test
     final void delete_list() {
-        delete(6, () -> midiSequence.delete(midiSequence.getTracks().stream().skip(6).toList()));
+        delete(6, () -> fullScore.delete(fullScore.getTracks().stream().skip(6).toList()));
     }
 
     private void delete(final int keep, final Runnable deletion) {
@@ -86,7 +86,7 @@ class MidiSequenceTest extends MidiTestBase {
 
         deletion.run();
 
-        final List<MidiTrack> result = midiSequence.getTracks();
+        final List<MidiTrack> result = fullScore.getTracks();
         assertEquals(keep, result.size());
         final List<Integer> sizes = result.stream().map(MidiTrack::size).toList();
         assertEquals(expected, sizes);
@@ -97,39 +97,39 @@ class MidiSequenceTest extends MidiTestBase {
         final int expected = Stream.of(sequence().getTracks())
                                    .mapToInt(Track::size).map(size -> size -1)
                                    .sum() + 1;
-        midiSequence.join(midiSequence.getTracks());
-        assertEquals(1, midiSequence.getTracks().size());
-        assertEquals(expected, midiSequence.getTracks().get(0).size());
+        fullScore.join(fullScore.getTracks());
+        assertEquals(1, fullScore.getTracks().size());
+        assertEquals(expected, fullScore.getTracks().get(0).size());
     }
 
     @Test
     final void split() {
-        midiSequence.join(midiSequence.getTracks())
-                    .split(midiSequence.getTracks().get(0));
-        assertEquals(13, midiSequence.getTracks().size());
+        fullScore.join(fullScore.getTracks())
+                 .split(fullScore.getTracks().get(0));
+        assertEquals(13, fullScore.getTracks().size());
         assertEquals(List.of(29, 885, 2047, 817, 625, 1497, 155, 151, 71, 497, 2816, 87, 353),
-                     midiSequence.getTracks().stream().map(MidiTrack::size).toList());
+                     fullScore.getTracks().stream().map(MidiTrack::size).toList());
     }
 
     @Test
     final void getTickLength() {
-        assertEquals(sequence().getTickLength(), midiSequence.getTickLength());
+        assertEquals(sequence().getTickLength(), fullScore.getTickLength());
     }
 
     @Test
     final void getTempo() {
-        assertEquals(116, midiSequence.getTempo());
+        assertEquals(116, fullScore.getTempo());
     }
 
     @Test
     final void getTiming() {
-        assertEquals(new Timing(4, 4, 192, 59230), midiSequence.getTiming());
+        assertEquals(new Timing(4, 4, 192, 59230), fullScore.getTiming());
     }
 
     @Test
     final void isModified() {
-        assertFalse(midiSequence.isModified());
-        midiSequence.delete(midiSequence.getTracks().get(3));
-        assertTrue(midiSequence.isModified());
+        assertFalse(fullScore.isModified());
+        fullScore.delete(fullScore.getTracks().get(3));
+        assertTrue(fullScore.isModified());
     }
 }

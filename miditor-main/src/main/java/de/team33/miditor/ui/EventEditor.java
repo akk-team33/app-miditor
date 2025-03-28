@@ -1,6 +1,6 @@
 package de.team33.miditor.ui;
 
-import de.team33.midi.MidiSequence;
+import de.team33.midi.FullScore;
 import de.team33.midi.MidiTrack;
 import de.team33.miditor.controller.UIController;
 import de.team33.miditor.controller.UIControllerImpl;
@@ -34,7 +34,7 @@ public abstract class EventEditor extends UIControllerImpl {
     private JComponent m_RootComponent = null;
 
     protected EventEditor() {
-        getSequence().registry().add(MidiSequence.Channel.SetTracks, this::onSetParts);
+        getSequence().registry().add(FullScore.Channel.SetTracks, this::onSetParts);
     }
 
     private EventEditor _EventEditor() {
@@ -49,7 +49,7 @@ public abstract class EventEditor extends UIControllerImpl {
         return m_RootComponent;
     }
 
-    protected abstract MidiSequence getSequence();
+    protected abstract FullScore getSequence();
 
     private class ACTIONS extends EventActions {
         private ACTIONS() {
@@ -100,7 +100,7 @@ public abstract class EventEditor extends UIControllerImpl {
         }
     }
 
-    private void onSetParts(final MidiSequence sequence) {
+    private void onSetParts(final FullScore sequence) {
         final List<MidiTrack> parts = sequence.getTracks();
         final int size = parts.size();
         for (int index = 0; index < size; ++index) {

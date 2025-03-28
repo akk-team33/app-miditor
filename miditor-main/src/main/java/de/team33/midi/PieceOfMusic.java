@@ -22,7 +22,7 @@ public final class PieceOfMusic extends Sender<PieceOfMusic> {
     private final Mutable<Path> path;
     private final Sequence sequence;
     private final Sequencer sequencer;
-    private final MidiSequence fullScore;
+    private final FullScore fullScore;
     private final MidiPlayer player;
 
     private PieceOfMusic(final Path path, final Executor executor) throws InvalidMidiDataException, IOException {
@@ -30,10 +30,10 @@ public final class PieceOfMusic extends Sender<PieceOfMusic> {
         this.path = new Mutable<>(NORMALIZER, path);
         this.sequence = MidiSystem.getSequence(path.toFile());
         this.sequencer = CNV.get(() -> MidiSystem.getSequencer(true));
-        this.fullScore = new MidiSequence(sequence, executor);
+        this.fullScore = new FullScore(sequence, executor);
         this.player = new MidiPlayer(sequencer, sequence, executor);
 
-        fullScore.registry().add(MidiSequence.Channel.SetTracks, any -> player.onSetParts());
+        fullScore.registry().add(FullScore.Channel.SetTracks, any -> player.onSetParts());
     }
 
     public static Loader loader(final Executor executor) {
@@ -49,7 +49,7 @@ public final class PieceOfMusic extends Sender<PieceOfMusic> {
         return fire(Channel.SET_PATH);
     }
 
-    public final MidiSequence fullScore() {
+    public final FullScore fullScore() {
         return fullScore;
     }
 
@@ -66,9 +66,8 @@ public final class PieceOfMusic extends Sender<PieceOfMusic> {
         return this;
     }
 
-    @SuppressWarnings("ParameterHidesMemberVariable")
+    @SuppressWarnings({"ParameterHidesMemberVariable", "UnusedReturnValue"})
     public final PieceOfMusic saveAs(final Path path) throws IOException {
-        this.path.set(path);
         return setPath(path).save();
     }
 

@@ -1,6 +1,6 @@
 package de.team33.miditor.ui.sequence;
 
-import de.team33.midi.MidiSequence;
+import de.team33.midi.FullScore;
 import de.team33.midi.MidiTrack;
 import de.team33.miditor.model.TimeShift;
 import de.team33.miditor.model.TimeShiftBase;
@@ -25,7 +25,7 @@ public abstract class TimeShiftControl extends JPanel {
         add(new SHFT_RGHT_BTTN());
     }
 
-    protected abstract MidiSequence getSequence();
+    protected abstract FullScore getSequence();
 
     protected abstract Selection<MidiTrack> getSelection();
 

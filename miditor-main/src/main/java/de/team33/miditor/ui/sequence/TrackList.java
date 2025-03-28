@@ -1,7 +1,7 @@
 package de.team33.miditor.ui.sequence;
 
+import de.team33.midi.FullScore;
 import de.team33.midi.MidiPlayer;
-import de.team33.midi.MidiSequence;
 import de.team33.midi.MidiTrack;
 import de.team33.miditor.controller.UIController;
 import de.team33.miditor.ui.SmallButton;
@@ -131,7 +131,7 @@ public abstract class TrackList extends JScrollPane {
             return getContext().getSelection();
         }
 
-        protected MidiSequence getSequence() {
+        protected FullScore getSequence() {
             return getContext().getSequence();
         }
     }
@@ -143,10 +143,10 @@ public abstract class TrackList extends JScrollPane {
 
         TABLE() {
             super(new GridBagLayout());
-            getContext().getSequence().registry().add(MidiSequence.Channel.SetTracks, this::onSetParts);
+            getContext().getSequence().registry().add(FullScore.Channel.SetTracks, this::onSetParts);
         }
 
-        private void onSetParts(final MidiSequence sequence) {
+        private void onSetParts(final FullScore sequence) {
             final List<MidiTrack> parts = sequence.getTracks();
             setVisible(false);
             removeAll();
@@ -189,7 +189,7 @@ public abstract class TrackList extends JScrollPane {
             return getContext().getSelection();
         }
 
-        public MidiSequence getSequence() {
+        public FullScore getSequence() {
             return getContext().getSequence();
         }
 

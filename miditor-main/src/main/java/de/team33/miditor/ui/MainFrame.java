@@ -1,7 +1,7 @@
 package de.team33.miditor.ui;
 
+import de.team33.midi.FullScore;
 import de.team33.midi.MidiPlayer;
-import de.team33.midi.MidiSequence;
 import de.team33.midi.MidiTrack;
 import de.team33.midi.PieceOfMusic;
 import de.team33.midi.PlayTrigger;
@@ -103,7 +103,7 @@ public class MainFrame extends XFrame {
             return selection;
         }
 
-        public MidiSequence getSequence() {
+        public FullScore getSequence() {
             return music.fullScore();
         }
 
@@ -159,7 +159,7 @@ public class MainFrame extends XFrame {
     }
 
     private class TRACK_EDITOR extends EventEditor {
-        protected MidiSequence getSequence() {
+        protected FullScore getSequence() {
             return music.fullScore();
         }
     }
