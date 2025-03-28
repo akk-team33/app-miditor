@@ -1,9 +1,9 @@
 package de.team33.miditor.ui;
 
-import de.team33.midi.MidiCenter;
 import de.team33.midi.MidiPlayer;
 import de.team33.midi.MidiSequence;
 import de.team33.midi.MidiTrack;
+import de.team33.midi.PieceOfMusic;
 import de.team33.midi.PlayTrigger;
 import de.team33.miditor.controller.UIController;
 import de.team33.miditor.model.PartSelection;
@@ -44,23 +44,23 @@ public class MainFrame extends XFrame {
     }
 
     private final Selection<MidiTrack> selection;
-    private final MidiCenter midiCenter;
+    private final PieceOfMusic music;
     private final EventEditor m_EventEditor;
     private final WindowListener m_WindowListener = new WINDOW_ADAPTER();
     private final CONTEXT context = new CONTEXT();
     private final PLAY_CTRLS playCtrls = new PLAY_CTRLS();
     private final SONG_CTRLS songCtrls = new SONG_CTRLS();
 
-    public MainFrame(final MidiCenter midiCenter, final Preferences prefs) {
+    public MainFrame(final PieceOfMusic music, final Preferences prefs) {
         super("?", prefs);
-        this.midiCenter = midiCenter;
-        selection = new PartSelection(midiCenter.sequence());
+        this.music = music;
+        selection = new PartSelection(music.fullScrore());
         m_EventEditor = new TRACK_EDITOR();
         setIconImage(Rsrc.MAIN_ICON.getImage());
         setContentPane(new MAIN_PANE());
         setLocationByPlatform(true);
         addWindowListener(m_WindowListener);
-        midiCenter.sequence().registry().add(MidiSequence.Channel.SetPath, this::onSetFile);
+        music.fullScrore().registry().add(MidiSequence.Channel.SetPath, this::onSetFile);
     }
 
 //    protected void finalize() throws Throwable {
@@ -84,7 +84,7 @@ public class MainFrame extends XFrame {
         }
 
         public MidiPlayer getPlayer() {
-            return midiCenter.sequencer();
+            return music.player();
         }
 
         public Selection<MidiTrack> getSelection() {
@@ -92,7 +92,7 @@ public class MainFrame extends XFrame {
         }
 
         public MidiSequence getSequence() {
-            return midiCenter.sequence();
+            return music.fullScrore();
         }
 
         public UIController getTrackHandler() {
@@ -148,18 +148,18 @@ public class MainFrame extends XFrame {
 
     private class TRACK_EDITOR extends EventEditor {
         protected MidiSequence getSequence() {
-            return midiCenter.sequence();
+            return music.fullScrore();
         }
     }
 
     private class WINDOW_ADAPTER extends WindowAdapter {
 
         public void windowClosed(final WindowEvent e) {
-            midiCenter.sequencer().push(PlayTrigger.OFF);
+            music.player().push(PlayTrigger.OFF);
         }
 
         public void windowOpened(final WindowEvent e) {
-            midiCenter.sequencer().push(PlayTrigger.ON);
+            music.player().push(PlayTrigger.ON);
         }
     }
 }

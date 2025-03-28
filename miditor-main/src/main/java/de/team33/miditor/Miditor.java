@@ -1,7 +1,8 @@
 package de.team33.miditor;
 
-import de.team33.midi.MidiCenter;
+import de.team33.midi.PieceOfMusic;
 import de.team33.miditor.ui.MainFrame;
+import de.team33.patterns.execution.metis.SimpleAsyncExecutor;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.swing.*;
@@ -33,7 +34,7 @@ public class Miditor implements Runnable {
                 File f = new File(arg);
 
                 try {
-                    (new MainFrame(new MidiCenter(f.toPath()), PREFS.node("MainFrame"))).setVisible(true);
+                    (new MainFrame(PieceOfMusic.loader(new SimpleAsyncExecutor()).load(f.toPath()), PREFS.node("MainFrame"))).setVisible(true);
                 } catch (final RuntimeException e) {
                     JOptionPane.showMessageDialog(null, "Auf diesem System steht Ihnen anscheinend\nleider kein MIDI Subsystem zur Verfügung.\n\nDie Datei\n\t" + arg + "\nkonnte nicht geöffnet werden.", "MIDI-System fehlt", 0);
                 } catch (final InvalidMidiDataException e) {
