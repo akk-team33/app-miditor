@@ -16,21 +16,21 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class FullScoreTest extends MidiTestBase {
+class ScoreTest extends MidiTestBase {
 
-    private final FullScore fullScore;
+    private final Score score;
 
-    FullScoreTest() throws InvalidMidiDataException, IOException {
-        this.fullScore = new FullScore(sequence(), Runnable::run);
+    ScoreTest() throws InvalidMidiDataException, IOException {
+        this.score = new Score(sequence(), Runnable::run);
     }
 
     @Test
     final void getTracks() {
         final List<Integer> expected = Stream.of(sequence().getTracks()).map(Track::size).toList();
 
-        final List<Part> result = fullScore.getTracks();
+        final List<Part> result = score.getTracks();
         assertEquals(14, result.size());
-        assertSame(result, fullScore.getTracks(), "two subsequent calls should return the same list");
+        assertSame(result, score.getTracks(), "two subsequent calls should return the same list");
 
         final List<Integer> sizes = result.stream().map(Part::size).toList();
         assertEquals(expected, sizes);
@@ -42,7 +42,7 @@ class FullScoreTest extends MidiTestBase {
                 Stream.of(sequence().getTracks()).map(Track::size),
                 Stream.of(1)).toList(); // 1 <-> EOT
 
-        final List<Part> result = fullScore.create(Collections.emptyList()).getTracks();
+        final List<Part> result = score.create(Collections.emptyList()).getTracks();
         assertEquals(15, result.size());
 
         final List<Integer> sizes = result.stream().map(Part::size).toList();
@@ -55,9 +55,9 @@ class FullScoreTest extends MidiTestBase {
                 Stream.of(sequence().getTracks()).map(Track::size),
                 Stream.of(sequence().getTracks()[0]).map(Track::size)).toList();
 
-        final List<MidiEvent> events = fullScore.getTracks().get(0).list();
-        final List<Part> result = fullScore.create(events)
-                                           .getTracks();
+        final List<MidiEvent> events = score.getTracks().get(0).list();
+        final List<Part> result = score.create(events)
+                                       .getTracks();
         assertEquals(15, result.size());
 
         final List<Integer> sizes = result.stream().map(Part::size).toList();
@@ -71,9 +71,9 @@ class FullScoreTest extends MidiTestBase {
                                              .map(Track::size)
                                              .toList();
 
-        fullScore.delete(fullScore.getTracks().stream().skip(6).toList());
+        score.delete(score.getTracks().stream().skip(6).toList());
 
-        final List<Part> result = fullScore.getTracks();
+        final List<Part> result = score.getTracks();
         assertEquals(6, result.size());
         final List<Integer> sizes = result.stream().map(Part::size).toList();
         assertEquals(expected, sizes);
@@ -84,39 +84,39 @@ class FullScoreTest extends MidiTestBase {
         final int expected = Stream.of(sequence().getTracks())
                                    .mapToInt(Track::size).map(size -> size -1)
                                    .sum() + 1;
-        fullScore.join(fullScore.getTracks());
-        assertEquals(1, fullScore.getTracks().size());
-        assertEquals(expected, fullScore.getTracks().get(0).size());
+        score.join(score.getTracks());
+        assertEquals(1, score.getTracks().size());
+        assertEquals(expected, score.getTracks().get(0).size());
     }
 
     @Test
     final void split() {
-        fullScore.join(fullScore.getTracks())
-                 .split(fullScore.getTracks().get(0));
-        assertEquals(13, fullScore.getTracks().size());
+        score.join(score.getTracks())
+             .split(score.getTracks().get(0));
+        assertEquals(13, score.getTracks().size());
         assertEquals(List.of(29, 885, 2047, 817, 625, 1497, 155, 151, 71, 497, 2816, 87, 353),
-                     fullScore.getTracks().stream().map(Part::size).toList());
+                     score.getTracks().stream().map(Part::size).toList());
     }
 
     @Test
     final void getTickLength() {
-        assertEquals(sequence().getTickLength(), fullScore.getTickLength());
+        assertEquals(sequence().getTickLength(), score.getTickLength());
     }
 
     @Test
     final void getTempo() {
-        assertEquals(116, fullScore.getTempo());
+        assertEquals(116, score.getTempo());
     }
 
     @Test
     final void getTiming() {
-        assertEquals(new Timing(4, 4, 192, 59230), fullScore.getTiming());
+        assertEquals(new Timing(4, 4, 192, 59230), score.getTiming());
     }
 
     @Test
     final void isModified() {
-        assertFalse(fullScore.isModified());
-        fullScore.delete(List.of(fullScore.getTracks().get(3)));
-        assertTrue(fullScore.isModified());
+        assertFalse(score.isModified());
+        score.delete(List.of(score.getTracks().get(3)));
+        assertTrue(score.isModified());
     }
 }

@@ -20,7 +20,7 @@ public final class PieceOfMusic extends Sender<PieceOfMusic> {
     private static final UnaryOperator<Path> NORMALIZER = path -> path.toAbsolutePath().normalize();
 
     private final Mutable<Path> path;
-    private final FullScore fullScore;
+    private final Score score;
     private final Player player;
 
     private PieceOfMusic(final Path path, final Executor executor) throws InvalidMidiDataException, IOException {
@@ -30,10 +30,10 @@ public final class PieceOfMusic extends Sender<PieceOfMusic> {
         final Sequencer sequencer = CNV.get(() -> MidiSystem.getSequencer(false));
 
         this.path = new Mutable<>(NORMALIZER, path);
-        this.fullScore = new FullScore(sequence, executor);
+        this.score = new Score(sequence, executor);
         this.player = new Player(sequencer, sequence, executor);
 
-        fullScore.registry().add(FullScore.Channel.SetTracks, any -> player.onSetParts());
+        score.registry().add(Score.Channel.SetTracks, any -> player.onSetParts());
     }
 
     public static Loader loader(final Executor executor) {
@@ -49,8 +49,8 @@ public final class PieceOfMusic extends Sender<PieceOfMusic> {
         return fire(Channel.SET_PATH);
     }
 
-    public final FullScore fullScore() {
-        return fullScore;
+    public final Score fullScore() {
+        return score;
     }
 
     public final Player player() {
@@ -58,12 +58,12 @@ public final class PieceOfMusic extends Sender<PieceOfMusic> {
     }
 
     public final PieceOfMusic save() throws IOException {
-        final Sequence sequence = fullScore.sequence();
+        final Sequence sequence = score.sequence();
         synchronized (sequence) {
             final int mode = (1 < sequence.getTracks().length) ? 1 : 0;
             MidiSystem.write(sequence, mode, path.get().toFile());
         }
-        fullScore.resetModified();
+        score.resetModified();
         return this;
     }
 

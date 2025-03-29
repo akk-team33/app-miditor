@@ -1,9 +1,9 @@
 package de.team33.miditor.ui;
 
-import de.team33.midi.FullScore;
 import de.team33.midi.Part;
 import de.team33.midi.PieceOfMusic;
 import de.team33.midi.Player;
+import de.team33.midi.Score;
 import de.team33.midi.Timing;
 import de.team33.miditor.controller.UIController;
 import de.team33.miditor.model.PartSelection;
@@ -102,7 +102,7 @@ public class MainFrame extends XFrame {
             return selection;
         }
 
-        public FullScore getSequence() {
+        public Score getSequence() {
             return music.fullScore();
         }
 
@@ -158,7 +158,7 @@ public class MainFrame extends XFrame {
     }
 
     private class TRACK_EDITOR extends EventEditor {
-        protected FullScore getSequence() {
+        protected Score getSequence() {
             return music.fullScore();
         }
     }

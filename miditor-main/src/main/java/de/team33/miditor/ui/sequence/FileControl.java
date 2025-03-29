@@ -1,6 +1,6 @@
 package de.team33.miditor.ui.sequence;
 
-import de.team33.midi.FullScore;
+import de.team33.midi.Score;
 import de.team33.miditor.CMidiFileFilter;
 import de.team33.miditor.ui.Rsrc;
 import de.team33.swing.XButton;
@@ -32,7 +32,7 @@ public abstract class FileControl extends JPanel {
         public SAVE_BTTN() {
             super(Rsrc.SAVEICON);
             setToolTipText("MIDI-Sequenz speichern");
-            getContext().getSequence().registry().add(FullScore.Channel.SetModified, this::onSetModified);
+            getContext().getSequence().registry().add(Score.Channel.SetModified, this::onSetModified);
         }
 
         public void actionPerformed(final ActionEvent e) {
@@ -55,7 +55,7 @@ public abstract class FileControl extends JPanel {
 //            super.finalize();
 //        }
 
-        private void onSetModified(final FullScore sequence) {
+        private void onSetModified(final Score sequence) {
             final boolean b = sequence.isModified();
             setEnabled(b);
         }

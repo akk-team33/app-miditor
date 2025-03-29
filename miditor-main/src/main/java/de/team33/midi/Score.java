@@ -20,7 +20,7 @@ import java.util.stream.StreamSupport;
 import static de.team33.midi.Util.MetaMessage.Type.SET_TEMPO;
 
 @SuppressWarnings("UnusedReturnValue")
-public class FullScore extends Sender<FullScore> {
+public class Score extends Sender<Score> {
 
     private static final List<MidiEvent> EMPTY = List.of();
 
@@ -29,8 +29,8 @@ public class FullScore extends Sender<FullScore> {
     private final AtomicLong modCounter = new AtomicLong();
     private final Features features = new Features();
 
-    FullScore(final Sequence backing, final Executor executor) {
-        super(FullScore.class, executor, Channel.VALUES);
+    Score(final Sequence backing, final Executor executor) {
+        super(Score.class, executor, Channel.VALUES);
         this.parts = new Parts(backing, executor, this::onModifiedTrack);
         this.trackFactory = Part.factory(parts);
     }
@@ -49,7 +49,7 @@ public class FullScore extends Sender<FullScore> {
         return parts.sequence();
     }
 
-    public final FullScore create(final Iterable<? extends MidiEvent> events) {
+    public final Score create(final Iterable<? extends MidiEvent> events) {
         createBase(events);
         return setModified();
     }
@@ -61,19 +61,19 @@ public class FullScore extends Sender<FullScore> {
         }
     }
 
-    public final FullScore delete(final Collection<Part> tracks) {
+    public final Score delete(final Collection<Part> tracks) {
         parts.delete(tracks.stream().map(Part::backing).toList());
         return setModified();
     }
 
-    public final FullScore join(final Collection<Part> tracks) {
+    public final Score join(final Collection<Part> tracks) {
         final Track track = parts.create();
         streamOf(tracks).flatMap(Util::stream)
                         .forEach(track::add);
         return delete(tracks);
     }
 
-    public final FullScore split(final Part track) {
+    public final Score split(final Part track) {
         final Map<Integer, List<MidiEvent>> extracted = track.extractChannels();
         for (final List<MidiEvent> events : extracted.values()) {
             createBase(events);
@@ -89,13 +89,13 @@ public class FullScore extends Sender<FullScore> {
         return 0L != modCounter.get();
     }
 
-    private FullScore setModified() {
+    private Score setModified() {
         features.reset();
         modCounter.incrementAndGet();
         return fire(Channel.SetTracks, Channel.SetModified);
     }
 
-    final FullScore resetModified() {
+    final Score resetModified() {
         modCounter.set(0);
         features.get(Key.TRACKS).forEach(Part::resetModified);
         return fire(Channel.SetModified);
@@ -141,7 +141,7 @@ public class FullScore extends Sender<FullScore> {
 
     @FunctionalInterface
     @SuppressWarnings("ClassNameSameAsAncestorName")
-    public interface Channel extends Sender.Channel<FullScore, FullScore> {
+    public interface Channel extends Sender.Channel<Score, Score> {
 
         Channel SetModified = midiSequence -> midiSequence;
         Channel SetTracks = midiSequence -> midiSequence;
