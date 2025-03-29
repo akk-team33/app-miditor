@@ -22,7 +22,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.IntFunction;
 import java.util.function.Predicate;
 import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
@@ -277,7 +276,7 @@ public final class Player extends Sender<Player> {
     @FunctionalInterface
     public interface Channel<M> extends Sender.Channel<Player, M> {
 
-        Channel<IntFunction<TrackMode>> SET_MODES = player -> player::getMode;
+        Channel<List<TrackMode>> SET_MODES = player -> player.features.get(Key.TRACK_MODES);
         Channel<Long> SET_POSITION = Player::getPosition;
         Channel<State> SET_STATE = Player::getState;
         Channel<Integer> SET_TEMPO = Player::getTempo;

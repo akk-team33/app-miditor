@@ -10,9 +10,9 @@ import de.team33.swing.XTextField;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
-import java.util.function.IntFunction;
 
 public abstract class TrackControls {
 
@@ -115,10 +115,12 @@ public abstract class TrackControls {
 
         }
 
-        private void onSetModes(final IntFunction<TrackMode> indexToMode) {
+        private void onSetModes(final List<TrackMode> modes) {
             final int index = getContext().getIndex();
-            final TrackMode mode = indexToMode.apply(index);
-            setSelected(TrackMode.MUTE == mode);
+            if (0 <= index && index < modes.size()) {
+                final TrackMode mode = modes.get(index);
+                setSelected(TrackMode.MUTE == mode);
+            }
         }
     }
 
@@ -149,10 +151,12 @@ public abstract class TrackControls {
 
         }
 
-        private void onSetModes(final IntFunction<TrackMode> indexToMode) {
+        private void onSetModes(final List<TrackMode> modes) {
             final int index = getContext().getIndex();
-            final TrackMode mode = indexToMode.apply(index);
-            setSelected(TrackMode.SOLO == mode);
+            if (0 <= index && index < modes.size()) {
+                final TrackMode mode = modes.get(index);
+                setSelected(TrackMode.SOLO == mode);
+            }
         }
     }
 

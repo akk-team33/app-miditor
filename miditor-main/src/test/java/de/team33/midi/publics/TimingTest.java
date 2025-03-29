@@ -1,4 +1,4 @@
-package de.team33.midix.publics;
+package de.team33.midi.publics;
 
 import de.team33.midix.TimeFormat;
 import de.team33.midix.TimeStamp;
