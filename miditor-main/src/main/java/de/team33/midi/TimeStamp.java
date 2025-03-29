@@ -1,6 +1,6 @@
 package de.team33.midi;
 
-record TimeStamp(int bar, int beat, int subBeat, int moreTicks, String format) {
+public record TimeStamp(int bar, int beat, int subBeat, int moreTicks, String format) {
 
     @Override
     public final String toString() {

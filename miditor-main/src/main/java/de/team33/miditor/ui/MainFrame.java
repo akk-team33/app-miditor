@@ -55,7 +55,7 @@ public class MainFrame extends XFrame {
     public MainFrame(final PieceOfMusic music, final Preferences prefs) {
         super("?", prefs);
         this.music = music;
-        selection = new PartSelection(music.fullScore());
+        selection = new PartSelection(music.score());
         m_EventEditor = new TRACK_EDITOR();
         setIconImage(Rsrc.MAIN_ICON.getImage());
         setContentPane(new MAIN_PANE());
@@ -91,7 +91,7 @@ public class MainFrame extends XFrame {
 
         @Override
         public Timing getTiming() {
-            return music.fullScore().getTiming();
+            return music.score().getTiming();
         }
 
         public Player getPlayer() {
@@ -103,7 +103,7 @@ public class MainFrame extends XFrame {
         }
 
         public Score getSequence() {
-            return music.fullScore();
+            return music.score();
         }
 
         public UIController getTrackHandler() {
@@ -159,7 +159,7 @@ public class MainFrame extends XFrame {
 
     private class TRACK_EDITOR extends EventEditor {
         protected Score getSequence() {
-            return music.fullScore();
+            return music.score();
         }
     }
 

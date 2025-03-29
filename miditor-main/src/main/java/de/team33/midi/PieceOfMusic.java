@@ -19,6 +19,7 @@ public final class PieceOfMusic extends Sender<PieceOfMusic> {
 
     private static final UnaryOperator<Path> NORMALIZER = path -> path.toAbsolutePath().normalize();
 
+    @SuppressWarnings("FieldHasSetterButNoGetter")
     private final Mutable<Path> path;
     private final Score score;
     private final Player player;
@@ -49,7 +50,7 @@ public final class PieceOfMusic extends Sender<PieceOfMusic> {
         return fire(Channel.SET_PATH);
     }
 
-    public final Score fullScore() {
+    public final Score score() {
         return score;
     }
 

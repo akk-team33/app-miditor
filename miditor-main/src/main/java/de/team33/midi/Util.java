@@ -276,7 +276,7 @@ final class Util {
                 }
             }
 
-            javax.sound.midi.MetaMessage newMessage(final byte[] bytes) {
+            final javax.sound.midi.MetaMessage newMessage(final byte[] bytes) {
                 return valid(CNV.get(() -> new javax.sound.midi.MetaMessage(type, bytes, bytes.length)));
             }
         }

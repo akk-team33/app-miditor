@@ -35,7 +35,7 @@ public class Metronome extends AbstractList<MidiEvent> {
     }
 
     @Override
-    public int size() {
+    public final int size() {
         return backing.size();
     }
 

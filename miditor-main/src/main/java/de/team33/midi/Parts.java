@@ -4,7 +4,6 @@ import de.team33.patterns.notes.beta.Audience;
 
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Track;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -38,10 +37,6 @@ class Parts {
         return new Entry(track, new Audience(executor), new AtomicLong(initialModCount));
     }
 
-    final Executor executor() {
-        return executor;
-    }
-
     final Sequence sequence() {
         return sequence;
     }
@@ -54,17 +49,14 @@ class Parts {
         }
     }
 
-    final List<Track> delete(final Collection<? extends Track> tracks) {
-        final List<Track> result = new ArrayList<>(tracks.size());
+    final void delete(final Collection<? extends Track> tracks) {
         synchronized (sequence) {
             for (final Track track : tracks) {
                 if (sequence.deleteTrack(track)) {
                     entryMap.remove(track);
-                    result.add(track);
                 }
             }
         }
-        return result;
     }
 
     final List<Track> tracks() {

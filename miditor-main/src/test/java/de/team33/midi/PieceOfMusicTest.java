@@ -30,13 +30,13 @@ class PieceOfMusicTest extends MusicTestBase {
     final void load() throws Exception {
         final PieceOfMusic other = PieceOfMusic.loader(Runnable::run)
                                                .load(music.path());
-        assertEquals(music.fullScore().getTracks().size(), other.fullScore().getTracks().size());
+        assertEquals(music.score().getTracks().size(), other.score().getTracks().size());
     }
 
     @Test
     final void save() throws IOException {
         final long oldSize = Files.size(music.path());
-        music.fullScore().delete(List.of(music.fullScore().getTracks().get(1)));
+        music.score().delete(List.of(music.score().getTracks().get(1)));
 
         music.save();
         final long newSize = Files.size(music.path());
