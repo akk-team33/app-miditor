@@ -1,6 +1,7 @@
 package de.team33.midi;
 
 import de.team33.midi.util.ClassUtil;
+import de.team33.patterns.enums.pan.Values;
 import de.team33.patterns.lazy.narvi.LazyFeatures;
 import de.team33.patterns.notes.beta.Sender;
 
@@ -10,16 +11,26 @@ import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Sequencer;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.prefs.Preferences;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
+import static de.team33.midi.Util.CNV;
 import static de.team33.midi.Util.sleep;
 
-public class Player extends Sender<Player> {
+public final class Player extends Sender<Player> {
 
     private static final Preferences PREFS = Preferences.userRoot().node(ClassUtil.getPathString(Player.class));
     private static final int INTERVAL = 50;
@@ -34,23 +45,22 @@ public class Player extends Sender<Player> {
         this.sequencer = sequencer;
         this.sequence = sequence;
         audience().add(Channel.SET_STATE, this::onSetState);
-        push(PlayTrigger.ON);
+        push(Trigger.ON);
     }
 
     private static MidiDevice newOutputDevice() throws MidiUnavailableException {
-        final String preferedOutputDeviceName = PREFS.get("preferredOutputDeviceName", "");
+        final String preferredOutputDeviceName = PREFS.get("preferredOutputDeviceName", "");
         final Preferences prefs = PREFS.node("DeviceInfo");
-        final MidiDevice.Info[] infos = MidiSystem.getMidiDeviceInfo();
         MidiDevice.Info preferedOutputDeviceInfo = null;
-
-        for (int index = 0; index < infos.length; ++index) {
-            final MidiDevice.Info info = infos[index];
+        final MidiDevice.Info[] infoList = MidiSystem.getMidiDeviceInfo();
+        for (int index = 0; index < infoList.length; ++index) {
+            final MidiDevice.Info info = infoList[index];
             final Preferences node = prefs.node(String.format("%04d", index));
             node.put("name", info.getName());
             node.put("description", info.getDescription());
             node.put("vendor", info.getVendor());
             node.put("version", info.getVersion());
-            if (preferedOutputDeviceName.equals(info.getName())) {
+            if (preferredOutputDeviceName.equals(info.getName())) {
                 preferedOutputDeviceInfo = info;
             }
         }
@@ -62,19 +72,18 @@ public class Player extends Sender<Player> {
             result = MidiSystem.getMidiDevice(preferedOutputDeviceInfo);
         }
 
-        PREFS.put("preferedOutputDeviceName", result.getDeviceInfo().getName());
+        PREFS.put("preferredOutputDeviceName", result.getDeviceInfo().getName());
         return result;
     }
 
     private void onSetState(final PlayState state) {
         if (PlayState.RUNNING == state) {
             //noinspection ObjectToString
-            new Thread(new StateObserver(), this + ":stateObserver").start();
+            new Thread(new StateObserver(), this + ":StateObserver").start();
         }
     }
 
-    @Deprecated // make private asap!
-    final void close() {
+    private void close() {
         if (sequencer.isOpen()) {
             if (sequencer.isRunning()) {
                 sequencer.stop();
@@ -84,8 +93,7 @@ public class Player extends Sender<Player> {
         }
     }
 
-    @Deprecated // make private asap!
-    final void open() throws MidiUnavailableException, InvalidMidiDataException {
+    private void open() throws MidiUnavailableException, InvalidMidiDataException {
         if (!sequencer.isOpen()) {
             outputDevice = newOutputDevice();
             outputDevice.open();
@@ -113,7 +121,7 @@ public class Player extends Sender<Player> {
         return PlayState.of(sequencer);
     }
 
-    public final void push(final PlayTrigger trigger) {
+    public final void push(final Trigger trigger) {
         final Set<Channel<?>> results = trigger.apply(this, getState());
         fire(results);
     }
@@ -152,7 +160,7 @@ public class Player extends Sender<Player> {
         final long position = sequencer.getTickPosition();
         close();
         if (open) {
-            Util.CNV.run(this::open);
+            CNV.run(this::open);
             sequencer.setTickPosition(position);
             if (running) {
                 sequencer.start();
@@ -161,12 +169,87 @@ public class Player extends Sender<Player> {
         fire(Channel.SET_STATE, Channel.SET_POSITION);
     }
 
-    final Sequencer backing() {
-        return sequencer;
+    public enum Trigger {
+
+        ON(Choice.on(PlayState.OFF).apply(Action.OPEN)),
+        START(Choice.on(PlayState.OFF).apply(Action.OPEN, Action.START),
+              Choice.on(PlayState.READY).apply(Action.START),
+              Choice.on(PlayState.PAUSED).apply(Action.START)),
+        STOP(Choice.on(PlayState.PAUSED).apply(Action.RESET),
+             Choice.on(PlayState.RUNNING).apply(Action.STOP, Action.RESET)),
+        PAUSE(Choice.on(PlayState.RUNNING).apply(Action.STOP)),
+        OFF(Choice.on(PlayState.READY).apply(Action.CLOSE, Action.RESET),
+            Choice.on(PlayState.RUNNING).apply(Action.CLOSE, Action.RESET),
+            Choice.on(PlayState.PAUSED).apply(Action.CLOSE, Action.RESET));
+
+        private static final Values<Trigger> VALUES = Values.of(Trigger.class);
+        private static final Map<PlayState, Set<Trigger>> effectiveMap = new ConcurrentHashMap<>(0);
+
+        private final Map<PlayState, List<Action>> map;
+
+        Trigger(final Choice... choices) {
+            this.map = Stream.of(choices).collect(HashMap::new, Trigger::put, Map::putAll);
+        }
+
+        private static void put(final Map<? super PlayState, ? super List<Action>> map, final Choice choice) {
+            map.put(choice.state, choice.methods);
+        }
+
+        public static Set<Trigger> effectiveOn(final PlayState state) {
+            return effectiveMap.computeIfAbsent(state, Trigger::newEffectiveSet);
+        }
+
+        private static Set<Trigger> newEffectiveSet(final PlayState state) {
+            return VALUES.stream()
+                         .filter(value -> value.hasEffectOn(state))
+                         .collect(Collectors.toUnmodifiableSet());
+        }
+
+        final Set<Channel<?>> apply(final Player player, final PlayState state) {
+            return Optional.ofNullable(map.get(state))
+                           .orElseGet(List::of)
+                           .stream()
+                           .map(action -> action.apply(player))
+                           .collect(Collectors.toSet());
+        }
+
+        private boolean hasEffectOn(final PlayState state) {
+            return map.containsKey(state);
+        }
+
+        @SuppressWarnings("InnerClassFieldHidesOuterClassField")
+        @FunctionalInterface
+        private interface Action extends Function<Player, Channel<?>> {
+
+            Action OPEN = act(CNV.consumer(Player::open), Channel.SET_STATE);
+            Action START = act(mp -> mp.sequencer.start(), Channel.SET_STATE);
+            Action STOP = act(mp -> mp.sequencer.stop(), Channel.SET_STATE);
+            Action RESET = act(mp -> mp.sequencer.setTickPosition(0L), Channel.SET_POSITION);
+            Action CLOSE = act(Player::close, Channel.SET_STATE);
+
+            static Action act(final Consumer<Player> consumer, final Channel<?> result) {
+                return sequencer -> {
+                    consumer.accept(sequencer);
+                    return result;
+                };
+            }
+        }
+
+        private record Choice(PlayState state, List<Action> methods) {
+
+            @SuppressWarnings("StaticMethodOnlyUsedInOneClass")
+            static Stage on(final PlayState state) {
+                return actions -> new Choice(state, Arrays.asList(actions));
+            }
+
+            @FunctionalInterface
+            private interface Stage {
+                Choice apply(Action... actions);
+            }
+        }
     }
 
     @FunctionalInterface
-    @SuppressWarnings("ClassNameSameAsAncestorName")
     public interface Channel<M> extends Sender.Channel<Player, M> {
 
         Channel<Player> SET_MODES = midiPlayer -> midiPlayer;

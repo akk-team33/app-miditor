@@ -1,7 +1,6 @@
 package de.team33.miditor.ui.player;
 
 import de.team33.midi.PlayState;
-import de.team33.midi.PlayTrigger;
 import de.team33.midi.Player;
 import de.team33.miditor.ui.Rsrc;
 
@@ -16,9 +15,9 @@ public abstract class DriveControl extends JPanel {
     public DriveControl() {
         super(new GridLayout(1, 0, 1, 1));
         add(new REW_BUTTON());
-        add(new SBUTTON(PlayTrigger.START));
-        add(new SBUTTON(PlayTrigger.PAUSE));
-        add(new SBUTTON(PlayTrigger.STOP));
+        add(new SBUTTON(Player.Trigger.START));
+        add(new SBUTTON(Player.Trigger.PAUSE));
+        add(new SBUTTON(Player.Trigger.STOP));
         add(new FWD_BUTTON());
     }
 
@@ -89,9 +88,9 @@ public abstract class DriveControl extends JPanel {
     }
 
     private class SBUTTON extends ICOBUTTON {
-        private final PlayTrigger trigger;
+        private final Player.Trigger trigger;
 
-        SBUTTON(final PlayTrigger trigger) {
+        SBUTTON(final Player.Trigger trigger) {
             super(Rsrc.dcIcon(trigger));
             this.trigger = trigger;
             getContext().getPlayer().registry()
@@ -103,19 +102,19 @@ public abstract class DriveControl extends JPanel {
 
         private void _setState(final PlayState state) {
             synchronized (this) {
-                setEnabled(PlayTrigger.allEffectiveOn(state).contains(trigger));
+                setEnabled(Player.Trigger.effectiveOn(state).contains(trigger));
                 final JRootPane rp = getRootPane();
                 if (null != rp) {
-                    if ((PlayTrigger.START == trigger) && (PlayState.RUNNING != state)) {
+                    if ((Player.Trigger.START == trigger) && (PlayState.RUNNING != state)) {
                         rp.setDefaultButton(this);
                         requestFocus();
                     }
 
-                    if ((PlayTrigger.STOP == trigger) && (PlayState.RUNNING == state)) {
+                    if ((Player.Trigger.STOP == trigger) && (PlayState.RUNNING == state)) {
                         rp.setDefaultButton(this);
                     }
 
-                    if ((PlayTrigger.PAUSE == trigger) && (PlayState.RUNNING == state)) {
+                    if ((Player.Trigger.PAUSE == trigger) && (PlayState.RUNNING == state)) {
                         requestFocus();
                     }
                 }

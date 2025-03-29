@@ -1,6 +1,5 @@
 package de.team33.midix;
 
-import de.team33.midi.PlayState;
 import de.team33.midi.TrackMode;
 import de.team33.patterns.lazy.narvi.LazyFeatures;
 import de.team33.patterns.notes.beta.Sender;

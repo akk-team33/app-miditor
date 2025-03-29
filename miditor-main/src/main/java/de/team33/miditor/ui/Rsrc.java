@@ -1,6 +1,6 @@
 package de.team33.miditor.ui;
 
-import de.team33.midi.PlayTrigger;
+import de.team33.midi.Player;
 
 import javax.swing.*;
 
@@ -17,7 +17,7 @@ public class Rsrc {
     public static final Icon DC_PAUSICON = new ImageIcon(Rsrc.class.getResource("dc_pause.gif"));
     public static final Icon DC_RUNICON = new ImageIcon(Rsrc.class.getResource("dc_run.gif"));
 
-    public static Icon dcIcon(final PlayTrigger trigger) {
+    public static Icon dcIcon(final Player.Trigger trigger) {
         return switch (trigger) {
             case START -> DC_RUNICON;
             case STOP -> DC_STPICON;

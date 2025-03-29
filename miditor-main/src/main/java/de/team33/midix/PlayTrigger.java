@@ -1,6 +1,5 @@
 package de.team33.midix;
 
-import de.team33.midi.PlayState;
 import de.team33.patterns.enums.pan.Values;
 
 import javax.sound.midi.Sequencer;

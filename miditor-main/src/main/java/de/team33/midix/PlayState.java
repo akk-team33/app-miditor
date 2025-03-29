@@ -1,4 +1,4 @@
-package de.team33.midi;
+package de.team33.midix;
 
 import de.team33.patterns.enums.pan.Values;
 
@@ -22,7 +22,8 @@ public enum PlayState {
         this.condition = condition;
     }
 
-    static PlayState of(final Sequencer sequencer) {
+    @Deprecated // make package private asap!
+    public static PlayState of(final Sequencer sequencer) {
         return VALUES.findAny(state -> state.condition.test(sequencer))
                      .orElse(READY);
     }

@@ -3,7 +3,6 @@ package de.team33.miditor.ui;
 import de.team33.midi.FullScore;
 import de.team33.midi.Part;
 import de.team33.midi.PieceOfMusic;
-import de.team33.midi.PlayTrigger;
 import de.team33.midi.Player;
 import de.team33.miditor.controller.UIController;
 import de.team33.miditor.model.PartSelection;
@@ -167,11 +166,11 @@ public class MainFrame extends XFrame {
     private class WINDOW_ADAPTER extends WindowAdapter {
 
         public void windowClosed(final WindowEvent e) {
-            music.player().push(PlayTrigger.OFF);
+            music.player().push(Player.Trigger.OFF);
         }
 
         public void windowOpened(final WindowEvent e) {
-            music.player().push(PlayTrigger.ON);
+            music.player().push(Player.Trigger.ON);
         }
     }
 }
