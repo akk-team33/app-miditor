@@ -17,19 +17,19 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class PieceOfMusicTest extends MusicTestBase {
+class MusicTest extends MusicTestBase {
 
-    private final PieceOfMusic music;
+    private final Music music;
 
-    PieceOfMusicTest() throws InvalidMidiDataException, IOException {
-        this.music = PieceOfMusic.loader(Runnable::run)
-                                 .load(path());
+    MusicTest() throws InvalidMidiDataException, IOException {
+        this.music = Music.loader(Runnable::run)
+                          .load(path());
     }
 
     @Test
     final void load() throws Exception {
-        final PieceOfMusic other = PieceOfMusic.loader(Runnable::run)
-                                               .load(music.path());
+        final Music other = Music.loader(Runnable::run)
+                                 .load(music.path());
         assertEquals(music.score().getTracks().size(), other.score().getTracks().size());
     }
 
@@ -58,7 +58,7 @@ class PieceOfMusicTest extends MusicTestBase {
     final void setPath() {
         final Path expected = path().toAbsolutePath().normalize();
         final Mutable<Path> pathMutable = new Mutable<>(null);
-        music.registry().add(PieceOfMusic.Channel.SET_PATH, pathMutable::set);
+        music.registry().add(Music.Channel.SET_PATH, pathMutable::set);
 
         assertEquals(expected, music.path());
         assertEquals(music.path(), pathMutable.get());

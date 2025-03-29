@@ -1,6 +1,6 @@
 package de.team33.midi.trials;
 
-import de.team33.midi.PieceOfMusic;
+import de.team33.midi.Music;
 import de.team33.midi.Player;
 import de.team33.patterns.execution.metis.SimpleAsyncExecutor;
 
@@ -11,14 +11,14 @@ import java.nio.file.Path;
 class PlayerTrial {
 
     private final String[] args;
-    private final PieceOfMusic midiCenter;
+    private final Music midiCenter;
 
     private PlayerTrial(final String[] args) throws InvalidMidiDataException, IOException {
         this.args = args;
-        this.midiCenter = PieceOfMusic.loader(new SimpleAsyncExecutor())
-                                      .load(Path.of("miditor-main/src/test/resources/de/team33/midi/testing/Jammin.mid"));
+        this.midiCenter = Music.loader(new SimpleAsyncExecutor())
+                               .load(Path.of("miditor-main/src/test/resources/de/team33/midi/testing/Jammin.mid"));
         this.midiCenter.registry()
-                       .add(PieceOfMusic.Channel.SET_PATH,
+                       .add(Music.Channel.SET_PATH,
                             path -> System.out.printf("Center path: %s%n", path));
         this.midiCenter.player().registry()
                        .add(Player.Channel.SET_STATE,

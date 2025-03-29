@@ -15,7 +15,10 @@ import java.util.function.UnaryOperator;
 
 import static de.team33.midi.Util.CNV;
 
-public final class PieceOfMusic extends Sender<PieceOfMusic> {
+/**
+ * Represents a piece of music
+ */
+public final class Music extends Sender<Music> {
 
     private static final UnaryOperator<Path> NORMALIZER = path -> path.toAbsolutePath().normalize();
 
@@ -24,8 +27,8 @@ public final class PieceOfMusic extends Sender<PieceOfMusic> {
     private final Score score;
     private final Player player;
 
-    private PieceOfMusic(final Path path, final Executor executor) throws InvalidMidiDataException, IOException {
-        super(PieceOfMusic.class, executor, Channel.VALUES);
+    private Music(final Path path, final Executor executor) throws InvalidMidiDataException, IOException {
+        super(Music.class, executor, Channel.VALUES);
 
         final Sequence sequence = MidiSystem.getSequence(path.toFile());
         final Sequencer sequencer = CNV.get(() -> MidiSystem.getSequencer(false));
@@ -38,14 +41,14 @@ public final class PieceOfMusic extends Sender<PieceOfMusic> {
     }
 
     public static Loader loader(final Executor executor) {
-        return path -> new PieceOfMusic(path, executor);
+        return path -> new Music(path, executor);
     }
 
     public final Path path() {
         return path.get();
     }
 
-    public final PieceOfMusic setPath(final Path path) {
+    public final Music setPath(final Path path) {
         this.path.set(path);
         return fire(Channel.SET_PATH);
     }
@@ -58,7 +61,7 @@ public final class PieceOfMusic extends Sender<PieceOfMusic> {
         return player;
     }
 
-    public final PieceOfMusic save() throws IOException {
+    public final Music save() throws IOException {
         final Sequence sequence = score.sequence();
         synchronized (sequence) {
             final int mode = (1 < sequence.getTracks().length) ? 1 : 0;
@@ -69,14 +72,14 @@ public final class PieceOfMusic extends Sender<PieceOfMusic> {
     }
 
     @SuppressWarnings({"ParameterHidesMemberVariable", "UnusedReturnValue"})
-    public final PieceOfMusic saveAs(final Path path) throws IOException {
+    public final Music saveAs(final Path path) throws IOException {
         return setPath(path).save();
     }
 
     @FunctionalInterface
-    public interface Channel<M> extends Sender.Channel<PieceOfMusic, M> {
+    public interface Channel<M> extends Sender.Channel<Music, M> {
 
-        Channel<Path> SET_PATH = PieceOfMusic::path;
+        Channel<Path> SET_PATH = Music::path;
 
         @SuppressWarnings("StaticMethodOnlyUsedInOneClass")
         Set<Channel<?>> VALUES = Set.of(SET_PATH);
@@ -85,6 +88,6 @@ public final class PieceOfMusic extends Sender<PieceOfMusic> {
     @FunctionalInterface
     public interface Loader {
 
-        PieceOfMusic load(Path path) throws InvalidMidiDataException, IOException;
+        Music load(Path path) throws InvalidMidiDataException, IOException;
     }
 }

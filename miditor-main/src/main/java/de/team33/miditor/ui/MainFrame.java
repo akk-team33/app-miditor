@@ -1,7 +1,7 @@
 package de.team33.miditor.ui;
 
+import de.team33.midi.Music;
 import de.team33.midi.Part;
-import de.team33.midi.PieceOfMusic;
 import de.team33.midi.Player;
 import de.team33.midi.Score;
 import de.team33.midi.Timing;
@@ -45,14 +45,14 @@ public class MainFrame extends XFrame {
     }
 
     private final Selection<Part> selection;
-    private final PieceOfMusic music;
+    private final Music music;
     private final EventEditor m_EventEditor;
     private final WindowListener m_WindowListener = new WINDOW_ADAPTER();
     private final CONTEXT context = new CONTEXT();
     private final PLAY_CTRLS playCtrls = new PLAY_CTRLS();
     private final SONG_CTRLS songCtrls = new SONG_CTRLS();
 
-    public MainFrame(final PieceOfMusic music, final Preferences prefs) {
+    public MainFrame(final Music music, final Preferences prefs) {
         super("?", prefs);
         this.music = music;
         selection = new PartSelection(music.score());
@@ -61,7 +61,7 @@ public class MainFrame extends XFrame {
         setContentPane(new MAIN_PANE());
         setLocationByPlatform(true);
         addWindowListener(m_WindowListener);
-        music.registry().add(PieceOfMusic.Channel.SET_PATH, this::onSetFile);
+        music.registry().add(Music.Channel.SET_PATH, this::onSetFile);
     }
 
 //    protected void finalize() throws Throwable {
@@ -85,7 +85,7 @@ public class MainFrame extends XFrame {
         }
 
         @Override
-        public final PieceOfMusic getMusic() {
+        public final Music getMusic() {
             return music;
         }
 

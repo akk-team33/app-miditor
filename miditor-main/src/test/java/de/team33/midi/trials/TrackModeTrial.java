@@ -1,6 +1,6 @@
 package de.team33.midi.trials;
 
-import de.team33.midi.PieceOfMusic;
+import de.team33.midi.Music;
 import de.team33.midi.Player;
 import de.team33.midi.TrackMode;
 import de.team33.patterns.execution.metis.SimpleAsyncExecutor;
@@ -14,14 +14,14 @@ import static java.lang.System.out;
 class TrackModeTrial {
 
     private final String[] args;
-    private final PieceOfMusic midiCenter;
+    private final Music midiCenter;
 
     private TrackModeTrial(final String[] args) throws InvalidMidiDataException, IOException {
         this.args = args;
-        this.midiCenter = PieceOfMusic.loader(new SimpleAsyncExecutor())
-                                      .load(Path.of("miditor-main/src/test/resources/de/team33/midi/testing/Respect.mid"));
+        this.midiCenter = Music.loader(new SimpleAsyncExecutor())
+                               .load(Path.of("miditor-main/src/test/resources/de/team33/midi/testing/Respect.mid"));
         this.midiCenter.registry()
-                       .add(PieceOfMusic.Channel.SET_PATH, path -> out.printf("Center path: %s%n", path));
+                       .add(Music.Channel.SET_PATH, path -> out.printf("Center path: %s%n", path));
         this.midiCenter.player().registry()
                        .add(Player.Channel.SET_STATE, state -> out.printf("Player state: %s%n", state))
                        .add(Player.Channel.SET_STATE, state -> out.printf("Effective triggers: %s%n",

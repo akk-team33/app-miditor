@@ -1,6 +1,6 @@
 package de.team33.midi.trials;
 
-import de.team33.midi.PieceOfMusic;
+import de.team33.midi.Music;
 import de.team33.midi.Player;
 import de.team33.patterns.execution.metis.SimpleAsyncExecutor;
 
@@ -12,12 +12,12 @@ import java.nio.file.Path;
 class PieceOfMusicTrial {
 
     private final String[] args;
-    private final PieceOfMusic music;
+    private final Music music;
 
     private PieceOfMusicTrial(final String[] args) throws InvalidMidiDataException, IOException {
         this.args = args;
-        this.music = PieceOfMusic.loader(new SimpleAsyncExecutor())
-                                 .load(Path.of("miditor-main/src/test/resources/de/team33/midi/testing/Respect.mid"));
+        this.music = Music.loader(new SimpleAsyncExecutor())
+                          .load(Path.of("miditor-main/src/test/resources/de/team33/midi/testing/Respect.mid"));
     }
 
     @SuppressWarnings({"OverlyBroadThrowsClause", "ProhibitedExceptionDeclared"})
