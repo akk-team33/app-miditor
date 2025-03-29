@@ -9,9 +9,6 @@ import java.awt.*;
 public abstract class TempoControl {
     private Component m_RootComponent;
 
-    public TempoControl() {
-    }
-
     public Component getComponent() {
         if (m_RootComponent == null) {
             m_RootComponent = new LABEL();
@@ -55,8 +52,7 @@ public abstract class TempoControl {
             getPlayer().setTempo(getPlayer().getTempo() + delta);
         }
 
-        public void onSetTempo(final Player player) {
-            final int tempo = player.getTempo();
+        public void onSetTempo(final int tempo) {
             setText(String.format("%03d", tempo));
         }
     }

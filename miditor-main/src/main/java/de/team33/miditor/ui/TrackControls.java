@@ -12,6 +12,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.function.IntFunction;
 
 public abstract class TrackControls {
 
@@ -114,9 +115,9 @@ public abstract class TrackControls {
 
         }
 
-        private void onSetModes(final Player player) {
+        private void onSetModes(final IntFunction<TrackMode> indexToMode) {
             final int index = getContext().getIndex();
-            final TrackMode mode = player.getMode(index);
+            final TrackMode mode = indexToMode.apply(index);
             setSelected(TrackMode.MUTE == mode);
         }
     }
@@ -148,9 +149,9 @@ public abstract class TrackControls {
 
         }
 
-        private void onSetModes(final Player player) {
+        private void onSetModes(final IntFunction<TrackMode> indexToMode) {
             final int index = getContext().getIndex();
-            final TrackMode mode = player.getMode(index);
+            final TrackMode mode = indexToMode.apply(index);
             setSelected(TrackMode.SOLO == mode);
         }
     }

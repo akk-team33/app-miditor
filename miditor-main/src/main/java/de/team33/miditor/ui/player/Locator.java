@@ -121,8 +121,7 @@ public abstract class Locator extends JPanel {
             getContext().getPlayer().setPosition(getContext().getPlayer().getPosition() + ((long) delta * getDelta()));
         }
 
-        public void onSetPosition(final Player player) {
-            final long ticks = player.getPosition();
+        public void onSetPosition(final long ticks) {
             setDisplay(ticks);
         }
     }

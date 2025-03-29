@@ -22,6 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.IntFunction;
 import java.util.function.Predicate;
 import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
@@ -275,10 +276,10 @@ public final class Player extends Sender<Player> {
     @FunctionalInterface
     public interface Channel<M> extends Sender.Channel<Player, M> {
 
-        Channel<Player> SET_MODES = midiPlayer -> midiPlayer;
-        Channel<Player> SET_POSITION = midiPlayer -> midiPlayer;
+        Channel<IntFunction<TrackMode>> SET_MODES = player -> player::getMode;
+        Channel<Long> SET_POSITION = Player::getPosition;
         Channel<State> SET_STATE = Player::getState;
-        Channel<Player> SET_TEMPO = midiPlayer -> midiPlayer;
+        Channel<Integer> SET_TEMPO = Player::getTempo;
 
         @SuppressWarnings("StaticMethodOnlyUsedInOneClass")
         Set<Channel<?>> VALUES = Set.of(SET_MODES, SET_POSITION, SET_STATE, SET_TEMPO);
