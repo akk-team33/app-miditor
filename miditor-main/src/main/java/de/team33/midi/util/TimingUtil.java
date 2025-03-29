@@ -3,7 +3,7 @@ package de.team33.midi.util;
 import de.team33.midi.Timing;
 
 import java.util.List;
-import java.util.Vector;
+import java.util.stream.IntStream;
 
 public final class TimingUtil {
 
@@ -11,15 +11,8 @@ public final class TimingUtil {
     }
 
     public static List<Integer> getUnits(final Timing timing, final int start) {
-        final List<Integer> ret = new Vector();
-        int i = start < 1 ? 1 : start;
-
-        for (final int n = timing.tickDenominator(); i <= n; ++i) {
-            if (n % i == 0) {
-                ret.add(i);
-            }
-        }
-
-        return ret;
+        return IntStream.range(Math.max(1, start), timing.tickDenominator())
+                        .boxed()
+                        .toList();
     }
 }
