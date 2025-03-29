@@ -106,6 +106,7 @@ public final class Player extends Sender<Player> {
         }
     }
 
+    @SuppressWarnings("WeakerAccess")
     public final TrackMode getMode(final int index) {
         final List<TrackMode> trackModes = features.get(Key.TRACK_MODES);
         return (0 <= index) && (index < trackModes.size()) ? trackModes.get(index) : TrackMode.NORMAL;
