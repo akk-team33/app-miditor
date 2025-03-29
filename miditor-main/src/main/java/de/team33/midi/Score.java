@@ -143,8 +143,8 @@ public class Score extends Sender<Score> {
     @SuppressWarnings("ClassNameSameAsAncestorName")
     public interface Channel extends Sender.Channel<Score, Score> {
 
-        Channel SetModified = midiSequence -> midiSequence;
-        Channel SetTracks = midiSequence -> midiSequence;
+        Channel SetModified = score -> score;
+        Channel SetTracks = score -> score;
 
         @SuppressWarnings("StaticMethodOnlyUsedInOneClass")
         Set<Channel> VALUES = Set.of(SetModified, SetTracks);

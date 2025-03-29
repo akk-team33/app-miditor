@@ -20,7 +20,7 @@ import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.groupingBy;
 
-@SuppressWarnings({"ClassNamePrefixedWithPackageName", "ClassWithTooManyMethods"})
+@SuppressWarnings("ClassWithTooManyMethods")
 public final class Part extends Sender<Part> {
 
     private final Parts parts;
@@ -186,10 +186,10 @@ public final class Part extends Sender<Part> {
     @FunctionalInterface
     public interface Channel extends Sender.Channel<Part, Part> {
 
-        Channel SetChannels = midiTrack -> midiTrack;
-        Channel SetEvents = midiTrack -> midiTrack;
-        Channel SetModified = midiTrack -> midiTrack;
-        Channel SetName = midiTrack -> midiTrack;
+        Channel SetChannels = part -> part;
+        Channel SetEvents = part -> part;
+        Channel SetModified = part -> part;
+        Channel SetName = part -> part;
 
         @SuppressWarnings("StaticMethodOnlyUsedInOneClass")
         Set<Channel> VALUES = Set.of(SetChannels, SetEvents, SetModified, SetName);
