@@ -5,30 +5,32 @@ import de.team33.swing.setup.FrameSetup;
 import java.awt.*;
 import java.util.prefs.Preferences;
 
-public abstract class FramePrefs extends FrameSetup {
+public class FramePrefs extends FrameSetup {
+
     private static final String KEY_WIDTH = "width";
     private static final String KEY_HEIGHT = "height";
     private static final String KEY_XSTATE = "xstate";
 
-    public FramePrefs() {
+    private final Preferences preferences;
+
+    public FramePrefs(final Preferences preferences) {
+        this.preferences = preferences;
     }
 
-    protected abstract Preferences getPreferences();
-
     protected final int getExtendedState() {
-        return this.getPreferences().getInt("xstate", 0);
+        return preferences.getInt(KEY_XSTATE, 0);
     }
 
     protected final void setExtendedState(final int value) {
-        this.getPreferences().putInt("xstate", value);
+        preferences.putInt(KEY_XSTATE, value);
     }
 
     protected final Dimension getSize(final int width, final int height) {
-        return new Dimension(this.getPreferences().getInt("width", width), this.getPreferences().getInt("height", height));
+        return new Dimension(preferences.getInt(KEY_WIDTH, width), preferences.getInt(KEY_HEIGHT, height));
     }
 
     protected final void setSize(final Dimension size) {
-        this.getPreferences().putInt("width", size.width);
-        this.getPreferences().putInt("height", size.height);
+        preferences.putInt(KEY_WIDTH, size.width);
+        preferences.putInt(KEY_HEIGHT, size.height);
     }
 }

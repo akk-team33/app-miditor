@@ -8,6 +8,7 @@ import de.team33.midi.Timing;
 import de.team33.miditor.controller.UIController;
 import de.team33.miditor.model.PartSelection;
 import de.team33.miditor.ui.sequence.Context;
+import de.team33.patterns.io.deimos.TextIO;
 import de.team33.selection.Selection;
 import de.team33.swing.XFrame;
 
@@ -20,7 +21,7 @@ import java.nio.file.Path;
 import java.util.prefs.Preferences;
 
 public class MainFrame extends XFrame {
-    private static final String FRAME_TITLE = "%s - Miditor 01a/12";
+    private static final String FRAME_TITLE = TextIO.read(MainFrame.class, "MainFrameTitle.txt");
     private static final Insets GBC_INSETS = new Insets(3, 3, 3, 3);
     private static final int GBC_ANCHOR = 10;
     private static final int GBC_FILL = 1;
@@ -63,12 +64,6 @@ public class MainFrame extends XFrame {
         addWindowListener(m_WindowListener);
         music.registry().add(Music.Channel.SET_PATH, this::onSetFile);
     }
-
-//    protected void finalize() throws Throwable {
-//        player.getSequence().getRegister(Sequence.SetFile.class).remove(m_SongClient);
-//        removeWindowListener(m_WindowListener);
-//        super.finalize();
-//    }
 
     private class CENTER_PANE extends JTabbedPane {
         CENTER_PANE() {
@@ -148,7 +143,7 @@ public class MainFrame extends XFrame {
     }
 
     public final void onSetFile(final Path path) {
-        setTitle(String.format("%s - Miditor 01a/12", path));
+        setTitle(String.format(FRAME_TITLE, path));
     }
 
     private class SONG_CTRLS extends SongControls {

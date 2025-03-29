@@ -1,0 +1,1 @@
+%s - Miditor ${project.version}
