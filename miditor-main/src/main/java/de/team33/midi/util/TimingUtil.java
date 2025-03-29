@@ -1,6 +1,6 @@
 package de.team33.midi.util;
 
-import de.team33.midix.Timing;
+import de.team33.midi.Timing;
 
 import java.util.List;
 import java.util.Vector;

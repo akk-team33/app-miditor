@@ -4,10 +4,10 @@ import de.team33.midi.FullScore;
 import de.team33.midi.Part;
 import de.team33.midi.PieceOfMusic;
 import de.team33.midi.Player;
+import de.team33.midi.Timing;
 import de.team33.miditor.controller.UIController;
 import de.team33.miditor.model.PartSelection;
 import de.team33.miditor.ui.sequence.Context;
-import de.team33.midix.Timing;
 import de.team33.selection.Selection;
 import de.team33.swing.XFrame;
 

@@ -1,7 +1,7 @@
-package de.team33.midix;
+package de.team33.midi;
 
+import de.team33.midi.Midi.Message.Type;
 import de.team33.miditor.testing.AnyMessage;
-import de.team33.midix.Midi.Message.Type;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 

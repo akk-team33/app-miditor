@@ -1,4 +1,4 @@
-package de.team33.midix;
+package de.team33.midi;
 
 import de.team33.miditor.testing.AnyMessage;
 import org.junit.jupiter.api.Assertions;

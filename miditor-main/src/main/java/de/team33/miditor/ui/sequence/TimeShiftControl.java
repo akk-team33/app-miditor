@@ -2,9 +2,9 @@ package de.team33.miditor.ui.sequence;
 
 import de.team33.midi.FullScore;
 import de.team33.midi.Part;
+import de.team33.midi.Timing;
 import de.team33.miditor.model.TimeShift;
 import de.team33.miditor.model.TimeShiftBase;
-import de.team33.midix.Timing;
 import de.team33.selection.Selection;
 import de.team33.swing.XButton;
 import de.team33.swing.XSpinner;

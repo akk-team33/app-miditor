@@ -1,6 +1,5 @@
 package de.team33.midi;
 
-import de.team33.midix.Timing;
 import de.team33.patterns.lazy.narvi.LazyFeatures;
 import de.team33.patterns.notes.beta.Sender;
 
@@ -19,7 +18,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static de.team33.midix.Midi.MetaMessage.Type.SET_TEMPO;
+import static de.team33.midi.Midi.MetaMessage.Type.SET_TEMPO;
 
 @SuppressWarnings({"WeakerAccess", "UnusedReturnValue", "ClassNamePrefixedWithPackageName"})
 public class FullScore extends Sender<FullScore> {

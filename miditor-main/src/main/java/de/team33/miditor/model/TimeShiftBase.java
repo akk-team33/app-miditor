@@ -1,7 +1,7 @@
 package de.team33.miditor.model;
 
+import de.team33.midi.Timing;
 import de.team33.midi.util.TimingUtil;
-import de.team33.midix.Timing;
 import de.team33.patterns.notes.beta.Audience;
 
 import java.util.List;

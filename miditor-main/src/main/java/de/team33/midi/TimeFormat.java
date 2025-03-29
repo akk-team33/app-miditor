@@ -1,10 +1,10 @@
-package de.team33.midix;
+package de.team33.midi;
 
-public record TimeFormat(String bar, String beat, String subBeat, String moreTicks) {
+record TimeFormat(String bar, String beat, String subBeat, String moreTicks) {
 
     private static final String FORMAT = "%%0%dd";
 
-    public static TimeFormat of(final Timing timing) {
+    static TimeFormat of(final Timing timing) {
         return new TimeFormat(FORMAT.formatted(String.valueOf(timing.tickLength() / timing.barTicks())
                                                      .length()),
                               FORMAT.formatted(String.valueOf(timing.barTicks() / timing.beatTicks())
@@ -16,7 +16,7 @@ public record TimeFormat(String bar, String beat, String subBeat, String moreTic
     }
 
     @Override
-    public String toString() {
+    public final String toString() {
         return "%s:%s:%s:%s".formatted(bar, beat, subBeat, moreTicks);
     }
 }

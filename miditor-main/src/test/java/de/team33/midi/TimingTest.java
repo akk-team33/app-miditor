@@ -1,8 +1,5 @@
-package de.team33.midi.publics;
+package de.team33.midi;
 
-import de.team33.midix.TimeFormat;
-import de.team33.midix.TimeStamp;
-import de.team33.midix.Timing;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

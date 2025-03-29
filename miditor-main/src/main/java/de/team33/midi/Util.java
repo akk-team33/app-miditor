@@ -11,14 +11,15 @@ import java.util.Optional;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static de.team33.midix.Midi.MetaMessage.Type.SET_TEMPO;
-import static de.team33.midix.Midi.MetaMessage.Type.TIME_SIGNATURE;
+import static de.team33.midi.Midi.MetaMessage.Type.SET_TEMPO;
+import static de.team33.midi.Midi.MetaMessage.Type.TIME_SIGNATURE;
 
 final class Util {
 
     static final Converter CNV = Converter.using(Wrapping.method(IllegalStateException::new));
-
     static final double MSPMQN = 6.0E7; // microseconds per MIDI quarter-note
+
+    private static final int U_MASK = 0xff;
 
     private Util() {
     }
@@ -67,5 +68,9 @@ final class Util {
 
     static int tracksSize(final Sequence sequence) {
         return sequence.getTracks().length;
+    }
+
+    static int unsigned(final byte value) {
+        return value & U_MASK;
     }
 }

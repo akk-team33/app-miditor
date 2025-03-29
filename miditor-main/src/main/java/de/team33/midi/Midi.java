@@ -1,4 +1,4 @@
-package de.team33.midix;
+package de.team33.midi;
 
 import de.team33.patterns.decision.carpo.Variety;
 
@@ -10,8 +10,8 @@ import java.util.Arrays;
 import java.util.function.IntUnaryOperator;
 import java.util.function.Predicate;
 
-@SuppressWarnings({"InterfaceNeverImplemented", "MarkerInterface", "unused"})
-public interface Midi {
+@SuppressWarnings({"ClassNamePrefixedWithPackageName", "InterfaceNeverImplemented", "MarkerInterface", "unused"})
+interface Midi {
 
     interface Message {
 
@@ -62,7 +62,6 @@ public interface Midi {
             private final Variety<byte[]> validator;
             private final IntUnaryOperator combiner;
 
-            @SuppressWarnings("ParameterNameDiffersFromOverriddenParameter")
             Type(final Group group, final int status, final int length) {
                 this(group, status, length, length);
             }
@@ -86,15 +85,15 @@ public interface Midi {
                         : (midiChannel -> status);
             }
 
-            public final boolean isTypeOf(final MidiMessage message) {
+            final boolean isTypeOf(final MidiMessage message) {
                 return identificator.test(message.getMessage());
             }
 
-            public final boolean isValid(final MidiMessage message) {
+            final boolean isValid(final MidiMessage message) {
                 return 0b11 == validator.apply(message.getMessage());
             }
 
-            public final <M extends MidiMessage> M valid(final M message) {
+            final <M extends MidiMessage> M valid(final M message) {
                 if (isValid(message)) {
                     return message;
                 } else {
@@ -105,23 +104,24 @@ public interface Midi {
                 }
             }
 
-            public ShortMessage newChnMessage(final int channel, final int p1) {
+            final ShortMessage newChnMessage(final int channel, final int p1) {
                 return newChnMessage(channel, p1, 0);
             }
 
-            public ShortMessage newChnMessage(final int channel, final int p1, final int p2) {
+            final ShortMessage newChnMessage(final int channel, final int p1, final int p2) {
                 return valid(Util.CNV.get(() -> new ShortMessage(combiner.applyAsInt(channel), p1, p2)));
             }
 
-            public ShortMessage newSysMessage() {
+            final ShortMessage newSysMessage() {
                 return newSysMessage(0, 0);
             }
 
-            public ShortMessage newSysMessage(final int p1) {
+            final ShortMessage newSysMessage(final int p1) {
                 return newSysMessage(p1, 0);
             }
 
-            public ShortMessage newSysMessage(final int p1, final int p2) {
+            @SuppressWarnings("SameParameterValue")
+            final ShortMessage newSysMessage(final int p1, final int p2) {
                 return valid(Util.CNV.get(() -> new ShortMessage(status, p1, p2)));
             }
         }
@@ -151,7 +151,6 @@ public interface Midi {
             private final Predicate<byte[]> identificator;
             private final Variety<byte[]> validator;
 
-            @SuppressWarnings("ParameterNameDiffersFromOverriddenParameter")
             Type(final int type, final int length) {
                 this(type, length, length);
             }
@@ -173,19 +172,19 @@ public interface Midi {
                 this.validator = Variety.joined(isType, isLength, isBytesLength);
             }
 
-            public final boolean isTypeOf(final MidiEvent event) {
+            final boolean isTypeOf(final MidiEvent event) {
                 return isTypeOf(event.getMessage());
             }
 
-            public final boolean isTypeOf(final MidiMessage message) {
+            final boolean isTypeOf(final MidiMessage message) {
                 return Message.Type.META.isTypeOf(message) && identificator.test(message.getMessage());
             }
 
-            public final boolean isValid(final MidiEvent event) {
+            final boolean isValid(final MidiEvent event) {
                 return isValid(event.getMessage());
             }
 
-            public final boolean isValid(final MidiMessage message) {
+            final boolean isValid(final MidiMessage message) {
                 return Message.Type.META.isValid(message) && isValidContent(message);
             }
 
@@ -193,7 +192,7 @@ public interface Midi {
                 return 0b111 == validator.apply(metaMessage.getMessage());
             }
 
-            public <M extends MidiMessage> M valid(final M message) {
+            final <M extends MidiMessage> M valid(final M message) {
                 if (isValidContent(Message.Type.META.valid(message))) {
                     return message;
                 } else {
@@ -205,7 +204,7 @@ public interface Midi {
                 }
             }
 
-            public javax.sound.midi.MetaMessage newMessage(final byte[] bytes) {
+            javax.sound.midi.MetaMessage newMessage(final byte[] bytes) {
                 return valid(Util.CNV.get(() -> new javax.sound.midi.MetaMessage(type, bytes, bytes.length)));
             }
         }

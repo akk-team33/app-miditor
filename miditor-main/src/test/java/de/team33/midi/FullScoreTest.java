@@ -1,7 +1,6 @@
 package de.team33.midi;
 
 import de.team33.midi.testing.MidiTestBase;
-import de.team33.midix.Timing;
 import org.junit.jupiter.api.Test;
 
 import javax.sound.midi.InvalidMidiDataException;

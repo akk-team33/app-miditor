@@ -1,6 +1,5 @@
 package de.team33.midi;
 
-import de.team33.midix.Midi;
 import de.team33.patterns.lazy.narvi.LazyFeatures;
 import de.team33.patterns.notes.beta.Sender;
 
