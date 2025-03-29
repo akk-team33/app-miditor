@@ -11,18 +11,18 @@ public abstract class SmallButton extends JToggleButton implements ActionListene
         this.addActionListener(this);
     }
 
-    public SmallButton(Icon icon) {
+    public SmallButton(final Icon icon) {
         this();
         this.setIcon(icon);
     }
 
-    public SmallButton(String text, Icon icon) {
+    public SmallButton(final String text, final Icon icon) {
         this();
         this.setText(text);
         this.setIcon(icon);
     }
 
-    public SmallButton(String text) {
+    public SmallButton(final String text) {
         this();
         this.setText(text);
     }

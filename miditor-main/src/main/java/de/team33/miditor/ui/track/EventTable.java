@@ -16,7 +16,7 @@ public abstract class EventTable extends JTable {
         this.setAutoResizeMode(0);
     }
 
-    public final TableCellRenderer getCellRenderer(int row, int column) {
+    public final TableCellRenderer getCellRenderer(final int row, final int column) {
         return this.getEventRenderer();
     }
 
@@ -30,7 +30,7 @@ public abstract class EventTable extends JTable {
         private LS_CLIENT() {
         }
 
-        public final void valueChanged(ListSelectionEvent e) {
+        public final void valueChanged(final ListSelectionEvent e) {
             if (!e.getValueIsAdjusting()) {
                 EventTable.this.getTrackHandler().setTrackSelection(EventTable.this.getSelectedRows());
             }

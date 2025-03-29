@@ -5,15 +5,16 @@ import de.team33.midi.Timing;
 import java.util.List;
 import java.util.Vector;
 
-public abstract class TimingUtil {
-    public TimingUtil() {
+public final class TimingUtil {
+
+    private TimingUtil() {
     }
 
-    public static List<Integer> getUnits(Timing timing, int start) {
-        List<Integer> ret = new Vector();
+    public static List<Integer> getUnits(final Timing timing, final int start) {
+        final List<Integer> ret = new Vector();
         int i = start < 1 ? 1 : start;
 
-        for (int n = timing.tickDenominator(); i <= n; ++i) {
+        for (final int n = timing.tickDenominator(); i <= n; ++i) {
             if (n % i == 0) {
                 ret.add(i);
             }

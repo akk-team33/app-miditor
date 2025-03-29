@@ -16,7 +16,7 @@ public abstract class TableRenderer extends DefaultTableCellRenderer {
     public TableRenderer() {
     }
 
-    public final Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+    public final Component getTableCellRendererComponent(final JTable table, Object value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
         if (value instanceof MidiEvent) {
             value = this.getValue((MidiEvent) value, table.convertColumnIndexToModel(column));
         }
@@ -26,19 +26,19 @@ public abstract class TableRenderer extends DefaultTableCellRenderer {
 
     protected abstract Timing getTiming();
 
-    private Object getValue(MidiEvent event, int col) {
+    private Object getValue(final MidiEvent event, final int col) {
         return col == 0 ? this.getTiming().timeStampOf(event.getTick()) : this.getValue(event.getMessage(), col);
     }
 
-    private Object getValue(MidiMessage message, int col) {
+    private Object getValue(final MidiMessage message, final int col) {
         return this.getValue(message.getStatus(), message.getMessage(), col);
     }
 
-    private Object getValue(int status, byte[] data, int col) {
+    private Object getValue(final int status, final byte[] data, final int col) {
         return this.getValue(status & 240, status & 15, data, col);
     }
 
-    private Object getValue(int type, int spec, byte[] data, int col) {
+    private Object getValue(final int type, final int spec, final byte[] data, final int col) {
         if (col == 1) {
             return this.getChannel(type, spec);
         } else {
@@ -46,15 +46,15 @@ public abstract class TableRenderer extends DefaultTableCellRenderer {
         }
     }
 
-    private String getChannel(int type, int spec) {
+    private String getChannel(final int type, final int spec) {
         return type == 240 ? "Sys" : String.format("%02d", spec + 1);
     }
 
-    private Object getChnlValue(int type, int spec, byte[] data, int col) {
+    private Object getChnlValue(final int type, final int spec, final byte[] data, final int col) {
         return col == 2 ? chnlType[type >> 4 & 7] : this.getChnlData(type, data, col);
     }
 
-    private Object getChnlData(int type, byte[] data, int col) {
+    private Object getChnlData(final int type, final byte[] data, final int col) {
         switch (type) {
         case 128:
         case 144:
@@ -67,7 +67,7 @@ public abstract class TableRenderer extends DefaultTableCellRenderer {
         }
     }
 
-    private String getControlData(byte[] data, int col) {
+    private String getControlData(final byte[] data, final int col) {
         switch (col) {
         case 3:
             return this.getControlName(data[1]);
@@ -76,7 +76,7 @@ public abstract class TableRenderer extends DefaultTableCellRenderer {
         }
     }
 
-    private String getControlName(int b) {
+    private String getControlName(final int b) {
         switch (b) {
         case 7:
             return "VOL";
@@ -95,7 +95,7 @@ public abstract class TableRenderer extends DefaultTableCellRenderer {
         }
     }
 
-    private Object getScaleData(int type, byte[] data, int col) {
+    private Object getScaleData(final int type, final byte[] data, final int col) {
         switch (col) {
         case 3:
             return this.getNoteNumber(data[1]);
@@ -110,17 +110,17 @@ public abstract class TableRenderer extends DefaultTableCellRenderer {
         }
     }
 
-    private Object getNoteNumber(int b) {
-        int idx = b % 12;
-        int octave = b / 12;
+    private Object getNoteNumber(final int b) {
+        final int idx = b % 12;
+        final int octave = b / 12;
         return noteName[idx] + octave;
     }
 
-    private String getSysValue(int spec, byte[] data, int col) {
+    private String getSysValue(final int spec, final byte[] data, final int col) {
         return col == 2 ? sysSpec[spec] : this.getSysData(spec, data, col);
     }
 
-    private String getSysData(int spec, byte[] data, int col) {
+    private String getSysData(final int spec, final byte[] data, final int col) {
         switch (spec) {
         case 15:
             return this.getMetaData(data, col);
@@ -129,7 +129,7 @@ public abstract class TableRenderer extends DefaultTableCellRenderer {
         }
     }
 
-    private String getDefault(byte[] data, int col) {
+    private String getDefault(final byte[] data, final int col) {
         switch (col) {
         case 3:
             if (data.length > 1) {
@@ -148,7 +148,7 @@ public abstract class TableRenderer extends DefaultTableCellRenderer {
         return "-";
     }
 
-    private String getMetaData(byte[] data, int col) {
+    private String getMetaData(final byte[] data, final int col) {
         if (data.length < 3) {
             return this.getDefault(data, col);
         } else {
@@ -163,7 +163,7 @@ public abstract class TableRenderer extends DefaultTableCellRenderer {
         }
     }
 
-    private String getMetaContent(byte[] data) {
+    private String getMetaContent(final byte[] data) {
         switch (data[1]) {
         case 1:
         case 2:
@@ -176,11 +176,11 @@ public abstract class TableRenderer extends DefaultTableCellRenderer {
         }
     }
 
-    private String getDecimal(int b) {
+    private String getDecimal(final int b) {
         return String.format("%03d", b);
     }
 
-    private String getMetaType(int b) {
+    private String getMetaType(final int b) {
         switch (b) {
         case 0:
             return "SeqNo";
@@ -217,17 +217,17 @@ public abstract class TableRenderer extends DefaultTableCellRenderer {
         }
     }
 
-    private String getHex(int b) {
+    private String getHex(final int b) {
         return String.format("%02Xh", b);
     }
 
-    private String getRawData(byte[] data) {
+    private String getRawData(final byte[] data) {
         String ret = "";
-        byte[] var6 = data;
-        int var5 = data.length;
+        final byte[] var6 = data;
+        final int var5 = data.length;
 
         for (int var4 = 0; var4 < var5; ++var4) {
-            byte b = var6[var4];
+            final byte b = var6[var4];
             ret = ret + String.format(" %02X", b);
         }
 

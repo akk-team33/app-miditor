@@ -26,7 +26,7 @@ public abstract class EventList extends JList {
         private LS_CLIENT() {
         }
 
-        public final void valueChanged(ListSelectionEvent e) {
+        public final void valueChanged(final ListSelectionEvent e) {
             if (!e.getValueIsAdjusting()) {
                 EventList.this.getTrackHandler().setTrackSelection(EventList.this.getSelectedIndices());
             }

@@ -9,7 +9,7 @@ public abstract class EvntRmvButton extends EventButton {
         super("del", 1);
     }
 
-    public final void actionPerformed(ActionEvent e) {
+    public final void actionPerformed(final ActionEvent e) {
         TrackUtil.remove(this.getTrackHandler().getTrack(), this.getTrackHandler().getTrackSelection());
         this.setSelected(false);
     }

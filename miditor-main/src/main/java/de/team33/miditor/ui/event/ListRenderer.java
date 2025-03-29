@@ -15,7 +15,7 @@ public abstract class ListRenderer extends DefaultListCellRenderer {
     public ListRenderer() {
     }
 
-    public final Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+    public final Component getListCellRendererComponent(final JList list, Object value, final int index, final boolean isSelected, final boolean cellHasFocus) {
         if (value instanceof MidiEvent) {
             value = this.getValue((MidiEvent) value);
         }
@@ -25,28 +25,28 @@ public abstract class ListRenderer extends DefaultListCellRenderer {
 
     protected abstract Timing getTiming();
 
-    private String getValue(MidiEvent event) {
+    private String getValue(final MidiEvent event) {
         return String.format("%s : %s", this.getTiming().timeStampOf(event.getTick()), this.getValue(event.getMessage()));
     }
 
-    private String getValue(MidiMessage message) {
+    private String getValue(final MidiMessage message) {
         return this.getValue(message.getStatus(), message.getMessage());
     }
 
-    private String getValue(int status, byte[] data) {
+    private String getValue(final int status, final byte[] data) {
         return String.format("%s %s %s %s", this.getHexValue(data, 0), this.getHexValue(data, 1), this.getHexValue(data, 2), this.getValue(status & 240, status & 15, data));
     }
 
-    private String getValue(int type, int spec, byte[] data) {
+    private String getValue(final int type, final int spec, final byte[] data) {
         return type == 240 ? this.getSysValue(spec, data) : this.getChnlValue(type, spec, data);
     }
 
-    private String getChnlValue(int type, int spec, byte[] data) {
-        String sType = chnlType[type >> 4 & 7];
+    private String getChnlValue(final int type, final int spec, final byte[] data) {
+        final String sType = chnlType[type >> 4 & 7];
         return String.format("%s(%s)%s Ch%02d", sType, this.getB1Value(type, data), this.getB2Value(type, data), spec + 1);
     }
 
-    private String getB1Value(int type, byte[] data) {
+    private String getB1Value(final int type, final byte[] data) {
         switch (type) {
         case 128:
         case 144:
@@ -57,13 +57,13 @@ public abstract class ListRenderer extends DefaultListCellRenderer {
         }
     }
 
-    private String getNoteNumber(int b) {
-        int idx = b % 12;
-        int octave = b / 12;
+    private String getNoteNumber(final int b) {
+        final int idx = b % 12;
+        final int octave = b / 12;
         return noteName[idx] + octave;
     }
 
-    private String getB2Value(int type, byte[] data) {
+    private String getB2Value(final int type, final byte[] data) {
         if (data.length < 3) {
             return "";
         } else {
@@ -71,11 +71,11 @@ public abstract class ListRenderer extends DefaultListCellRenderer {
         }
     }
 
-    private String getSysValue(int spec, byte[] data) {
+    private String getSysValue(final int spec, final byte[] data) {
         return String.format("%s %s", sysSpec[spec], this.getSysData(spec, data));
     }
 
-    private String getSysData(int spec, byte[] data) {
+    private String getSysData(final int spec, final byte[] data) {
         switch (spec) {
         case 15:
             return this.getMeta(data);
@@ -84,11 +84,11 @@ public abstract class ListRenderer extends DefaultListCellRenderer {
         }
     }
 
-    private String getMeta(byte[] data) {
+    private String getMeta(final byte[] data) {
         return data.length < 3 ? "(?)" : String.format(" %s[%d]: %s", this.getMetaType(data[1]), data[2], this.getMetaData(data));
     }
 
-    private String getMetaData(byte[] data) {
+    private String getMetaData(final byte[] data) {
         switch (data[1]) {
         case 1:
         case 2:
@@ -101,11 +101,11 @@ public abstract class ListRenderer extends DefaultListCellRenderer {
         }
     }
 
-    private String getMetaString(byte[] data) {
+    private String getMetaString(final byte[] data) {
         return "\"" + new String(data, 3, data.length - 3) + "\"";
     }
 
-    private String getMetaType(byte b) {
+    private String getMetaType(final byte b) {
         switch (b) {
         case 0:
             return "SeqNo";
@@ -142,24 +142,24 @@ public abstract class ListRenderer extends DefaultListCellRenderer {
         }
     }
 
-    private String getRawData(byte[] data) {
+    private String getRawData(final byte[] data) {
         String ret = "";
-        byte[] var6 = data;
-        int var5 = data.length;
+        final byte[] var6 = data;
+        final int var5 = data.length;
 
         for (int var4 = 0; var4 < var5; ++var4) {
-            byte b = var6[var4];
+            final byte b = var6[var4];
             ret = ret + String.format(" %02X", b);
         }
 
         return ret;
     }
 
-    private String getHexValue(byte[] data, int i) {
+    private String getHexValue(final byte[] data, final int i) {
         return data.length > i ? this.getHex(data[i]) : "--";
     }
 
-    private String getHex(byte b) {
+    private String getHex(final byte b) {
         return String.format("%02X", b & 255);
     }
 }

@@ -60,7 +60,7 @@ class MidiMessageTypeTest {
         private final boolean isValid;
         private final MidiMessage midiMessage;
 
-        Case(final Type type, boolean isTypeOf, boolean isValid, final int... values) {
+        Case(final Type type, final boolean isTypeOf, final boolean isValid, final int... values) {
             this.type = type;
             this.isTypeOf = isTypeOf;
             this.isValid = isValid;

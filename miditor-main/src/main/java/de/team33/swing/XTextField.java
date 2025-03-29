@@ -10,22 +10,22 @@ public class XTextField extends JTextField {
         this.addFocusListener(new SELECTOR());
     }
 
-    public XTextField(Document doc, String text, int columns) {
+    public XTextField(final Document doc, final String text, final int columns) {
         super(doc, text, columns);
         this.addFocusListener(new SELECTOR());
     }
 
-    public XTextField(int columns) {
+    public XTextField(final int columns) {
         super(columns);
         this.addFocusListener(new SELECTOR());
     }
 
-    public XTextField(String text, int columns) {
+    public XTextField(final String text, final int columns) {
         super(text, columns);
         this.addFocusListener(new SELECTOR());
     }
 
-    public XTextField(String text) {
+    public XTextField(final String text) {
         super(text);
         this.addFocusListener(new SELECTOR());
     }
@@ -34,7 +34,7 @@ public class XTextField extends JTextField {
         private SELECTOR() {
         }
 
-        public final void focusGained(FocusEvent e) {
+        public final void focusGained(final FocusEvent e) {
             ((XTextField) e.getComponent()).selectAll();
         }
     }

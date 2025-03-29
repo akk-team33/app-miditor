@@ -32,7 +32,7 @@ public abstract class XSpinner extends JLabel {
         this.addKeyListener(new KEY_CLNT());
     }
 
-    public final void setOpaque(boolean opaque) {
+    public final void setOpaque(final boolean opaque) {
         this.m_Opaque = opaque;
         if (!this.m_Hilited) {
             super.setOpaque(this.m_Opaque);
@@ -40,7 +40,7 @@ public abstract class XSpinner extends JLabel {
 
     }
 
-    public final void setBackground(Color bg) {
+    public final void setBackground(final Color bg) {
         this.m_Background = bg;
         if (!this.m_Hilited) {
             super.setBackground(this.m_Background);
@@ -48,7 +48,7 @@ public abstract class XSpinner extends JLabel {
 
     }
 
-    public final void setForeground(Color fg) {
+    public final void setForeground(final Color fg) {
         this.m_Foreground = fg;
         if (!this.m_Hilited) {
             super.setForeground(this.m_Foreground);
@@ -64,7 +64,7 @@ public abstract class XSpinner extends JLabel {
 
     protected abstract void maximize();
 
-    private void setHilited(boolean hilited) {
+    private void setHilited(final boolean hilited) {
         if (this.m_Hilited != hilited) {
             if (this.m_Hilited = hilited) {
                 super.setOpaque(true);
@@ -79,12 +79,12 @@ public abstract class XSpinner extends JLabel {
 
     }
 
-    private void setEntered(boolean entered) {
+    private void setEntered(final boolean entered) {
         this.m_Entered = entered;
         this.setHilited(this.m_Entered || this.m_Focused);
     }
 
-    private void setFocused(boolean focus) {
+    private void setFocused(final boolean focus) {
         this.m_Focused = focus;
         this.setHilited(this.m_Entered || this.m_Focused);
     }
@@ -93,11 +93,11 @@ public abstract class XSpinner extends JLabel {
         private FCS_CLNT() {
         }
 
-        public final void focusGained(FocusEvent e) {
+        public final void focusGained(final FocusEvent e) {
             XSpinner.this.setFocused(true);
         }
 
-        public final void focusLost(FocusEvent e) {
+        public final void focusLost(final FocusEvent e) {
             XSpinner.this.setFocused(false);
         }
     }
@@ -106,7 +106,7 @@ public abstract class XSpinner extends JLabel {
         private KEY_CLNT() {
         }
 
-        public final void keyPressed(KeyEvent e) {
+        public final void keyPressed(final KeyEvent e) {
             switch (e.getKeyCode()) {
             case 33:
                 XSpinner.this.increase(e.isShiftDown() ? 2 : 1);
@@ -140,7 +140,7 @@ public abstract class XSpinner extends JLabel {
         private MSWHEEL_CLNT() {
         }
 
-        public final void mouseWheelMoved(MouseWheelEvent e) {
+        public final void mouseWheelMoved(final MouseWheelEvent e) {
             if (e.getWheelRotation() < 0) {
                 XSpinner.this.increase(e.isShiftDown() ? 1 : 0);
             } else {
@@ -154,15 +154,15 @@ public abstract class XSpinner extends JLabel {
         private MS_CLNT() {
         }
 
-        public final void mouseEntered(MouseEvent e) {
+        public final void mouseEntered(final MouseEvent e) {
             XSpinner.this.setEntered(true);
         }
 
-        public final void mouseExited(MouseEvent e) {
+        public final void mouseExited(final MouseEvent e) {
             XSpinner.this.setEntered(false);
         }
 
-        public final void mousePressed(MouseEvent e) {
+        public final void mousePressed(final MouseEvent e) {
             XSpinner.this.grabFocus();
         }
     }

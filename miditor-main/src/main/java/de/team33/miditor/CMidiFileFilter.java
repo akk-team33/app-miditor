@@ -7,19 +7,16 @@ public class CMidiFileFilter extends FileFilter {
     private static final String[] EXTENSION = new String[]{"mid", "midi"};
     private static final String DESCRIPTION = "MIDI Standard File (*.mid, *.midi)";
 
-    public CMidiFileFilter() {
-    }
-
-    public final boolean accept(File f) {
+    public final boolean accept(final File f) {
         if (f.isDirectory()) {
             return true;
         } else {
-            String fExt = f.getName().replaceAll("[^.]*[.]", "");
-            String[] var6;
-            int var5 = (var6 = EXTENSION).length;
+            final String fExt = f.getName().replaceAll("[^.]*[.]", "");
+            final String[] var6;
+            final int var5 = (var6 = EXTENSION).length;
 
             for (int var4 = 0; var4 < var5; ++var4) {
-                String mExt = var6[var4];
+                final String mExt = var6[var4];
                 if (fExt.equalsIgnoreCase(mExt)) {
                     return true;
                 }
