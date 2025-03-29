@@ -8,8 +8,8 @@ import java.util.AbstractList;
 import java.util.LinkedList;
 import java.util.List;
 
-import static de.team33.midi.Midi.Message.Type.NOTE_ON;
-import static de.team33.midi.Midi.MetaMessage.Type.TRACK_NAME;
+import static de.team33.midi.Util.Message.Type.NOTE_ON;
+import static de.team33.midi.Util.MetaMessage.Type.TRACK_NAME;
 
 public class Metronome extends AbstractList<MidiEvent> {
 

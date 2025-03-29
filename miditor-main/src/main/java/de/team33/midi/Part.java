@@ -58,7 +58,7 @@ public final class Part extends Sender<Part> {
 
     private static void shift(final MidiEvent midiEvent, final long delta) {
         final long oldTime = midiEvent.getTick();
-        if ((0L == oldTime) && Midi.Message.Type.META.isTypeOf(midiEvent.getMessage())) {
+        if ((0L == oldTime) && Util.Message.Type.META.isTypeOf(midiEvent.getMessage())) {
             // keep it in place -> nothing to do!
         } else {
             final long newTime = Math.max(0L, oldTime + delta);
@@ -265,8 +265,8 @@ public final class Part extends Sender<Part> {
         private String newName() {
             synchronized (track) {
                 return stream().map(MidiEvent::getMessage)
-                               .filter(Midi.MetaMessage.Type.TRACK_NAME::isValid)
-                               .map(Midi.MetaMessage::trackName)
+                               .filter(Util.MetaMessage.Type.TRACK_NAME::isValid)
+                               .map(Util.MetaMessage::trackName)
                                .findFirst()
                                .orElse("[undefined]");
             }

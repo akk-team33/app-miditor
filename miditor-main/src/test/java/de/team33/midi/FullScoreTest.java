@@ -7,6 +7,7 @@ import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.Track;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -15,7 +16,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@SuppressWarnings("ClassNamePrefixedWithPackageName")
 class FullScoreTest extends MidiTestBase {
 
     private final FullScore fullScore;
@@ -42,7 +42,7 @@ class FullScoreTest extends MidiTestBase {
                 Stream.of(sequence().getTracks()).map(Track::size),
                 Stream.of(1)).toList(); // 1 <-> EOT
 
-        final List<Part> result = fullScore.create().getTracks();
+        final List<Part> result = fullScore.create(Collections.emptyList()).getTracks();
         assertEquals(15, result.size());
 
         final List<Integer> sizes = result.stream().map(Part::size).toList();
@@ -65,28 +65,16 @@ class FullScoreTest extends MidiTestBase {
     }
 
     @Test
-    final void delete_single() {
-        delete(4, () -> fullScore.getTracks().stream().skip(4)
-                                 .forEach(fullScore::delete));
-    }
-
-    @Test
-    final void delete_array() {
-        delete(5, () -> fullScore.delete(fullScore.getTracks().stream().skip(5).toArray(Part[]::new)));
-    }
-
-    @Test
     final void delete_list() {
-        delete(6, () -> fullScore.delete(fullScore.getTracks().stream().skip(6).toList()));
-    }
+        final List<Integer> expected = Stream.of(sequence().getTracks())
+                                             .limit(6)
+                                             .map(Track::size)
+                                             .toList();
 
-    private void delete(final int keep, final Runnable deletion) {
-        final List<Integer> expected = Stream.of(sequence().getTracks()).limit(keep).map(Track::size).toList();
-
-        deletion.run();
+        fullScore.delete(fullScore.getTracks().stream().skip(6).toList());
 
         final List<Part> result = fullScore.getTracks();
-        assertEquals(keep, result.size());
+        assertEquals(6, result.size());
         final List<Integer> sizes = result.stream().map(Part::size).toList();
         assertEquals(expected, sizes);
     }
@@ -128,7 +116,7 @@ class FullScoreTest extends MidiTestBase {
     @Test
     final void isModified() {
         assertFalse(fullScore.isModified());
-        fullScore.delete(fullScore.getTracks().get(3));
+        fullScore.delete(List.of(fullScore.getTracks().get(3)));
         assertTrue(fullScore.isModified());
     }
 }

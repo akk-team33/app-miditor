@@ -41,19 +41,19 @@ class MidiMetaMessageTypeTest {
     @SuppressWarnings("unused")
     enum Case {
 
-        TRACK_NAME(Midi.MetaMessage.Type.TRACK_NAME, true, true, 0xFF, 0x03, 3, 65, 66, 67),
-        TRACK_NAME_TF_LONG(Midi.MetaMessage.Type.TRACK_NAME, true, false, 0xFF, 0x03, 3, 65, 66, 67, 68),
-        TRACK_NAME_TF_SHORT(Midi.MetaMessage.Type.TRACK_NAME, true, false, 0xFF, 0x03, 3, 65, 66),
-        EOF_TRACK(Midi.MetaMessage.Type.EOF_TRACK, true, true, 0xFF, 0x2F, 0),
-        EOF_TRACK_TF_SHORT(Midi.MetaMessage.Type.EOF_TRACK, true, false, 0xFF, 0x2F),
-        EOF_TRACK_FF_TYPE(Midi.MetaMessage.Type.EOF_TRACK, false, false, 0xFF, 0x2E, 0);
+        TRACK_NAME(Util.MetaMessage.Type.TRACK_NAME, true, true, 0xFF, 0x03, 3, 65, 66, 67),
+        TRACK_NAME_TF_LONG(Util.MetaMessage.Type.TRACK_NAME, true, false, 0xFF, 0x03, 3, 65, 66, 67, 68),
+        TRACK_NAME_TF_SHORT(Util.MetaMessage.Type.TRACK_NAME, true, false, 0xFF, 0x03, 3, 65, 66),
+        EOF_TRACK(Util.MetaMessage.Type.EOF_TRACK, true, true, 0xFF, 0x2F, 0),
+        EOF_TRACK_TF_SHORT(Util.MetaMessage.Type.EOF_TRACK, true, false, 0xFF, 0x2F),
+        EOF_TRACK_FF_TYPE(Util.MetaMessage.Type.EOF_TRACK, false, false, 0xFF, 0x2E, 0);
 
-        private final Midi.MetaMessage.Type type;
+        private final Util.MetaMessage.Type type;
         private final boolean isTypeOf;
         private final boolean isValid;
         private final MidiMessage midiMessage;
 
-        Case(final Midi.MetaMessage.Type type, boolean isTypeOf, boolean isValid, final int... values) {
+        Case(final Util.MetaMessage.Type type, boolean isTypeOf, boolean isValid, final int... values) {
             this.type = type;
             this.isTypeOf = isTypeOf;
             this.isValid = isValid;

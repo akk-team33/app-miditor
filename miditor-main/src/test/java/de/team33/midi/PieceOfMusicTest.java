@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -35,7 +36,7 @@ class PieceOfMusicTest extends MusicTestBase {
     @Test
     final void save() throws IOException {
         final long oldSize = Files.size(music.path());
-        music.fullScore().delete(music.fullScore().getTracks().get(1));
+        music.fullScore().delete(List.of(music.fullScore().getTracks().get(1)));
 
         music.save();
         final long newSize = Files.size(music.path());

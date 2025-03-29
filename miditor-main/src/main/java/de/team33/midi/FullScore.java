@@ -6,7 +6,6 @@ import de.team33.patterns.notes.beta.Sender;
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Track;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -18,10 +17,12 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static de.team33.midi.Midi.MetaMessage.Type.SET_TEMPO;
+import static de.team33.midi.Util.MetaMessage.Type.SET_TEMPO;
 
-@SuppressWarnings({"WeakerAccess", "UnusedReturnValue", "ClassNamePrefixedWithPackageName"})
+@SuppressWarnings("UnusedReturnValue")
 public class FullScore extends Sender<FullScore> {
+
+    private static final List<MidiEvent> EMPTY = List.of();
 
     private final Parts parts;
     private final Part.Factory trackFactory;
@@ -48,11 +49,6 @@ public class FullScore extends Sender<FullScore> {
         return parts.sequence();
     }
 
-    @SuppressWarnings("OverloadedVarargsMethod")
-    public final FullScore create(final MidiEvent... events) {
-        return create(Arrays.asList(events));
-    }
-
     public final FullScore create(final Iterable<? extends MidiEvent> events) {
         createBase(events);
         return setModified();
@@ -63,10 +59,6 @@ public class FullScore extends Sender<FullScore> {
         for (final MidiEvent event : events) {
             track.add(event);
         }
-    }
-
-    public final FullScore delete(final Part... tracks) {
-        return delete(Arrays.asList(tracks));
     }
 
     public final FullScore delete(final Collection<Part> tracks) {
@@ -109,14 +101,15 @@ public class FullScore extends Sender<FullScore> {
         return fire(Channel.SetModified);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public final int getTempo() {
         return features.get(Key.TEMPO);
     }
 
-    @SuppressWarnings({"NumericCastThatLosesPrecision", "MagicNumber"})
+    @SuppressWarnings("unused")
     final void setTempo(final int tempo) {
         if (getTracks().isEmpty()) {
-            create();
+            create(EMPTY);
         }
         final Part track = getTracks().get(0);
         track.remove(Util.stream(track)
@@ -126,10 +119,11 @@ public class FullScore extends Sender<FullScore> {
 
         if (0 < tempo) {
             final byte[] data = new byte[3];
-            long mpqn = Math.round(Util.MSPMQN / tempo);
+            long microsecondsPerMidiQuarterNote = Math.round(Util.MICROSECONDS_PER_MINUTE / tempo);
             for (int i = data.length - 1; i >= 0; --i) {
-                data[i] = (byte) (mpqn & 0xff);
-                mpqn >>= 8;
+                //noinspection MagicNumber,NumericCastThatLosesPrecision
+                data[i] = (byte) (microsecondsPerMidiQuarterNote & 0xff);
+                microsecondsPerMidiQuarterNote >>= 8;
             }
             track.add(new MidiEvent(SET_TEMPO.newMessage(data), 0L));
         }
@@ -194,12 +188,12 @@ public class FullScore extends Sender<FullScore> {
         @SuppressWarnings({"MagicNumber", "NumericCastThatLosesPrecision"})
         private static int newTempo(final MidiEvent event) {
             final byte[] bytes = event.getMessage().getMessage();
-            int mpqn = 0;
+            int microsecondsPerMidiQuarterNote = 0;
             for (int i = 3; 6 > i; ++i) {
-                mpqn <<= 8;
-                mpqn += (bytes[i] & 0xff);
+                microsecondsPerMidiQuarterNote <<= 8;
+                microsecondsPerMidiQuarterNote += (bytes[i] & 0xff);
             }
-            return (int) Math.round(Util.MSPMQN / mpqn);
+            return (int) Math.round(Util.MICROSECONDS_PER_MINUTE / microsecondsPerMidiQuarterNote);
         }
 
         private Timing newTiming() {
