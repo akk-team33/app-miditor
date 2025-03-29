@@ -29,14 +29,6 @@
         </dependency>
         <dependency>
             <groupId>de.team33.patterns</groupId>
-            <artifactId>building-elara</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>de.team33.patterns</groupId>
-            <artifactId>io-deimos</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>de.team33.patterns</groupId>
             <artifactId>enums-pan</artifactId>
         </dependency>
         <dependency>
@@ -56,10 +48,6 @@
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>de.team33.testing</groupId>
-            <artifactId>stdio-ersa</artifactId>
         </dependency>
         <dependency>
             <groupId>de.team33.testing</groupId>
