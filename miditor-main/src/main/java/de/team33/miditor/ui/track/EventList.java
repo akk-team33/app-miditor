@@ -12,7 +12,7 @@ public abstract class EventList extends JList {
         this.addListSelectionListener(new LS_CLIENT());
     }
 
-    public ListCellRenderer getCellRenderer() {
+    public final ListCellRenderer getCellRenderer() {
         return this.getEventRenderer();
     }
 
@@ -26,7 +26,7 @@ public abstract class EventList extends JList {
         private LS_CLIENT() {
         }
 
-        public void valueChanged(ListSelectionEvent e) {
+        public final void valueChanged(ListSelectionEvent e) {
             if (!e.getValueIsAdjusting()) {
                 EventList.this.getTrackHandler().setTrackSelection(EventList.this.getSelectedIndices());
             }

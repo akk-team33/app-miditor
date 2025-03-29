@@ -23,21 +23,21 @@ public class UIControllerImpl implements UIController {
         }
     }
 
-    public Part getTrack() {
+    public final Part getTrack() {
         return this.m_Track;
     }
 
-    public void setTrack(final Part track) {
+    public final void setTrack(final Part track) {
         audience.fire(Event.UnsetTrack, this);
         this.m_Track = track;
         audience.fire(Event.SetTrack, this);
     }
 
-    public int[] getTrackSelection() {
+    public final int[] getTrackSelection() {
         return this.m_Selection;
     }
 
-    public void setTrackSelection(final int[] selected) {
+    public final void setTrackSelection(final int[] selected) {
         if (!Arrays.equals(this.m_Selection, selected)) {
             this.m_Selection = selected;
             audience.fire(Event.SetTrackSelection, this);

@@ -34,7 +34,7 @@ public abstract class DriveControl extends JPanel {
             super(Rsrc.DC_FWDICON);
         }
 
-        protected void relocate() {
+        protected final void relocate() {
             final long ticksPerMeasure = getContext().getTiming().barTicks();
             long threshold = 1L;
             threshold *= ticksPerMeasure;
@@ -60,7 +60,7 @@ public abstract class DriveControl extends JPanel {
             private LISTENER() {
             }
 
-            public void actionPerformed(final ActionEvent e) {
+            public final void actionPerformed(final ActionEvent e) {
                 relocate();
             }
         }
@@ -71,7 +71,7 @@ public abstract class DriveControl extends JPanel {
             super(Rsrc.DC_REWICON);
         }
 
-        protected void relocate() {
+        protected final void relocate() {
             final long ticksPerMeasure = getContext().getTiming().barTicks();
             long threshold = 1L;
             threshold *= ticksPerMeasure;
@@ -129,7 +129,7 @@ public abstract class DriveControl extends JPanel {
         }
 
         private class CLIENT3 extends WindowAdapter {
-            public void windowOpened(final WindowEvent e) {
+            public final void windowOpened(final WindowEvent e) {
                 _setState(getContext().getPlayer().getState());
             }
         }

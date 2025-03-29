@@ -34,19 +34,19 @@ public abstract class TimeShiftControl extends JPanel {
             m_TimeShift.addListener(TimeShift.Event.SetDividend, this::onSetDividend);
         }
 
-        protected void decrease(final int exponent) {
+        protected final void decrease(final int exponent) {
             updateDividend(-1, exponent);
         }
 
-        protected void increase(final int exponent) {
+        protected final void increase(final int exponent) {
             updateDividend(1, exponent);
         }
 
-        protected void maximize() {
+        protected final void maximize() {
             m_TimeShift.setDividend(Integer.MAX_VALUE);
         }
 
-        protected void minimize() {
+        protected final void minimize() {
             m_TimeShift.setDividend(1);
         }
 
@@ -74,19 +74,19 @@ public abstract class TimeShiftControl extends JPanel {
             m_TimeShift.addListener(TimeShift.Event.SetDivisor, this::onSetDivisor);
         }
 
-        protected void decrease(final int exponent) {
+        protected final void decrease(final int exponent) {
             m_TimeShift.setDivisor(m_TimeShift.getPrevDivisor());
         }
 
-        protected void increase(final int exponent) {
+        protected final void increase(final int exponent) {
             m_TimeShift.setDivisor(m_TimeShift.getNextDivisor());
         }
 
-        protected void maximize() {
+        protected final void maximize() {
             m_TimeShift.setDivisor(m_TimeShift.getTickUnit());
         }
 
-        protected void minimize() {
+        protected final void minimize() {
             m_TimeShift.setDivisor(1);
         }
 
@@ -127,7 +127,7 @@ public abstract class TimeShiftControl extends JPanel {
             getSelection().addListener(Selection.Event.UPDATE, this::onUpdate);
         }
 
-        public void actionPerformed(final ActionEvent e) {
+        public final void actionPerformed(final ActionEvent e) {
             for (final Part p : getSelection()) {
                 p.shift(((long) m_TimeShift.getTicks() * m_Factor));
             }
@@ -139,7 +139,7 @@ public abstract class TimeShiftControl extends JPanel {
     }
 
     private class TIMESHIFT extends TimeShiftBase {
-        protected Timing getTiming() {
+        protected final Timing getTiming() {
             return getSequence().getTiming();
         }
     }

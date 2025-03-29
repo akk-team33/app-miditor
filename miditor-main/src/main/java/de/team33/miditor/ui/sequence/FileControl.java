@@ -35,7 +35,7 @@ public abstract class FileControl extends JPanel {
             getContext().getSequence().registry().add(Score.Channel.SetModified, this::onSetModified);
         }
 
-        public void actionPerformed(final ActionEvent e) {
+        public final void actionPerformed(final ActionEvent e) {
             try {
                 getContext().getMusic().save();
             } catch (final IOException var3) {
@@ -67,7 +67,7 @@ public abstract class FileControl extends JPanel {
             setToolTipText("MIDI-Sequenz speichern als ...");
         }
 
-        public void actionPerformed(final ActionEvent e) {
+        public final void actionPerformed(final ActionEvent e) {
             final JFileChooser chooser = new JFileChooser(getContext().getMusic().path().getParent().toFile());
             final CMidiFileFilter filter = new CMidiFileFilter();
             chooser.setDialogTitle("Song speichern");

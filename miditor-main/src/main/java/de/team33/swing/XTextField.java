@@ -34,7 +34,7 @@ public class XTextField extends JTextField {
         private SELECTOR() {
         }
 
-        public void focusGained(FocusEvent e) {
+        public final void focusGained(FocusEvent e) {
             ((XTextField) e.getComponent()).selectAll();
         }
     }

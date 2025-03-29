@@ -15,7 +15,7 @@ public abstract class ListRenderer extends DefaultListCellRenderer {
     public ListRenderer() {
     }
 
-    public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+    public final Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
         if (value instanceof MidiEvent) {
             value = this.getValue((MidiEvent) value);
         }

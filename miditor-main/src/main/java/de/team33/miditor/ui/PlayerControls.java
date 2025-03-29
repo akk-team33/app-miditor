@@ -11,15 +11,15 @@ public abstract class PlayerControls {
     public PlayerControls() {
     }
 
-    public Component getDriveControl() {
+    public final Component getDriveControl() {
         return new DRV_CTRL();
     }
 
-    public Component getLocator() {
+    public final Component getLocator() {
         return new LOCATOR();
     }
 
-    public Component getTempoControl() {
+    public final Component getTempoControl() {
         return (new TMPO_CTRL()).getComponent();
     }
 
@@ -32,7 +32,7 @@ public abstract class PlayerControls {
         private DRV_CTRL() {
         }
 
-        protected Context getContext() {
+        protected final Context getContext() {
             return PlayerControls.this.getRootContext();
         }
     }
@@ -41,7 +41,7 @@ public abstract class PlayerControls {
         private LOCATOR() {
         }
 
-        protected Context getContext() {
+        protected final Context getContext() {
             return PlayerControls.this.getRootContext();
         }
     }
@@ -50,7 +50,7 @@ public abstract class PlayerControls {
         private TMPO_CTRL() {
         }
 
-        protected Player getPlayer() {
+        protected final Player getPlayer() {
             return PlayerControls.this.getRootContext().getPlayer();
         }
     }

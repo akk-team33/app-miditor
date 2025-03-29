@@ -16,7 +16,7 @@ public abstract class TableRenderer extends DefaultTableCellRenderer {
     public TableRenderer() {
     }
 
-    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+    public final Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
         if (value instanceof MidiEvent) {
             value = this.getValue((MidiEvent) value, table.convertColumnIndexToModel(column));
         }

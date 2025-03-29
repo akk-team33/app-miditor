@@ -22,7 +22,7 @@ public class Miditor implements Runnable {
         SwingUtilities.invokeLater(new Miditor(args));
     }
 
-    public void run() {
+    public final void run() {
         if (this.args.length < 1) {
             JOptionPane.showMessageDialog(null, "Diese Anwendung erwartet den Pfad/Dateinamen einer MIDI-Datei als Parameter.", "Keine Datei angegeben", 0);
         } else {

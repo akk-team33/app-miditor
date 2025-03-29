@@ -16,17 +16,17 @@ public abstract class EventListModel extends AbstractListModel {
         fireContentsChanged(this, 0, Integer.MAX_VALUE);
     }
 
-    public Object getElementAt(final int index) {
+    public final Object getElementAt(final int index) {
         return m_Track.get(index);
     }
 
-    public int getSize() {
+    public final int getSize() {
         return m_Track == null ? 0 : m_Track.size();
     }
 
     protected abstract UIController getTrackHandler();
 
-    public void onSetTrack(final UIController controller) {
+    public final void onSetTrack(final UIController controller) {
         final Part track = controller.getTrack();
         if (m_Track != track) {
             m_Track = track;

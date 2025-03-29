@@ -35,7 +35,7 @@ public abstract class ActionControl extends JPanel {
             setToolTipText("Metronom-Spur anlegen");
         }
 
-        public void actionPerformed(final ActionEvent e) {
+        public final void actionPerformed(final ActionEvent e) {
             getContext().getSequence().create(new Metronome(newMetronomeParameter()));
         }
     }
@@ -75,7 +75,7 @@ public abstract class ActionControl extends JPanel {
             setToolTipText("Events um einen Schlag nach 'rechts' verschieben");
         }
 
-        protected long getDelta() {
+        protected final long getDelta() {
             return getContext().getSequence().getTiming().beatTicks();
         }
     }
@@ -86,7 +86,7 @@ public abstract class ActionControl extends JPanel {
             setToolTipText("Events um einen Takt nach 'rechts' verschieben");
         }
 
-        protected long getDelta() {
+        protected final long getDelta() {
             return getContext().getSequence().getTiming().barTicks();
         }
     }
@@ -97,7 +97,7 @@ public abstract class ActionControl extends JPanel {
             setToolTipText("Events um einen Schlag nach 'links' verschieben");
         }
 
-        protected long getDelta() {
+        protected final long getDelta() {
             return -(long) getContext().getSequence().getTiming().beatTicks();
         }
     }
@@ -108,7 +108,7 @@ public abstract class ActionControl extends JPanel {
             setToolTipText("Events um einen Takt nach 'links' verschieben");
         }
 
-        protected long getDelta() {
+        protected final long getDelta() {
             return -(long) getContext().getSequence().getTiming().barTicks();
         }
     }
@@ -121,7 +121,7 @@ public abstract class ActionControl extends JPanel {
 
         protected abstract long getDelta();
 
-        public void actionPerformed(final ActionEvent e) {
+        public final void actionPerformed(final ActionEvent e) {
             final List<Part> var5;
             final int var4 = (var5 = getContext().getSequence().getTracks()).size();
 

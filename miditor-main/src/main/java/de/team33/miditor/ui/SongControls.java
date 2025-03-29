@@ -11,17 +11,17 @@ public abstract class SongControls {
     public SongControls() {
     }
 
-    public Component getActionControl() {
+    public final Component getActionControl() {
         return new ACTN_CTRL();
     }
 
-    public Component getFileControl() {
+    public final Component getFileControl() {
         return new FILE_CTRL();
     }
 
     protected abstract Context getContext();
 
-    public Component getTrackList() {
+    public final Component getTrackList() {
         return new TRCK_LIST();
     }
 
@@ -29,7 +29,7 @@ public abstract class SongControls {
         private ACTN_CTRL() {
         }
 
-        protected Context getContext() {
+        protected final Context getContext() {
             return SongControls.this.getContext();
         }
     }
@@ -38,7 +38,7 @@ public abstract class SongControls {
         private FILE_CTRL() {
         }
 
-        protected Context getContext() {
+        protected final Context getContext() {
             return SongControls.this.getContext();
         }
     }
@@ -47,7 +47,7 @@ public abstract class SongControls {
         private TRCK_LIST() {
         }
 
-        protected Context getContext() {
+        protected final Context getContext() {
             return SongControls.this.getContext();
         }
     }

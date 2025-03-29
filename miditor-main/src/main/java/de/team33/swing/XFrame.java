@@ -23,7 +23,7 @@ public class XFrame extends JFrame {
             this.prefs = prefs;
         }
 
-        protected Preferences getPreferences() {
+        protected final Preferences getPreferences() {
             return this.prefs;
         }
     }

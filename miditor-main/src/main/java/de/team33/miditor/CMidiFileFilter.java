@@ -10,7 +10,7 @@ public class CMidiFileFilter extends FileFilter {
     public CMidiFileFilter() {
     }
 
-    public boolean accept(File f) {
+    public final boolean accept(File f) {
         if (f.isDirectory()) {
             return true;
         } else {
@@ -29,7 +29,7 @@ public class CMidiFileFilter extends FileFilter {
         }
     }
 
-    public String getDescription() {
+    public final String getDescription() {
         return "MIDI Standard File (*.mid, *.midi)";
     }
 }

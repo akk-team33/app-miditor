@@ -52,7 +52,7 @@ public abstract class TrackList extends JScrollPane {
             getContext().getSelection().addListener(Selection.Event.UPDATE, this::onUpdate);
         }
 
-        public void actionPerformed(final ActionEvent e) {
+        public final void actionPerformed(final ActionEvent e) {
             doActionWith(getContext().getSelection());
             setSelected(false);
         }
@@ -71,7 +71,7 @@ public abstract class TrackList extends JScrollPane {
             super("del", 1);
         }
 
-        protected void doActionWith(final Collection<Part> trcks) {
+        protected final void doActionWith(final Collection<Part> trcks) {
             getContext().getSequence().delete(trcks);
         }
     }
@@ -81,7 +81,7 @@ public abstract class TrackList extends JScrollPane {
             super("join", 2);
         }
 
-        protected void doActionWith(final Collection<Part> trcks) {
+        protected final void doActionWith(final Collection<Part> trcks) {
             getContext().getSequence().join(trcks);
         }
     }
@@ -97,7 +97,7 @@ public abstract class TrackList extends JScrollPane {
             private ACTN_CLNT() {
             }
 
-            public void actionPerformed(final ActionEvent e) {
+            public final void actionPerformed(final ActionEvent e) {
                 if (isSelected()) {
                     SelectionUtil.set(getContext().getSelection(), getContext().getSequence().getTracks());
                 } else {
@@ -127,11 +127,11 @@ public abstract class TrackList extends JScrollPane {
         private SHIFTERS() {
         }
 
-        protected Selection<Part> getSelection() {
+        protected final Selection<Part> getSelection() {
             return getContext().getSelection();
         }
 
-        protected Score getSequence() {
+        protected final Score getSequence() {
             return getContext().getSequence();
         }
     }
@@ -177,27 +177,27 @@ public abstract class TrackList extends JScrollPane {
             m_Track = p;
         }
 
-        public int getIndex() {
+        public final int getIndex() {
             return m_Index;
         }
 
-        public Player getPlayer() {
+        public final Player getPlayer() {
             return getContext().getPlayer();
         }
 
-        public Selection<Part> getSelection() {
+        public final Selection<Part> getSelection() {
             return getContext().getSelection();
         }
 
-        public Score getSequence() {
+        public final Score getSequence() {
             return getContext().getSequence();
         }
 
-        public Part getTrack() {
+        public final Part getTrack() {
             return m_Track;
         }
 
-        public UIController getTrackHandler() {
+        public final UIController getTrackHandler() {
             return getContext().getTrackHandler();
         }
     }
@@ -209,7 +209,7 @@ public abstract class TrackList extends JScrollPane {
             m_Context = TrackList.this.new TRCK_CONTEXT(p, index);
         }
 
-        protected de.team33.miditor.ui.track.Context getContext() {
+        protected final de.team33.miditor.ui.track.Context getContext() {
             return m_Context;
         }
     }

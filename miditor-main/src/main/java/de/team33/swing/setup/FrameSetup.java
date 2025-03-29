@@ -13,7 +13,7 @@ public abstract class FrameSetup {
     public FrameSetup() {
     }
 
-    public void init(Frame frame) {
+    public final void init(Frame frame) {
         Rectangle bounds = frame.getGraphicsConfiguration().getBounds();
         frame.setSize(this.getSize(bounds.width * 4 / 5, bounds.height * 4 / 5));
         frame.setExtendedState(this.getExtendedState() & -2);
@@ -33,7 +33,7 @@ public abstract class FrameSetup {
         private LISTENER() {
         }
 
-        public void componentResized(ComponentEvent e) {
+        public final void componentResized(ComponentEvent e) {
             Frame frame = (Frame) e.getComponent();
             int xState = frame.getExtendedState();
             if (xState != FrameSetup.this.getExtendedState()) {

@@ -11,7 +11,7 @@ public abstract class EventActions {
     public EventActions() {
     }
 
-    public Component getComponent() {
+    public final Component getComponent() {
         if (this.m_MainPane == null) {
             this.m_MainPane = new MAIN_PANE();
         }
@@ -29,7 +29,7 @@ public abstract class EventActions {
         private DEL_BTTN() {
         }
 
-        protected UIController getTrackHandler() {
+        protected final UIController getTrackHandler() {
             return EventActions.this._EventActions().getTrackHandler();
         }
     }

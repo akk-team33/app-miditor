@@ -14,19 +14,19 @@ class MidiMetaMessageTypeTest {
 
     @ParameterizedTest
     @EnumSource
-    void isTypeOf(final Case given) {
+    final void isTypeOf(final Case given) {
         Assertions.assertEquals(given.isTypeOf, given.type.isTypeOf(given.midiMessage));
     }
 
     @ParameterizedTest
     @EnumSource
-    void isValid(final Case given) {
+    final void isValid(final Case given) {
         Assertions.assertEquals(given.isValid, given.type.isValid(given.midiMessage));
     }
 
     @ParameterizedTest
     @EnumSource
-    void valid(final Case given) {
+    final void valid(final Case given) {
         try {
             final MidiMessage result = given.type.valid(given.midiMessage);
             assertTrue(given.isValid, () -> "expected to fail - but was " + result);

@@ -9,7 +9,7 @@ import java.awt.*;
 public abstract class TempoControl {
     private Component m_RootComponent;
 
-    public Component getComponent() {
+    public final Component getComponent() {
         if (m_RootComponent == null) {
             m_RootComponent = new LABEL();
         }
@@ -28,19 +28,19 @@ public abstract class TempoControl {
             getPlayer().registry().add(Player.Channel.SET_TEMPO, this::onSetTempo);
         }
 
-        protected void decrease(final int exponent) {
+        protected final void decrease(final int exponent) {
             updateTempo(-1, exponent);
         }
 
-        protected void increase(final int exponent) {
+        protected final void increase(final int exponent) {
             updateTempo(1, exponent);
         }
 
-        protected void maximize() {
+        protected final void maximize() {
             getPlayer().setTempo(180);
         }
 
-        protected void minimize() {
+        protected final void minimize() {
             getPlayer().setTempo(60);
         }
 
@@ -52,7 +52,7 @@ public abstract class TempoControl {
             getPlayer().setTempo(getPlayer().getTempo() + delta);
         }
 
-        public void onSetTempo(final int tempo) {
+        public final void onSetTempo(final int tempo) {
             setText(String.format("%03d", tempo));
         }
     }

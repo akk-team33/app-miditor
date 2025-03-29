@@ -41,7 +41,7 @@ public abstract class EventEditor extends UIControllerImpl {
         return this;
     }
 
-    public JComponent getComponent() {
+    public final JComponent getComponent() {
         if (m_RootComponent == null) {
             m_RootComponent = new PANEL();
         }
@@ -55,7 +55,7 @@ public abstract class EventEditor extends UIControllerImpl {
         private ACTIONS() {
         }
 
-        protected UIController getTrackHandler() {
+        protected final UIController getTrackHandler() {
             return _EventEditor();
         }
     }
@@ -64,7 +64,7 @@ public abstract class EventEditor extends UIControllerImpl {
         private EVNT_RENDERER() {
         }
 
-        protected Timing getTiming() {
+        protected final Timing getTiming() {
             return getSequence().getTiming();
         }
     }
@@ -73,7 +73,7 @@ public abstract class EventEditor extends UIControllerImpl {
         private EVTBL_MODEL() {
         }
 
-        protected UIController getTrackHandler() {
+        protected final UIController getTrackHandler() {
             return _EventEditor();
         }
     }
@@ -121,15 +121,15 @@ public abstract class EventEditor extends UIControllerImpl {
         private TABLE() {
         }
 
-        protected TableRenderer getEventRenderer() {
+        protected final TableRenderer getEventRenderer() {
             return m_EventRenderer;
         }
 
-        protected TableModel getTableModel() {
+        protected final TableModel getTableModel() {
             return EventEditor.this.new EVTBL_MODEL();
         }
 
-        protected UIController getTrackHandler() {
+        protected final UIController getTrackHandler() {
             return _EventEditor();
         }
     }

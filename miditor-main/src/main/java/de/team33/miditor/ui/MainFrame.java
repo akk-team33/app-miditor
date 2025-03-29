@@ -80,41 +80,41 @@ public class MainFrame extends XFrame {
 
     private class CONTEXT implements Context, PlayerControls.Context {
 
-        public Component getFrame() {
+        public final Component getFrame() {
             return MainFrame.this;
         }
 
         @Override
-        public PieceOfMusic getMusic() {
+        public final PieceOfMusic getMusic() {
             return music;
         }
 
         @Override
-        public Timing getTiming() {
+        public final Timing getTiming() {
             return music.score().getTiming();
         }
 
-        public Player getPlayer() {
+        public final Player getPlayer() {
             return music.player();
         }
 
-        public Selection<Part> getSelection() {
+        public final Selection<Part> getSelection() {
             return selection;
         }
 
-        public Score getSequence() {
+        public final Score getSequence() {
             return music.score();
         }
 
-        public UIController getTrackHandler() {
+        public final UIController getTrackHandler() {
             return m_EventEditor;
         }
 
-        public Selection<Part> getTrackSelection() {
+        public final Selection<Part> getTrackSelection() {
             return selection;
         }
 
-        public Window getWindow() {
+        public final Window getWindow() {
             return MainFrame.this;
         }
     }
@@ -142,34 +142,34 @@ public class MainFrame extends XFrame {
 
     private class PLAY_CTRLS extends PlayerControls {
 
-        protected PlayerControls.Context getRootContext() {
+        protected final PlayerControls.Context getRootContext() {
             return context;
         }
     }
 
-    public void onSetFile(final Path path) {
+    public final void onSetFile(final Path path) {
         setTitle(String.format("%s - Miditor 01a/12", path));
     }
 
     private class SONG_CTRLS extends SongControls {
-        protected Context getContext() {
+        protected final Context getContext() {
             return context;
         }
     }
 
     private class TRACK_EDITOR extends EventEditor {
-        protected Score getSequence() {
+        protected final Score getSequence() {
             return music.score();
         }
     }
 
     private class WINDOW_ADAPTER extends WindowAdapter {
 
-        public void windowClosed(final WindowEvent e) {
+        public final void windowClosed(final WindowEvent e) {
             music.player().push(Player.Trigger.OFF);
         }
 
-        public void windowOpened(final WindowEvent e) {
+        public final void windowOpened(final WindowEvent e) {
             music.player().push(Player.Trigger.ON);
         }
     }
