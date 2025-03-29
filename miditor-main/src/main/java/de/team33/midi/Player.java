@@ -22,6 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -29,6 +30,7 @@ import java.util.stream.Stream;
 
 import static de.team33.midi.Util.CNV;
 import static de.team33.midi.Util.sleep;
+import static java.util.function.Predicate.not;
 
 public final class Player extends Sender<Player> {
 
@@ -76,8 +78,8 @@ public final class Player extends Sender<Player> {
         return result;
     }
 
-    private void onSetState(final PlayState state) {
-        if (PlayState.RUNNING == state) {
+    private void onSetState(final State state) {
+        if (State.RUNNING == state) {
             //noinspection ObjectToString
             new Thread(new StateObserver(), this + ":StateObserver").start();
         }
@@ -117,8 +119,8 @@ public final class Player extends Sender<Player> {
         fire(Channel.SET_POSITION);
     }
 
-    public final PlayState getState() {
-        return PlayState.of(sequencer);
+    public final State getState() {
+        return State.of(sequencer);
     }
 
     public final void push(final Trigger trigger) {
@@ -171,41 +173,41 @@ public final class Player extends Sender<Player> {
 
     public enum Trigger {
 
-        ON(Choice.on(PlayState.OFF).apply(Action.OPEN)),
-        START(Choice.on(PlayState.OFF).apply(Action.OPEN, Action.START),
-              Choice.on(PlayState.READY).apply(Action.START),
-              Choice.on(PlayState.PAUSED).apply(Action.START)),
-        STOP(Choice.on(PlayState.PAUSED).apply(Action.RESET),
-             Choice.on(PlayState.RUNNING).apply(Action.STOP, Action.RESET)),
-        PAUSE(Choice.on(PlayState.RUNNING).apply(Action.STOP)),
-        OFF(Choice.on(PlayState.READY).apply(Action.CLOSE, Action.RESET),
-            Choice.on(PlayState.RUNNING).apply(Action.CLOSE, Action.RESET),
-            Choice.on(PlayState.PAUSED).apply(Action.CLOSE, Action.RESET));
+        ON(Choice.on(State.OFF).apply(Action.OPEN)),
+        START(Choice.on(State.OFF).apply(Action.OPEN, Action.START),
+              Choice.on(State.READY).apply(Action.START),
+              Choice.on(State.PAUSED).apply(Action.START)),
+        STOP(Choice.on(State.PAUSED).apply(Action.RESET),
+             Choice.on(State.RUNNING).apply(Action.STOP, Action.RESET)),
+        PAUSE(Choice.on(State.RUNNING).apply(Action.STOP)),
+        OFF(Choice.on(State.READY).apply(Action.CLOSE, Action.RESET),
+            Choice.on(State.RUNNING).apply(Action.CLOSE, Action.RESET),
+            Choice.on(State.PAUSED).apply(Action.CLOSE, Action.RESET));
 
         private static final Values<Trigger> VALUES = Values.of(Trigger.class);
-        private static final Map<PlayState, Set<Trigger>> effectiveMap = new ConcurrentHashMap<>(0);
+        private static final Map<State, Set<Trigger>> effectiveMap = new ConcurrentHashMap<>(0);
 
-        private final Map<PlayState, List<Action>> map;
+        private final Map<State, List<Action>> map;
 
         Trigger(final Choice... choices) {
             this.map = Stream.of(choices).collect(HashMap::new, Trigger::put, Map::putAll);
         }
 
-        private static void put(final Map<? super PlayState, ? super List<Action>> map, final Choice choice) {
+        private static void put(final Map<? super State, ? super List<Action>> map, final Choice choice) {
             map.put(choice.state, choice.methods);
         }
 
-        public static Set<Trigger> effectiveOn(final PlayState state) {
+        public static Set<Trigger> effectiveOn(final State state) {
             return effectiveMap.computeIfAbsent(state, Trigger::newEffectiveSet);
         }
 
-        private static Set<Trigger> newEffectiveSet(final PlayState state) {
+        private static Set<Trigger> newEffectiveSet(final State state) {
             return VALUES.stream()
                          .filter(value -> value.hasEffectOn(state))
                          .collect(Collectors.toUnmodifiableSet());
         }
 
-        final Set<Channel<?>> apply(final Player player, final PlayState state) {
+        final Set<Channel<?>> apply(final Player player, final State state) {
             return Optional.ofNullable(map.get(state))
                            .orElseGet(List::of)
                            .stream()
@@ -213,7 +215,7 @@ public final class Player extends Sender<Player> {
                            .collect(Collectors.toSet());
         }
 
-        private boolean hasEffectOn(final PlayState state) {
+        private boolean hasEffectOn(final State state) {
             return map.containsKey(state);
         }
 
@@ -235,10 +237,10 @@ public final class Player extends Sender<Player> {
             }
         }
 
-        private record Choice(PlayState state, List<Action> methods) {
+        private record Choice(State state, List<Action> methods) {
 
             @SuppressWarnings("StaticMethodOnlyUsedInOneClass")
-            static Stage on(final PlayState state) {
+            static Stage on(final State state) {
                 return actions -> new Choice(state, Arrays.asList(actions));
             }
 
@@ -249,12 +251,33 @@ public final class Player extends Sender<Player> {
         }
     }
 
+    public enum State {
+
+        OFF(not(Sequencer::isOpen)),
+        RUNNING(Sequencer::isRunning),
+        PAUSED(sequencer -> 0L < sequencer.getTickPosition()),
+        READY(sequencer -> true);
+
+        private static final Values<State> VALUES = Values.of(State.class);
+
+        private final Predicate<Sequencer> condition;
+
+        State(final Predicate<Sequencer> condition) {
+            this.condition = condition;
+        }
+
+        static State of(final Sequencer sequencer) {
+            return VALUES.findAny(state -> state.condition.test(sequencer))
+                         .orElse(READY);
+        }
+    }
+
     @FunctionalInterface
     public interface Channel<M> extends Sender.Channel<Player, M> {
 
         Channel<Player> SET_MODES = midiPlayer -> midiPlayer;
         Channel<Player> SET_POSITION = midiPlayer -> midiPlayer;
-        Channel<PlayState> SET_STATE = Player::getState;
+        Channel<State> SET_STATE = Player::getState;
         Channel<Player> SET_TEMPO = midiPlayer -> midiPlayer;
 
         @SuppressWarnings("StaticMethodOnlyUsedInOneClass")

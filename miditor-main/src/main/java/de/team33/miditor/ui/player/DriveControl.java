@@ -1,6 +1,5 @@
 package de.team33.miditor.ui.player;
 
-import de.team33.midi.PlayState;
 import de.team33.midi.Player;
 import de.team33.miditor.ui.Rsrc;
 
@@ -100,21 +99,21 @@ public abstract class DriveControl extends JPanel {
             addActionListener(this::onActionPerformed);
         }
 
-        private void _setState(final PlayState state) {
+        private void _setState(final Player.State state) {
             synchronized (this) {
                 setEnabled(Player.Trigger.effectiveOn(state).contains(trigger));
                 final JRootPane rp = getRootPane();
                 if (null != rp) {
-                    if ((Player.Trigger.START == trigger) && (PlayState.RUNNING != state)) {
+                    if ((Player.Trigger.START == trigger) && (Player.State.RUNNING != state)) {
                         rp.setDefaultButton(this);
                         requestFocus();
                     }
 
-                    if ((Player.Trigger.STOP == trigger) && (PlayState.RUNNING == state)) {
+                    if ((Player.Trigger.STOP == trigger) && (Player.State.RUNNING == state)) {
                         rp.setDefaultButton(this);
                     }
 
-                    if ((Player.Trigger.PAUSE == trigger) && (PlayState.RUNNING == state)) {
+                    if ((Player.Trigger.PAUSE == trigger) && (Player.State.RUNNING == state)) {
                         requestFocus();
                     }
                 }
@@ -125,7 +124,7 @@ public abstract class DriveControl extends JPanel {
             getContext().getPlayer().push(trigger);
         }
 
-        private void onSetState(final PlayState state) {
+        private void onSetState(final Player.State state) {
             _setState(state);
         }
 
