@@ -15,17 +15,22 @@ public class Metronome extends AbstractList<MidiEvent> {
 
     private final List<MidiEvent> backing = new LinkedList<>();
 
-    public Metronome(final Parameter p) {
+    public Metronome(final Parameter prm) {
         final MetaMessage trackName =
                 TRACK_NAME.newMessage("Metronome".getBytes(StandardCharsets.UTF_8));
         backing.add(new MidiEvent(trackName, 0L));
-        for (long pos = p.getMin(); pos <= p.getMax(); pos += p.getRes()) {
+
+        final int beatTicks = prm.timing().beatTicks();
+        for (long pos = prm.startTick(); pos <= prm.finalTick(); pos += beatTicks) {
+            final boolean first = (pos % prm.timing().barTicks()) == 0L;
+            final int noteNo = first ? prm.firstNoteNo() : prm.nextNoteNo();
+            final int dynamic = first ? prm.firstDynamic() : prm.nextDynamic();
             final ShortMessage noteOn =
-                    NOTE_ON.newChnMessage(p.getChannel(), p.getNoteNo(pos), p.getDynamic(pos));
+                    NOTE_ON.newChnMessage(prm.midiChannel(), noteNo, dynamic);
             final ShortMessage noteOff =
-                    NOTE_ON.newChnMessage(p.getChannel(), p.getNoteNo(pos), 0);
+                    NOTE_ON.newChnMessage(prm.midiChannel(), noteNo, 0);
             backing.add(new MidiEvent(noteOn, pos));
-            backing.add(new MidiEvent(noteOff, pos + ((long) p.getRes() / 4)));
+            backing.add(new MidiEvent(noteOff, pos + ((long) beatTicks / 4)));
         }
     }
 
@@ -39,18 +44,12 @@ public class Metronome extends AbstractList<MidiEvent> {
         return backing.size();
     }
 
-    public interface Parameter {
-
-        long getMin();
-
-        long getMax();
-
-        int getRes();
-
-        int getChannel();
-
-        int getNoteNo(long var1);
-
-        int getDynamic(long var1);
-    }
+    public record Parameter(Timing timing,
+                            long startTick,
+                            long finalTick,
+                            int midiChannel,
+                            int firstNoteNo,
+                            int nextNoteNo,
+                            int firstDynamic,
+                            int nextDynamic) {}
 }

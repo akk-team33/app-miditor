@@ -21,35 +21,9 @@ public final class ActionControl extends JPanel {
         add(factory.fwdBarShiftButton());
     }
 
-    @SuppressWarnings({"AnonymousInnerClassWithTooManyMethods", "OverlyComplexAnonymousInnerClass"})
     private Metronome.Parameter newMetronomeParameter() {
-        return new Metronome.Parameter() {
-
-            public int getChannel() {
-                return 9;
-            }
-
-            @SuppressWarnings("MagicNumber")
-            public int getDynamic(final long pos) {
-                return 112;
-            }
-
-            public long getMax() {
-                return context.score().getTickLength();
-            }
-
-            public long getMin() {
-                return 0L;
-            }
-
-            @SuppressWarnings("MagicNumber")
-            public int getNoteNo(final long pos) {
-                return pos % context.score().timing().barTicks() == 0L ? 76 : 77;
-            }
-
-            public int getRes() {
-                return context.score().timing().beatTicks();
-            }
-        };
+        //noinspection MagicNumber
+        return new Metronome.Parameter(context.score().timing(), 0,
+                                       context.score().getTickLength(), 9, 76, 77, 127, 95);
     }
 }
