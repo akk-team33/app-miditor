@@ -1,45 +1,27 @@
 package de.team33.miditor.ui.sequence;
 
 import de.team33.midi.Metronome;
-import de.team33.midi.Part;
-import de.team33.miditor.ui.Rsrc;
-import de.team33.swing.XButton;
+import de.team33.miditor.ui.Factory;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.util.List;
 
-public abstract class ActionControl extends JPanel {
-    public ActionControl() {
+public final class ActionControl extends JPanel {
+
+    private final Context context;
+
+    public ActionControl(final Context context) {
         super(new GridLayout(1, 0, 1, 1));
-        add(new CNT_IN_BTTN());
-        add(new REVMESURE_BTTN());
-        add(new REVBEAT_BTTN());
-        add(new FWDBEAT_BTTN());
-        add(new FWDMESURE_BTTN());
+        this.context = context;
+        final Factory factory = Factory.by(context);
+        add(factory.metronomeButton(this::newMetronomeParameter));
+        add(factory.revBarShiftButton());
+        add(factory.revBeatShiftButton());
+        add(factory.fwdBeatShiftButton());
+        add(factory.fwdBarShiftButton());
     }
 
-    protected abstract Context getContext();
-
-    private abstract class BUTTON extends XButton {
-        public BUTTON(final Icon ico) {
-            super(ico);
-            setMargin(new Insets(1, 1, 1, 1));
-        }
-    }
-
-    private class CNT_IN_BTTN extends BUTTON {
-        public CNT_IN_BTTN() {
-            super(Rsrc.METRONOM);
-            setToolTipText("Metronom-Spur anlegen");
-        }
-
-        public final void actionPerformed(final ActionEvent e) {
-            getContext().getSequence().create(new Metronome(newMetronomeParameter()));
-        }
-    }
-
+    @SuppressWarnings({"AnonymousInnerClassWithTooManyMethods", "OverlyComplexAnonymousInnerClass"})
     private Metronome.Parameter newMetronomeParameter() {
         return new Metronome.Parameter() {
 
@@ -47,88 +29,27 @@ public abstract class ActionControl extends JPanel {
                 return 9;
             }
 
+            @SuppressWarnings("MagicNumber")
             public int getDynamic(final long pos) {
                 return 112;
             }
 
             public long getMax() {
-                return getContext().getSequence().getTickLength();
+                return context.score().getTickLength();
             }
 
             public long getMin() {
                 return 0L;
             }
 
+            @SuppressWarnings("MagicNumber")
             public int getNoteNo(final long pos) {
-                return pos % (long) getContext().getSequence().getTiming().barTicks() == 0L ? 76 : 77;
+                return pos % context.score().timing().barTicks() == 0L ? 76 : 77;
             }
 
             public int getRes() {
-                return getContext().getSequence().getTiming().beatTicks();
+                return context.score().timing().beatTicks();
             }
         };
-    }
-
-    private class FWDBEAT_BTTN extends SHIFT_BTTN {
-        public FWDBEAT_BTTN() {
-            super(">");
-            setToolTipText("Events um einen Schlag nach 'rechts' verschieben");
-        }
-
-        protected final long getDelta() {
-            return getContext().getSequence().getTiming().beatTicks();
-        }
-    }
-
-    private class FWDMESURE_BTTN extends SHIFT_BTTN {
-        public FWDMESURE_BTTN() {
-            super(">>");
-            setToolTipText("Events um einen Takt nach 'rechts' verschieben");
-        }
-
-        protected final long getDelta() {
-            return getContext().getSequence().getTiming().barTicks();
-        }
-    }
-
-    private class REVBEAT_BTTN extends SHIFT_BTTN {
-        public REVBEAT_BTTN() {
-            super("<");
-            setToolTipText("Events um einen Schlag nach 'links' verschieben");
-        }
-
-        protected final long getDelta() {
-            return -(long) getContext().getSequence().getTiming().beatTicks();
-        }
-    }
-
-    private class REVMESURE_BTTN extends SHIFT_BTTN {
-        public REVMESURE_BTTN() {
-            super("<<");
-            setToolTipText("Events um einen Takt nach 'links' verschieben");
-        }
-
-        protected final long getDelta() {
-            return -(long) getContext().getSequence().getTiming().barTicks();
-        }
-    }
-
-    private abstract class SHIFT_BTTN extends XButton {
-        public SHIFT_BTTN(final String text) {
-            super(text);
-            setMargin(new Insets(1, 1, 1, 1));
-        }
-
-        protected abstract long getDelta();
-
-        public final void actionPerformed(final ActionEvent e) {
-            final List<Part> var5;
-            final int var4 = (var5 = getContext().getSequence().getTracks()).size();
-
-            for (int var3 = 0; var3 < var4; ++var3) {
-                final Part t = var5.get(var3);
-                t.shift(getDelta());
-            }
-        }
     }
 }

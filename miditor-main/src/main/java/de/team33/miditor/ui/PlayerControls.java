@@ -51,7 +51,7 @@ public abstract class PlayerControls {
         }
 
         protected final Player getPlayer() {
-            return PlayerControls.this.getRootContext().getPlayer();
+            return PlayerControls.this.getRootContext().player();
         }
     }
 }

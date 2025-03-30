@@ -28,9 +28,9 @@ class ScoreTest extends MidiTestBase {
     final void getTracks() {
         final List<Integer> expected = Stream.of(sequence().getTracks()).map(Track::size).toList();
 
-        final List<Part> result = score.getTracks();
+        final List<Part> result = score.getParts();
         assertEquals(14, result.size());
-        assertSame(result, score.getTracks(), "two subsequent calls should return the same list");
+        assertSame(result, score.getParts(), "two subsequent calls should return the same list");
 
         final List<Integer> sizes = result.stream().map(Part::size).toList();
         assertEquals(expected, sizes);
@@ -42,7 +42,7 @@ class ScoreTest extends MidiTestBase {
                 Stream.of(sequence().getTracks()).map(Track::size),
                 Stream.of(1)).toList(); // 1 <-> EOT
 
-        final List<Part> result = score.create(Collections.emptyList()).getTracks();
+        final List<Part> result = score.create(Collections.emptyList()).getParts();
         assertEquals(15, result.size());
 
         final List<Integer> sizes = result.stream().map(Part::size).toList();
@@ -55,9 +55,9 @@ class ScoreTest extends MidiTestBase {
                 Stream.of(sequence().getTracks()).map(Track::size),
                 Stream.of(sequence().getTracks()[0]).map(Track::size)).toList();
 
-        final List<MidiEvent> events = score.getTracks().get(0).list();
+        final List<MidiEvent> events = score.getParts().get(0).list();
         final List<Part> result = score.create(events)
-                                       .getTracks();
+                                       .getParts();
         assertEquals(15, result.size());
 
         final List<Integer> sizes = result.stream().map(Part::size).toList();
@@ -71,9 +71,9 @@ class ScoreTest extends MidiTestBase {
                                              .map(Track::size)
                                              .toList();
 
-        score.delete(score.getTracks().stream().skip(6).toList());
+        score.delete(score.getParts().stream().skip(6).toList());
 
-        final List<Part> result = score.getTracks();
+        final List<Part> result = score.getParts();
         assertEquals(6, result.size());
         final List<Integer> sizes = result.stream().map(Part::size).toList();
         assertEquals(expected, sizes);
@@ -84,18 +84,18 @@ class ScoreTest extends MidiTestBase {
         final int expected = Stream.of(sequence().getTracks())
                                    .mapToInt(Track::size).map(size -> size -1)
                                    .sum() + 1;
-        score.join(score.getTracks());
-        assertEquals(1, score.getTracks().size());
-        assertEquals(expected, score.getTracks().get(0).size());
+        score.join(score.getParts());
+        assertEquals(1, score.getParts().size());
+        assertEquals(expected, score.getParts().get(0).size());
     }
 
     @Test
     final void split() {
-        score.join(score.getTracks())
-             .split(score.getTracks().get(0));
-        assertEquals(13, score.getTracks().size());
+        score.join(score.getParts())
+             .split(score.getParts().get(0));
+        assertEquals(13, score.getParts().size());
         assertEquals(List.of(29, 885, 2047, 817, 625, 1497, 155, 151, 71, 497, 2816, 87, 353),
-                     score.getTracks().stream().map(Part::size).toList());
+                     score.getParts().stream().map(Part::size).toList());
     }
 
     @Test
@@ -110,13 +110,13 @@ class ScoreTest extends MidiTestBase {
 
     @Test
     final void getTiming() {
-        assertEquals(new Timing(4, 4, 192, 59230), score.getTiming());
+        assertEquals(new Timing(4, 4, 192, 59230), score.timing());
     }
 
     @Test
     final void isModified() {
         assertFalse(score.isModified());
-        score.delete(List.of(score.getTracks().get(3)));
+        score.delete(List.of(score.getParts().get(3)));
         assertTrue(score.isModified());
     }
 }

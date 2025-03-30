@@ -35,16 +35,16 @@ public abstract class DriveControl extends JPanel {
         }
 
         protected final void relocate() {
-            final long ticksPerMeasure = getContext().getTiming().barTicks();
+            final long ticksPerMeasure = getContext().timing().barTicks();
             long threshold = 1L;
             threshold *= ticksPerMeasure;
             threshold /= 4L;
-            long ticks = getContext().getPlayer().getPosition();
+            long ticks = getContext().player().getPosition();
             ticks += threshold;
             ticks /= ticksPerMeasure;
             ++ticks;
             ticks *= ticksPerMeasure;
-            getContext().getPlayer().setPosition(ticks);
+            getContext().player().setPosition(ticks);
         }
     }
 
@@ -72,17 +72,17 @@ public abstract class DriveControl extends JPanel {
         }
 
         protected final void relocate() {
-            final long ticksPerMeasure = getContext().getTiming().barTicks();
+            final long ticksPerMeasure = getContext().timing().barTicks();
             long threshold = 1L;
             threshold *= ticksPerMeasure;
             threshold *= 3L;
             threshold /= 4L;
-            long ticks = getContext().getPlayer().getPosition();
+            long ticks = getContext().player().getPosition();
             ticks += threshold;
             ticks /= ticksPerMeasure;
             --ticks;
             ticks *= ticksPerMeasure;
-            getContext().getPlayer().setPosition(ticks);
+            getContext().player().setPosition(ticks);
         }
     }
 
@@ -92,9 +92,9 @@ public abstract class DriveControl extends JPanel {
         SBUTTON(final Player.Trigger trigger) {
             super(Rsrc.dcIcon(trigger));
             this.trigger = trigger;
-            getContext().getPlayer().registry()
+            getContext().player().registry()
                         .add(Player.Channel.SET_STATE, this::onSetState);
-            getContext().getWindow()
+            getContext().window()
                         .addWindowListener(new CLIENT3());
             addActionListener(this::onActionPerformed);
         }
@@ -121,7 +121,7 @@ public abstract class DriveControl extends JPanel {
         }
 
         private void onActionPerformed(final ActionEvent e) {
-            getContext().getPlayer().push(trigger);
+            getContext().player().push(trigger);
         }
 
         private void onSetState(final Player.State state) {
@@ -130,7 +130,7 @@ public abstract class DriveControl extends JPanel {
 
         private class CLIENT3 extends WindowAdapter {
             public final void windowOpened(final WindowEvent e) {
-                _setState(getContext().getPlayer().getState());
+                _setState(getContext().player().getState());
             }
         }
     }

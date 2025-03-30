@@ -66,7 +66,7 @@ public class EventEditor extends UIControllerImpl {
         }
 
         protected final Timing getTiming() {
-            return score.getTiming();
+            return score.timing();
         }
     }
 
@@ -102,7 +102,7 @@ public class EventEditor extends UIControllerImpl {
     }
 
     private void onSetParts(final Score sequence) {
-        final List<Part> parts = sequence.getTracks();
+        final List<Part> parts = sequence.getParts();
         final int size = parts.size();
         for (int index = 0; index < size; ++index) {
             final Part track = parts.get(index);

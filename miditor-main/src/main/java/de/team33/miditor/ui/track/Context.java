@@ -1,21 +1,16 @@
 package de.team33.miditor.ui.track;
 
 import de.team33.midi.Part;
-import de.team33.midi.Player;
-import de.team33.midi.Score;
 import de.team33.miditor.controller.UIController;
 import de.team33.miditor.model.Selection;
 
-public interface Context {
-    int getIndex();
+public interface Context extends de.team33.miditor.ui.Context {
 
-    Score getSequence();
+    int index();
 
-    Part getTrack();
+    Part part();
 
-    Player getPlayer();
+    Selection<Part> selection();
 
-    Selection<Part> getSelection();
-
-    UIController getTrackHandler();
+    UIController partHandler();
 }

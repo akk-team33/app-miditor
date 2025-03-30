@@ -140,7 +140,7 @@ public abstract class TimeShiftControl extends JPanel {
 
     private class TIMESHIFT extends TimeShiftBase {
         protected final Timing getTiming() {
-            return getSequence().getTiming();
+            return getSequence().timing();
         }
     }
 }
