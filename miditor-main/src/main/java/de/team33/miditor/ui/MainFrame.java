@@ -106,9 +106,10 @@ public class MainFrame extends XFrame {
     private class NORTH_PANE extends JPanel {
         public NORTH_PANE() {
             super(new GridBagLayout());
+            final Factory factory = Factory.by(context);
             setBorder(BorderFactory.createEmptyBorder(2, 2, 1, 1));
             add(songCtrls.getFileControl(), MainFrame.GBC_FILE_CTRL);
-            add(songCtrls.getActionControl(), MainFrame.GBC_ACTN_CTRL);
+            add(factory.actionControl(), MainFrame.GBC_ACTN_CTRL);
             add(new JPanel(), MainFrame.GBC_SPACE1);
             add(playCtrls.getTempoControl(), MainFrame.GBC_TMPO_CTRL);
             add(playCtrls.getDriveControl(), MainFrame.GBC_CTRL_PANE);

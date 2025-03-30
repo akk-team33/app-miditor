@@ -4,6 +4,7 @@ import de.team33.midi.Metronome;
 import de.team33.midi.Part;
 import de.team33.sphinx.alpha.activity.Event;
 import de.team33.sphinx.alpha.visual.JButtons;
+import de.team33.sphinx.alpha.visual.JPanels;
 
 import javax.swing.*;
 import java.awt.*;
@@ -71,5 +72,21 @@ public final class Factory {
         return shiftButtonBuilder(delta).setText(">>")
                                         .setToolTipText("Move events one bar to the 'right'")
                                         .build();
+    }
+
+    private Metronome.Parameter newMetronomeParameter() {
+        //noinspection MagicNumber
+        return new Metronome.Parameter(context.score().timing(), 0,
+                                       context.score().getTickLength(), 9, 76, 77, 127, 95);
+    }
+
+    public final JPanel actionControl() {
+        return JPanels.builder()
+                      .add(metronomeButton(this::newMetronomeParameter))
+                      .add(revBarShiftButton())
+                      .add(revBeatShiftButton())
+                      .add(fwdBeatShiftButton())
+                      .add(fwdBarShiftButton())
+                      .build();
     }
 }
