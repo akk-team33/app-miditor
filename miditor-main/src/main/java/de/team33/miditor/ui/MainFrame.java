@@ -6,10 +6,9 @@ import de.team33.midi.Player;
 import de.team33.midi.Score;
 import de.team33.midi.Timing;
 import de.team33.miditor.controller.UIController;
-import de.team33.miditor.model.PartSelection;
+import de.team33.miditor.model.Selection;
 import de.team33.miditor.ui.sequence.Context;
 import de.team33.patterns.io.deimos.TextIO;
-import de.team33.selection.Selection;
 import de.team33.swing.XFrame;
 
 import javax.swing.*;
@@ -54,9 +53,11 @@ public class MainFrame extends XFrame {
     private final SONG_CTRLS songCtrls = new SONG_CTRLS();
 
     public MainFrame(final Music music, final Preferences prefs) {
-        super("?", prefs);
+        super(FRAME_TITLE, prefs);
         this.music = music;
-        selection = new PartSelection(music.score());
+        this.selection = new Selection<>();
+        music.score().registry().add(Score.Channel.SetTracks, any -> selection.clear());
+
         m_EventEditor = new TRACK_EDITOR();
         setIconImage(Rsrc.MAIN_ICON.getImage());
         setContentPane(new MAIN_PANE());

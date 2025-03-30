@@ -4,10 +4,9 @@ import de.team33.midi.Part;
 import de.team33.midi.Player;
 import de.team33.midi.Score;
 import de.team33.miditor.controller.UIController;
+import de.team33.miditor.model.Selection;
 import de.team33.miditor.ui.SmallButton;
 import de.team33.miditor.ui.TrackControls;
-import de.team33.selection.Selection;
-import de.team33.selection.SelectionUtil;
 
 import javax.swing.*;
 import java.awt.*;
@@ -49,7 +48,7 @@ public abstract class TrackList extends JScrollPane {
             super(lbl);
             this.min = min;
             this.max = max;
-            getContext().getSelection().addListener(Selection.Event.UPDATE, this::onUpdate);
+            getContext().getSelection().registry().add(Selection.Event.UPDATE, this::onUpdate);
         }
 
         public final void actionPerformed(final ActionEvent e) {
@@ -89,7 +88,7 @@ public abstract class TrackList extends JScrollPane {
     private class SELECTOR extends JCheckBox {
         SELECTOR() {
             super("alle");
-            getContext().getSelection().addListener(Selection.Event.UPDATE, this::onUpdate);
+            getContext().getSelection().registry().add(Selection.Event.UPDATE, this::onUpdate);
             addActionListener(new ACTN_CLNT());
         }
 
@@ -99,7 +98,7 @@ public abstract class TrackList extends JScrollPane {
 
             public final void actionPerformed(final ActionEvent e) {
                 if (isSelected()) {
-                    SelectionUtil.set(getContext().getSelection(), getContext().getSequence().getTracks());
+                    Selection.set(getContext().getSelection(), getContext().getSequence().getTracks());
                 } else {
                     getContext().getSelection().clear();
                 }

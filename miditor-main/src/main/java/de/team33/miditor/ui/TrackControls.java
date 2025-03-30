@@ -3,8 +3,8 @@ package de.team33.miditor.ui;
 import de.team33.midi.Part;
 import de.team33.midi.Player;
 import de.team33.midi.TrackMode;
+import de.team33.miditor.model.Selection;
 import de.team33.miditor.ui.track.Context;
-import de.team33.selection.Selection;
 import de.team33.swing.XTextField;
 
 import javax.swing.*;
@@ -70,7 +70,7 @@ public abstract class TrackControls {
         public INDEX_PANE() {
             super(getContext().getTrack().getPrefix());
             getContext().getTrack().registry().add(Part.Channel.SetModified, this::onSetModified);
-            getContext().getSelection().addListener(Selection.Event.UPDATE, this::onSelection);
+            getContext().getSelection().registry().add(Selection.Event.UPDATE, this::onSelection);
             addActionListener(this::onAction);
         }
 

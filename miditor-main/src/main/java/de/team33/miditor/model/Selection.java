@@ -1,34 +1,38 @@
-package de.team33.selection;
+package de.team33.miditor.model;
 
 import de.team33.patterns.notes.beta.Audience;
+import de.team33.patterns.notes.beta.Channel;
+import de.team33.patterns.notes.beta.Registry;
 
 import java.util.AbstractSet;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.function.Consumer;
 
-public class SelectionImpl<E> extends AbstractSet<E> implements Selection<E> {
+public class Selection<E> extends AbstractSet<E> {
 
     private final HashSet<E> core;
     private final Audience audience = new Audience(Runnable::run);
 
-    public SelectionImpl() {
+    public Selection() {
         this(new HashSet());
     }
 
-    public SelectionImpl(final Collection<? extends E> c) {
+    public Selection(final Collection<? extends E> c) {
         this(new HashSet(c));
     }
 
-    private SelectionImpl(final HashSet<E> core) {
+    private Selection(final HashSet<E> core) {
         this.core = core;
     }
 
-    @Override
-    public final void addListener(final Event event, final Consumer<? super Selection<?>> listener) {
-        audience.add(event, listener);
-        listener.accept(this);
+    public static <E> void set(final Selection<E> selection, final Collection<? extends E> elements) {
+        selection.clear();
+        selection.addAll(elements);
+    }
+
+    public final Registry<?> registry() {
+        return audience;
     }
 
     public final boolean add(final E element) {
@@ -104,7 +108,11 @@ public class SelectionImpl<E> extends AbstractSet<E> implements Selection<E> {
 
         public final void remove() {
             core.remove();
-            audience.fire(Event.UPDATE, SelectionImpl.this);
+            audience.fire(Event.UPDATE, Selection.this);
         }
+    }
+
+    public enum Event implements Channel<Selection<?>> {
+        UPDATE
     }
 }

@@ -3,9 +3,9 @@ package de.team33.miditor.ui.sequence;
 import de.team33.midi.Part;
 import de.team33.midi.Score;
 import de.team33.midi.Timing;
+import de.team33.miditor.model.Selection;
 import de.team33.miditor.model.TimeShift;
 import de.team33.miditor.model.TimeShiftBase;
-import de.team33.selection.Selection;
 import de.team33.swing.XButton;
 import de.team33.swing.XSpinner;
 
@@ -124,7 +124,7 @@ public abstract class TimeShiftControl extends JPanel {
             m_Factor = factor;
             setMargin(new Insets(0, 0, 0, 0));
             setFont(new Font(getFont().getName(), 0, 10));
-            getSelection().addListener(Selection.Event.UPDATE, this::onUpdate);
+            getSelection().registry().add(Selection.Event.UPDATE, this::onUpdate);
         }
 
         public final void actionPerformed(final ActionEvent e) {
