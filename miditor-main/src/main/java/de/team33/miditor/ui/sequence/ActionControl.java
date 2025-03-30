@@ -34,32 +34,9 @@ public final class ActionControl extends JPanel {
     }
 
     private Metronome.Parameter newMetronomeParameter() {
-        return new Metronome.Parameter() {
-
-            public int getChannel() {
-                return 9;
-            }
-
-            public int getDynamic(final long pos) {
-                return 112;
-            }
-
-            public long getMax() {
-                return context.score().getTickLength();
-            }
-
-            public long getMin() {
-                return 0L;
-            }
-
-            public int getNoteNo(final long pos) {
-                return pos % (long) context.score().getTiming().barTicks() == 0L ? 76 : 77;
-            }
-
-            public int getRes() {
-                return context.score().getTiming().beatTicks();
-            }
-        };
+        //noinspection MagicNumber
+        return new Metronome.Parameter(context.timing(), 0,
+                                       context.score().getTickLength(), 9, 76, 77, 127, 95);
     }
 
     private JButton fwdShiftBeatButton() {
