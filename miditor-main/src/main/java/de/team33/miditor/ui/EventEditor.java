@@ -16,25 +16,28 @@ import javax.swing.table.TableModel;
 import java.awt.*;
 import java.util.List;
 
-public abstract class EventEditor extends UIControllerImpl {
+public class EventEditor extends UIControllerImpl {
+
     private static final Insets GBC_INSETS = new Insets(2, 2, 2, 2);
-    private static final int GBC_ANCHOR = 10;
-    private static final int GBC_FILL = 1;
+    private static final int GBC_ANCHOR = GridBagConstraints.CENTER;
+    private static final int GBC_FILL = GridBagConstraints.BOTH;
     private static final GridBagConstraints GBC_HEADER;
     private static final GridBagConstraints GBC_BODY;
     private static final GridBagConstraints GBC_FOOTER;
 
     static {
-        GBC_HEADER = new GridBagConstraints(0, 0, 1, 1, 1.0, 0.0, 10, 1, GBC_INSETS, 0, 0);
-        GBC_BODY = new GridBagConstraints(0, 1, 1, 1, 1.0, 1.0, 10, 1, GBC_INSETS, 0, 0);
-        GBC_FOOTER = new GridBagConstraints(0, 2, 1, 1, 1.0, 0.0, 10, 1, GBC_INSETS, 0, 0);
+        GBC_HEADER = new GridBagConstraints(0, 0, 1, 1, 1.0, 0.0, GBC_ANCHOR, GBC_FILL, GBC_INSETS, 0, 0);
+        GBC_BODY = new GridBagConstraints(0, 1, 1, 1, 1.0, 1.0, GBC_ANCHOR, GBC_FILL, GBC_INSETS, 0, 0);
+        GBC_FOOTER = new GridBagConstraints(0, 2, 1, 1, 1.0, 0.0, GBC_ANCHOR, GBC_FILL, GBC_INSETS, 0, 0);
     }
 
     private final EVNT_RENDERER m_EventRenderer = new EVNT_RENDERER();
+    private final Score score;
     private JComponent m_RootComponent = null;
 
-    protected EventEditor() {
-        getSequence().registry().add(Score.Channel.SetTracks, this::onSetParts);
+    public EventEditor(final Score score) {
+        this.score = score;
+        score.registry().add(Score.Channel.SetTracks, this::onSetParts);
     }
 
     private EventEditor _EventEditor() {
@@ -48,8 +51,6 @@ public abstract class EventEditor extends UIControllerImpl {
 
         return m_RootComponent;
     }
-
-    protected abstract Score getSequence();
 
     private class ACTIONS extends EventActions {
         private ACTIONS() {
@@ -65,7 +66,7 @@ public abstract class EventEditor extends UIControllerImpl {
         }
 
         protected final Timing getTiming() {
-            return getSequence().getTiming();
+            return score.getTiming();
         }
     }
 

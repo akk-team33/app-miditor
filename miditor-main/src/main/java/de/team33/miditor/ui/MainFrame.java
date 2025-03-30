@@ -46,7 +46,7 @@ public class MainFrame extends XFrame {
 
     private final Selection<Part> selection;
     private final Music music;
-    private final EventEditor m_EventEditor;
+    private final EventEditor eventEditor;
     private final WindowListener m_WindowListener = new WINDOW_ADAPTER();
     private final CONTEXT context = new CONTEXT();
     private final PLAY_CTRLS playCtrls = new PLAY_CTRLS();
@@ -58,11 +58,12 @@ public class MainFrame extends XFrame {
         this.selection = new Selection<>();
         music.score().registry().add(Score.Channel.SetTracks, any -> selection.clear());
 
-        m_EventEditor = new TRACK_EDITOR();
+        this.eventEditor = new EventEditor(music.score());
         setIconImage(Rsrc.MAIN_ICON.getImage());
         setContentPane(new MAIN_PANE());
         setLocationByPlatform(true);
         addWindowListener(m_WindowListener);
+
         music.registry().add(Music.Channel.SET_PATH, this::onSetFile);
     }
 
@@ -70,7 +71,7 @@ public class MainFrame extends XFrame {
         CENTER_PANE() {
             super(1);
             addTab("Track-Übersicht", (Icon) null, songCtrls.getTrackList(), "Übersicht über die im aktuellen Song enthaltenen 'Tonspuren' (Tracks)");
-            addTab("Event-Editor", (Icon) null, m_EventEditor.getComponent(), "Event-Editor");
+            addTab("Event-Editor", (Icon) null, eventEditor.getComponent(), "Event-Editor");
         }
     }
 
@@ -103,7 +104,7 @@ public class MainFrame extends XFrame {
         }
 
         public final UIController getTrackHandler() {
-            return m_EventEditor;
+            return eventEditor;
         }
 
         public final Selection<Part> getTrackSelection() {
@@ -150,12 +151,6 @@ public class MainFrame extends XFrame {
     private class SONG_CTRLS extends SongControls {
         protected final Context getContext() {
             return context;
-        }
-    }
-
-    private class TRACK_EDITOR extends EventEditor {
-        protected final Score getSequence() {
-            return music.score();
         }
     }
 
