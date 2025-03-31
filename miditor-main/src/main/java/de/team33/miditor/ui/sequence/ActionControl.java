@@ -1,6 +1,7 @@
 package de.team33.miditor.ui.sequence;
 
 import de.team33.midi.Metronome;
+import de.team33.miditor.ui.Basics;
 import de.team33.miditor.ui.Rsrc;
 import de.team33.sphinx.alpha.activity.Event;
 import de.team33.sphinx.alpha.visual.JButtons;
@@ -74,8 +75,7 @@ public final class ActionControl extends JPanel {
     }
 
     private static JButtons.Builder<?> stdButton(final Consumer<ActionEvent> action) {
-        return JButtons.builder()
-                       .setMargin(new Insets(1, 1, 1, 1))
-                       .on(Event.ACTION_PERFORMED, action);
+        return Basics.buttonBuilder()
+                     .on(Event.ACTION_PERFORMED, action);
     }
 }

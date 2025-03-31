@@ -20,20 +20,11 @@ public class SongControls {
     }
 
     public final Component getFileControl() {
-        return new FILE_CTRL();
+        return new FileControl(context);
     }
 
     public final Component getTrackList() {
         return new TRCK_LIST();
-    }
-
-    private class FILE_CTRL extends FileControl {
-        private FILE_CTRL() {
-        }
-
-        protected final Context getContext() {
-            return context;
-        }
     }
 
     private class TRCK_LIST extends TrackList {

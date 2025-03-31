@@ -2,8 +2,10 @@ package de.team33.miditor.ui.sequence;
 
 import de.team33.midi.Score;
 import de.team33.miditor.CMidiFileFilter;
+import de.team33.miditor.ui.Basics;
 import de.team33.miditor.ui.Rsrc;
-import de.team33.swing.XButton;
+import de.team33.sphinx.alpha.activity.Event;
+import de.team33.sphinx.alpha.visual.JFileChoosers;
 
 import javax.swing.*;
 import java.awt.*;
@@ -11,87 +13,75 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
 
-public abstract class FileControl extends JPanel {
-    public FileControl() {
+public final class FileControl extends JPanel {
+
+    private static final String SAVE_FAILD = "Die Datei%n%n" +
+                                             "\t<%s>%n%n" +
+                                             "konnte nicht gespeichert werden.%n%n" +
+                                             "Eventuell ist die Datei schreibgeschützt%n" +
+                                             "oder Ihnen fehlen die notwendigen Rechte.";
+    private static final String SAVE_FAILD_HEAD = "Datei-Fehler";
+
+    private final Context context;
+
+    public FileControl(final Context context) {
         super(new GridLayout(1, 0, 1, 1));
-        add(new SAVE_BTTN());
-        add(new SVAS_BTTN());
+        this.context = context;
+
+        add(saveButton());
+        add(saveAsButton());
     }
 
-    protected abstract Context getContext();
+    private JButton saveButton() {
+        return Basics.buttonBuilder()
+                     .setIcon(Rsrc.SAVEICON)
+                     .setToolTipText("MIDI-Sequenz speichern")
+                     .setup(jButton -> context.score().registry()
+                                              .add(Score.Channel.SetModified,
+                                                   score -> jButton.setEnabled(score.isModified())))
+                     .on(Event.ACTION_PERFORMED, this::onSave)
+                     .build();
+    }
 
-    private abstract class BUTTON extends XButton {
-        public BUTTON(final Icon ico) {
-            super(ico);
-            setMargin(new Insets(1, 1, 1, 1));
+    private void onSave(final ActionEvent event) {
+        try {
+            context.music().save();
+        } catch (final IOException e) {
+            JOptionPane.showMessageDialog(context.window(),
+                                          SAVE_FAILD.formatted(context.music().path()),
+                                          SAVE_FAILD_HEAD, 0);
         }
     }
 
-    private class SAVE_BTTN extends BUTTON {
+    private JButton saveAsButton() {
+        return Basics.buttonBuilder()
+                     .setIcon(Rsrc.SVASICON)
+                     .setToolTipText("MIDI-Sequenz speichern als ...")
+                     .on(Event.ACTION_PERFORMED, this::onSaveAs)
+                     .build();
+    }
 
-        public SAVE_BTTN() {
-            super(Rsrc.SAVEICON);
-            setToolTipText("MIDI-Sequenz speichern");
-            getContext().score().registry().add(Score.Channel.SetModified, this::onSetModified);
-        }
-
-        public final void actionPerformed(final ActionEvent e) {
+    private void onSaveAs(final ActionEvent event) {
+        final CMidiFileFilter filter = new CMidiFileFilter();
+        final File file0 = context.music().path().getParent().toFile();
+        final JFileChooser chooser = JFileChoosers.builder()
+                                                  .setCurrentDirectory(file0)
+                                                  .setDialogTitle("Song speichern")
+                                                  .setFileFilter(filter)
+                                                  .build();
+        final int returnVal = chooser.showSaveDialog(context.window());
+        if (0 == returnVal) {
             try {
-                getContext().music().save();
-            } catch (final IOException var3) {
-                JOptionPane.showMessageDialog(getContext().window(),
-                                              "Die Datei\n\t" +
-                                              getContext().music().path() +
-                                              "\nkonnte nicht gespeichert werden.\n" +
-                                              "\nEventuell ist die Datei schreibgeschützt" +
-                                              "\noder Ihnen fehlen die notwendigen Rechte.",
-                                              "Datei-Fehler", 0);
-            }
-
-        }
-
-//        protected void finalize() throws Throwable {
-//            getContext().getSequence().getRegister(Sequence.SetModified.class).remove(m_SongClient);
-//            super.finalize();
-//        }
-
-        private void onSetModified(final Score sequence) {
-            final boolean b = sequence.isModified();
-            setEnabled(b);
-        }
-    }
-
-    private class SVAS_BTTN extends BUTTON {
-        public SVAS_BTTN() {
-            super(Rsrc.SVASICON);
-            setToolTipText("MIDI-Sequenz speichern als ...");
-        }
-
-        public final void actionPerformed(final ActionEvent e) {
-            final JFileChooser chooser = new JFileChooser(getContext().music().path().getParent().toFile());
-            final CMidiFileFilter filter = new CMidiFileFilter();
-            chooser.setDialogTitle("Song speichern");
-            chooser.setFileFilter(filter);
-            final int returnVal = chooser.showSaveDialog(getContext().window());
-            if (returnVal == 0) {
-                try {
-                    File f = chooser.getSelectedFile();
-                    if (!filter.accept(f) && !f.isFile()) {
-                        f = new File(f.getParentFile(), f.getName() + ".mid");
-                    }
-
-                    getContext().music().saveAs(f.toPath());
-                } catch (final IOException var6) {
-                    JOptionPane.showMessageDialog(getContext().window(),
-                                                  "Die Datei\n\t" +
-                                                  chooser.getSelectedFile() +
-                                                  "\nkonnte nicht gespeichert werden.\n" +
-                                                  "\nEventuell ist die Datei schreibgeschützt\n" +
-                                                  "oder Ihnen fehlen die notwendigen Rechte.",
-                                                  "Datei-Fehler", 0);
+                File fileX = chooser.getSelectedFile();
+                if (!filter.accept(fileX) && !fileX.isFile()) {
+                    fileX = new File(fileX.getParentFile(), fileX.getName() + ".mid");
                 }
+                context.music().saveAs(fileX.toPath());
+            } catch (final IOException var6) {
+                JOptionPane.showMessageDialog(context.window(),
+                                              SAVE_FAILD.formatted(chooser.getSelectedFile()),
+                                              SAVE_FAILD_HEAD, 0);
             }
-
         }
     }
 }

@@ -2,19 +2,14 @@ package de.team33.miditor.ui;
 
 import de.team33.sphinx.alpha.visual.JButtons;
 
-import javax.swing.*;
+import java.awt.*;
 
 public class Basics {
 
-    public static JButtons.Builder<?> jButtonBuilder() {
-        return JButtons.builder();
-    }
+    public static final Insets INSETS_1111 = new Insets(1, 1, 1, 1);
 
-    public static JButtons.Builder<?> jButtonBuilder(final String text) {
-        return jButtonBuilder().setText(text);
-    }
-
-    public static JButtons.Builder<?> jButtonBuilder(final Icon icon) {
-        return jButtonBuilder().setIcon(icon);
+    public static JButtons.Builder<?> buttonBuilder() {
+        return JButtons.builder()
+                       .setMargin(INSETS_1111);
     }
 }
