@@ -64,16 +64,16 @@ public class MainFrame extends XFrame {
         music.registry().add(Music.Channel.SET_PATH, this::onSetFile);
     }
 
+    public final void onSetFile(final Path path) {
+        setTitle(String.format(FRAME_TITLE, path));
+    }
+
     private final class Factory extends de.team33.miditor.ui.Factory implements Context {
 
         private final EventEditor eventEditor;
-        private final PLAY_CTRLS playCtrls;
-        private final SONG_CTRLS songCtrls;
 
         private Factory() {
             this.eventEditor = new EventEditor(score());
-            this.playCtrls = new PLAY_CTRLS();
-            this.songCtrls = new SONG_CTRLS();
         }
 
         public final Window window() {
@@ -102,6 +102,8 @@ public class MainFrame extends XFrame {
         }
 
         private JPanel northPanel() {
+            final PlayerControls playCtrls = new PlayerControls(this);
+            final SongControls songCtrls = new SongControls(this);
             return JPanels.builder()
                           .setLayout(new GridBagLayout())
                           .setBorder(BorderFactory.createEmptyBorder(2, 2, 1, 1))
@@ -115,29 +117,14 @@ public class MainFrame extends XFrame {
         }
 
         private JTabbedPane centerPanel() {
+            final SongControls songCtrls = new SongControls(this);
             return JTabbedPanes.builder()
                                .setTabPlacement(JTabbedPane.TOP)
-                               .addTab("Track-Übersicht", null, songCtrls.getTrackList(), "Übersicht über die im aktuellen Song enthaltenen 'Tonspuren' (Tracks)")
-                               .addTab("Event-Editor", null, eventEditor.getComponent(), "Event-Editor")
+                               .addTab("Parts", null, songCtrls.getTrackList(),
+                                       "Overview of the parts that make up the current piece of music")
+                               .addTab("Events", null, eventEditor.getComponent(),
+                                       "The MIDI events contained in the selected part")
                                .build();
-        }
-    }
-
-    private class PLAY_CTRLS extends PlayerControls {
-
-        @Override
-        protected de.team33.miditor.ui.Context getRootContext() {
-            return factory;
-        }
-    }
-
-    public final void onSetFile(final Path path) {
-        setTitle(String.format(FRAME_TITLE, path));
-    }
-
-    private class SONG_CTRLS extends SongControls {
-        protected final Context getContext() {
-            return factory;
         }
     }
 }

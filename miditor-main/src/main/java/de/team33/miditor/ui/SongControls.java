@@ -7,8 +7,12 @@ import de.team33.miditor.ui.sequence.TrackList;
 
 import java.awt.*;
 
-public abstract class SongControls {
-    public SongControls() {
+public class SongControls {
+    
+    private final Context context;
+
+    public SongControls(final Context context) {
+        this.context = context;
     }
 
     public final Component getActionControl() {
@@ -19,8 +23,6 @@ public abstract class SongControls {
         return new FILE_CTRL();
     }
 
-    protected abstract Context getContext();
-
     public final Component getTrackList() {
         return new TRCK_LIST();
     }
@@ -30,7 +32,7 @@ public abstract class SongControls {
         }
 
         protected final Context getContext() {
-            return SongControls.this.getContext();
+            return context;
         }
     }
 
@@ -39,7 +41,7 @@ public abstract class SongControls {
         }
 
         protected final Context getContext() {
-            return SongControls.this.getContext();
+            return context;
         }
     }
 
@@ -48,7 +50,7 @@ public abstract class SongControls {
         }
 
         protected final Context getContext() {
-            return SongControls.this.getContext();
+            return context;
         }
     }
 }

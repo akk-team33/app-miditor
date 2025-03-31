@@ -7,8 +7,12 @@ import de.team33.miditor.ui.player.TempoControl;
 
 import java.awt.*;
 
-public abstract class PlayerControls {
-    public PlayerControls() {
+public class PlayerControls {
+
+    private final Context context;
+
+    public PlayerControls(final Context context) {
+        this.context = context;
     }
 
     public final Component getDriveControl() {
@@ -23,14 +27,12 @@ public abstract class PlayerControls {
         return (new TMPO_CTRL()).getComponent();
     }
 
-    protected abstract Context getRootContext();
-
     private class DRV_CTRL extends DriveControl {
         private DRV_CTRL() {
         }
 
         protected final Context getContext() {
-            return PlayerControls.this.getRootContext();
+            return context;
         }
     }
 
@@ -39,7 +41,7 @@ public abstract class PlayerControls {
         }
 
         protected final Context getContext() {
-            return PlayerControls.this.getRootContext();
+            return context;
         }
     }
 
@@ -48,7 +50,7 @@ public abstract class PlayerControls {
         }
 
         protected final Player getPlayer() {
-            return PlayerControls.this.getRootContext().player();
+            return context.player();
         }
     }
 }
