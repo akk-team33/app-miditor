@@ -48,11 +48,11 @@ public abstract class TrackList extends JScrollPane {
             super(lbl);
             this.min = min;
             this.max = max;
-            getContext().getSelection().registry().add(Selection.Event.UPDATE, this::onUpdate);
+            getContext().selection().registry().add(Selection.Event.UPDATE, this::onUpdate);
         }
 
         public final void actionPerformed(final ActionEvent e) {
-            doActionWith(getContext().getSelection());
+            doActionWith(getContext().selection());
             setSelected(false);
         }
 
@@ -71,7 +71,7 @@ public abstract class TrackList extends JScrollPane {
         }
 
         protected final void doActionWith(final Collection<Part> trcks) {
-            getContext().getSequence().delete(trcks);
+            getContext().score().delete(trcks);
         }
     }
 
@@ -81,14 +81,14 @@ public abstract class TrackList extends JScrollPane {
         }
 
         protected final void doActionWith(final Collection<Part> trcks) {
-            getContext().getSequence().join(trcks);
+            getContext().score().join(trcks);
         }
     }
 
     private class SELECTOR extends JCheckBox {
         SELECTOR() {
             super("alle");
-            getContext().getSelection().registry().add(Selection.Event.UPDATE, this::onUpdate);
+            getContext().selection().registry().add(Selection.Event.UPDATE, this::onUpdate);
             addActionListener(new ACTN_CLNT());
         }
 
@@ -98,16 +98,16 @@ public abstract class TrackList extends JScrollPane {
 
             public final void actionPerformed(final ActionEvent e) {
                 if (isSelected()) {
-                    Selection.set(getContext().getSelection(), getContext().getSequence().getTracks());
+                    Selection.set(getContext().selection(), getContext().score().getTracks());
                 } else {
-                    getContext().getSelection().clear();
+                    getContext().selection().clear();
                 }
             }
         }
 
         private void onUpdate(final Set<?> selection) {
             final int sel = selection.size();
-            setSelected((getContext().getSequence().getTracks().size() - sel) < sel);
+            setSelected((getContext().score().getTracks().size() - sel) < sel);
         }
     }
 
@@ -127,11 +127,11 @@ public abstract class TrackList extends JScrollPane {
         }
 
         protected final Selection<Part> getSelection() {
-            return getContext().getSelection();
+            return getContext().selection();
         }
 
         protected final Score getSequence() {
-            return getContext().getSequence();
+            return getContext().score();
         }
     }
 
@@ -142,7 +142,7 @@ public abstract class TrackList extends JScrollPane {
 
         TABLE() {
             super(new GridBagLayout());
-            getContext().getSequence().registry().add(Score.Channel.SetTracks, this::onSetParts);
+            getContext().score().registry().add(Score.Channel.SetTracks, this::onSetParts);
         }
 
         private void onSetParts(final Score sequence) {
@@ -181,15 +181,15 @@ public abstract class TrackList extends JScrollPane {
         }
 
         public final Player getPlayer() {
-            return getContext().getPlayer();
+            return getContext().player();
         }
 
         public final Selection<Part> getSelection() {
-            return getContext().getSelection();
+            return getContext().selection();
         }
 
         public final Score getSequence() {
-            return getContext().getSequence();
+            return getContext().score();
         }
 
         public final Part getTrack() {
@@ -197,7 +197,7 @@ public abstract class TrackList extends JScrollPane {
         }
 
         public final UIController getTrackHandler() {
-            return getContext().getTrackHandler();
+            return getContext().partHandler();
         }
     }
 

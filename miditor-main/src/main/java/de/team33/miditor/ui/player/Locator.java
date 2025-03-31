@@ -1,6 +1,7 @@
 package de.team33.miditor.ui.player;
 
 import de.team33.midi.Player;
+import de.team33.miditor.ui.Context;
 import de.team33.swing.XSpinner;
 
 import javax.swing.*;
@@ -22,10 +23,10 @@ public abstract class Locator extends JPanel {
         add(new LABEL1(":"), new GBC(6, 0));
         add(new TICK_PANE(), new GBC(7, 0));
         add(new LABEL1(" "), new GBC(8, 0));
-        add(new LABEL2("Takt " + getContext().getTiming().barNumerator() + "/" + getContext().getTiming().barDenominator()), new GBC(0, 1, 3));
-        add(new LABEL2("1/" + getContext().getTiming().barDenominator()), new GBC(2, 1, 3));
-        add(new LABEL2("1/" + getContext().getTiming().subBeatDenominator()), new GBC(4, 1, 3));
-        add(new LABEL2("1/" + getContext().getTiming().tickDenominator()), new GBC(6, 1, 3));
+        add(new LABEL2("Takt " + getContext().timing().barNumerator() + "/" + getContext().timing().barDenominator()), new GBC(0, 1, 3));
+        add(new LABEL2("1/" + getContext().timing().barDenominator()), new GBC(2, 1, 3));
+        add(new LABEL2("1/" + getContext().timing().subBeatDenominator()), new GBC(4, 1, 3));
+        add(new LABEL2("1/" + getContext().timing().tickDenominator()), new GBC(6, 1, 3));
     }
 
     protected abstract Context getContext();
@@ -69,12 +70,12 @@ public abstract class Locator extends JPanel {
         }
 
         protected final int getDelta() {
-            return getContext().getTiming().beatTicks();
+            return getContext().timing().beatTicks();
         }
 
         protected final void setDisplay(long ticks) {
             ticks /= (long) getDelta();
-            ticks %= (long) getContext().getTiming().barNumerator();
+            ticks %= (long) getContext().timing().barNumerator();
             ++ticks;
             if (m_last != ticks) {
                 setText(String.format("%d", ticks));
@@ -89,7 +90,7 @@ public abstract class Locator extends JPanel {
         LOC_PANE() {
             setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 4));
             setFont(new Font(getFont().getName(), 1, 17));
-            getContext().getPlayer().registry()
+            getContext().player().registry()
                         .add(Player.Channel.SET_POSITION, this::onSetPosition);
         }
 
@@ -104,11 +105,11 @@ public abstract class Locator extends JPanel {
         }
 
         protected final void maximize() {
-            getContext().getPlayer().setPosition(getContext().getSequence().getTickLength());
+            getContext().player().setPosition(getContext().score().getTickLength());
         }
 
         protected final void minimize() {
-            getContext().getPlayer().setPosition(0L);
+            getContext().player().setPosition(0L);
         }
 
         protected abstract void setDisplay(long var1);
@@ -118,7 +119,7 @@ public abstract class Locator extends JPanel {
                 delta *= 10;
             }
 
-            getContext().getPlayer().setPosition(getContext().getPlayer().getPosition() + ((long) delta * getDelta()));
+            getContext().player().setPosition(getContext().player().getPosition() + ((long) delta * getDelta()));
         }
 
         public final void onSetPosition(final long ticks) {
@@ -135,7 +136,7 @@ public abstract class Locator extends JPanel {
         }
 
         protected final int getDelta() {
-            return getContext().getTiming().barTicks();
+            return getContext().timing().barTicks();
         }
 
         protected final void setDisplay(long ticks) {
@@ -158,11 +159,11 @@ public abstract class Locator extends JPanel {
         }
 
         protected final int getDelta() {
-            return getContext().getTiming().subBeatTicks();
+            return getContext().timing().subBeatTicks();
         }
 
         protected final void setDisplay(long ticks) {
-            final int beatQuantization = getContext().getTiming().subBeatDenominator() / getContext().getTiming().barDenominator();
+            final int beatQuantization = getContext().timing().subBeatDenominator() / getContext().timing().barDenominator();
             ticks /= (long) getDelta();
             ticks %= (long) beatQuantization;
             ++ticks;
@@ -188,11 +189,11 @@ public abstract class Locator extends JPanel {
 
         protected final void setDisplay(final long ticks) {
             if (m_Format == null) {
-                final String sQTicks = String.valueOf(getContext().getTiming().subBeatTicks());
+                final String sQTicks = String.valueOf(getContext().timing().subBeatTicks());
                 m_Format = String.format("%%0%dd", sQTicks.length());
             }
 
-            setText(String.format(m_Format, ticks % (long) getContext().getTiming().subBeatTicks()));
+            setText(String.format(m_Format, ticks % (long) getContext().timing().subBeatTicks()));
         }
     }
 }

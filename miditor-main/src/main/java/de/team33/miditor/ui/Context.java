@@ -5,7 +5,11 @@ import de.team33.midi.Player;
 import de.team33.midi.Score;
 import de.team33.midi.Timing;
 
+import java.awt.*;
+
 public interface Context {
+
+    Window window();
 
     Music music();
 

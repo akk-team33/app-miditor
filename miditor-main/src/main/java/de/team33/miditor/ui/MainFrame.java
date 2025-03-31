@@ -4,7 +4,6 @@ import de.team33.midi.Music;
 import de.team33.midi.Part;
 import de.team33.midi.Player;
 import de.team33.midi.Score;
-import de.team33.midi.Timing;
 import de.team33.miditor.controller.UIController;
 import de.team33.miditor.model.Selection;
 import de.team33.miditor.ui.sequence.Context;
@@ -46,19 +45,15 @@ public class MainFrame extends XFrame {
 
     private final Selection<Part> selection = new Selection<>();
     private final Music music;
-    private final EventEditor eventEditor;
-    private final CONTEXT context = new CONTEXT();
-    private final PLAY_CTRLS playCtrls = new PLAY_CTRLS();
-    private final SONG_CTRLS songCtrls = new SONG_CTRLS();
+    private final Factory factory;
 
     public MainFrame(final Music music, final Preferences prefs) {
         super(FRAME_TITLE, prefs);
-        final Factory factory = new Factory();
         this.music = music;
+        this.factory = new Factory();
 
         music.score().registry().add(Score.Channel.SetTracks, any -> selection.clear());
 
-        this.eventEditor = new EventEditor(music.score());
         setIconImage(Rsrc.MAIN_ICON.getImage());
         setContentPane(factory.mainPane());
         setLocationByPlatform(true);
@@ -69,10 +64,33 @@ public class MainFrame extends XFrame {
         music.registry().add(Music.Channel.SET_PATH, this::onSetFile);
     }
 
-    private class Factory extends de.team33.miditor.ui.Factory {
+    private final class Factory extends de.team33.miditor.ui.Factory implements Context {
+
+        private final EventEditor eventEditor;
+        private final PLAY_CTRLS playCtrls;
+        private final SONG_CTRLS songCtrls;
 
         private Factory() {
-            super(context::getMusic);
+            this.eventEditor = new EventEditor(score());
+            this.playCtrls = new PLAY_CTRLS();
+            this.songCtrls = new SONG_CTRLS();
+        }
+
+        public final Window window() {
+            return MainFrame.this;
+        }
+
+        @Override
+        public final Music music() {
+            return music;
+        }
+
+        public final Selection<Part> selection() {
+            return selection;
+        }
+
+        public final UIController partHandler() {
+            return eventEditor;
         }
 
         private JPanel mainPane() {
@@ -105,51 +123,11 @@ public class MainFrame extends XFrame {
         }
     }
 
-    private class CONTEXT implements Context, PlayerControls.Context {
-
-        public final Component getFrame() {
-            return MainFrame.this;
-        }
-
-        @Override
-        public final Music getMusic() {
-            return music;
-        }
-
-        @Override
-        public final Timing getTiming() {
-            return music.score().getTiming();
-        }
-
-        public final Player getPlayer() {
-            return music.player();
-        }
-
-        public final Selection<Part> getSelection() {
-            return selection;
-        }
-
-        public final Score getSequence() {
-            return music.score();
-        }
-
-        public final UIController getTrackHandler() {
-            return eventEditor;
-        }
-
-        public final Selection<Part> getTrackSelection() {
-            return selection;
-        }
-
-        public final Window getWindow() {
-            return MainFrame.this;
-        }
-    }
-
     private class PLAY_CTRLS extends PlayerControls {
 
-        protected final PlayerControls.Context getRootContext() {
-            return context;
+        @Override
+        protected de.team33.miditor.ui.Context getRootContext() {
+            return factory;
         }
     }
 
@@ -159,7 +137,7 @@ public class MainFrame extends XFrame {
 
     private class SONG_CTRLS extends SongControls {
         protected final Context getContext() {
-            return context;
+            return factory;
         }
     }
 }
