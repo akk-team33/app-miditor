@@ -9,13 +9,13 @@ import de.team33.miditor.controller.UIController;
 import de.team33.miditor.model.Selection;
 import de.team33.miditor.ui.sequence.Context;
 import de.team33.patterns.io.deimos.TextIO;
+import de.team33.sphinx.alpha.activity.Event;
+import de.team33.sphinx.alpha.visual.JPanels;
+import de.team33.sphinx.alpha.visual.JTabbedPanes;
 import de.team33.swing.XFrame;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 import java.nio.file.Path;
 import java.util.prefs.Preferences;
 
@@ -44,34 +44,64 @@ public class MainFrame extends XFrame {
         GBC_TRCK_EDIT = new GridBagConstraints(4, 1, 2, 1, 0.0, 1.0, 10, 1, GBC_INSETS, 0, 0);
     }
 
-    private final Selection<Part> selection;
+    private final Selection<Part> selection = new Selection<>();
     private final Music music;
     private final EventEditor eventEditor;
-    private final WindowListener m_WindowListener = new WINDOW_ADAPTER();
     private final CONTEXT context = new CONTEXT();
     private final PLAY_CTRLS playCtrls = new PLAY_CTRLS();
     private final SONG_CTRLS songCtrls = new SONG_CTRLS();
 
     public MainFrame(final Music music, final Preferences prefs) {
         super(FRAME_TITLE, prefs);
+        final Factory factory = new Factory();
         this.music = music;
-        this.selection = new Selection<>();
+
         music.score().registry().add(Score.Channel.SetTracks, any -> selection.clear());
 
         this.eventEditor = new EventEditor(music.score());
         setIconImage(Rsrc.MAIN_ICON.getImage());
-        setContentPane(new MAIN_PANE());
+        setContentPane(factory.mainPane());
         setLocationByPlatform(true);
-        addWindowListener(m_WindowListener);
+
+        Event.WINDOW_OPENED.add(this, ignored -> music.player().push(Player.Trigger.ON));
+        Event.WINDOW_CLOSED.add(this, ignored -> music.player().push(Player.Trigger.OFF));
 
         music.registry().add(Music.Channel.SET_PATH, this::onSetFile);
     }
 
-    private class CENTER_PANE extends JTabbedPane {
-        CENTER_PANE() {
-            super(1);
-            addTab("Track-Übersicht", (Icon) null, songCtrls.getTrackList(), "Übersicht über die im aktuellen Song enthaltenen 'Tonspuren' (Tracks)");
-            addTab("Event-Editor", (Icon) null, eventEditor.getComponent(), "Event-Editor");
+    private class Factory extends de.team33.miditor.ui.Factory {
+
+        private Factory() {
+            super(context::getMusic);
+        }
+
+        private JPanel mainPane() {
+            return JPanels.builder()
+                          .setLayout(new BorderLayout())
+                          .add(northPanel(), BorderLayout.NORTH)
+                          .add(centerPanel(), BorderLayout.CENTER)
+                          .build();
+        }
+
+        private JPanel northPanel() {
+            return JPanels.builder()
+                          .setLayout(new GridBagLayout())
+                          .setBorder(BorderFactory.createEmptyBorder(2, 2, 1, 1))
+                          .add(songCtrls.getFileControl(), GBC_FILE_CTRL)
+                          .add(songCtrls.getActionControl(), GBC_ACTN_CTRL)
+                          .add(new JPanel(), GBC_SPACE1)
+                          .add(playCtrls.getTempoControl(), GBC_TMPO_CTRL)
+                          .add(playCtrls.getDriveControl(), GBC_CTRL_PANE)
+                          .add(playCtrls.getLocator(), GBC_LCTR_PANE)
+                          .build();
+        }
+
+        private JTabbedPane centerPanel() {
+            return JTabbedPanes.builder()
+                               .setTabPlacement(JTabbedPane.TOP)
+                               .addTab("Track-Übersicht", null, songCtrls.getTrackList(), "Übersicht über die im aktuellen Song enthaltenen 'Tonspuren' (Tracks)")
+                               .addTab("Event-Editor", null, eventEditor.getComponent(), "Event-Editor")
+                               .build();
         }
     }
 
@@ -116,27 +146,6 @@ public class MainFrame extends XFrame {
         }
     }
 
-    private class MAIN_PANE extends JPanel {
-        public MAIN_PANE() {
-            super(new BorderLayout());
-            add(MainFrame.this.new NORTH_PANE(), "North");
-            add(MainFrame.this.new CENTER_PANE(), "Center");
-        }
-    }
-
-    private class NORTH_PANE extends JPanel {
-        public NORTH_PANE() {
-            super(new GridBagLayout());
-            setBorder(BorderFactory.createEmptyBorder(2, 2, 1, 1));
-            add(songCtrls.getFileControl(), MainFrame.GBC_FILE_CTRL);
-            add(songCtrls.getActionControl(), MainFrame.GBC_ACTN_CTRL);
-            add(new JPanel(), MainFrame.GBC_SPACE1);
-            add(playCtrls.getTempoControl(), MainFrame.GBC_TMPO_CTRL);
-            add(playCtrls.getDriveControl(), MainFrame.GBC_CTRL_PANE);
-            add(playCtrls.getLocator(), MainFrame.GBC_LCTR_PANE);
-        }
-    }
-
     private class PLAY_CTRLS extends PlayerControls {
 
         protected final PlayerControls.Context getRootContext() {
@@ -151,17 +160,6 @@ public class MainFrame extends XFrame {
     private class SONG_CTRLS extends SongControls {
         protected final Context getContext() {
             return context;
-        }
-    }
-
-    private class WINDOW_ADAPTER extends WindowAdapter {
-
-        public final void windowClosed(final WindowEvent e) {
-            music.player().push(Player.Trigger.OFF);
-        }
-
-        public final void windowOpened(final WindowEvent e) {
-            music.player().push(Player.Trigger.ON);
         }
     }
 }
