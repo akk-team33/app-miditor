@@ -98,7 +98,7 @@ public abstract class TrackList extends JScrollPane {
 
             public final void actionPerformed(final ActionEvent e) {
                 if (isSelected()) {
-                    Selection.set(getContext().selection(), getContext().score().getTracks());
+                    Selection.set(getContext().selection(), getContext().score().tracks());
                 } else {
                     getContext().selection().clear();
                 }
@@ -107,7 +107,7 @@ public abstract class TrackList extends JScrollPane {
 
         private void onUpdate(final Set<?> selection) {
             final int sel = selection.size();
-            setSelected((getContext().score().getTracks().size() - sel) < sel);
+            setSelected((getContext().score().tracks().size() - sel) < sel);
         }
     }
 
@@ -146,7 +146,7 @@ public abstract class TrackList extends JScrollPane {
         }
 
         private void onSetParts(final Score sequence) {
-            final List<Part> parts = sequence.getTracks();
+            final List<Part> parts = sequence.tracks();
             setVisible(false);
             removeAll();
             int k = parts.size();

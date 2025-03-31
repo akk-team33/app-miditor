@@ -102,7 +102,7 @@ public class EventEditor extends UIControllerImpl {
     }
 
     private void onSetParts(final Score sequence) {
-        final List<Part> parts = sequence.getTracks();
+        final List<Part> parts = sequence.tracks();
         final int size = parts.size();
         for (int index = 0; index < size; ++index) {
             final Part track = parts.get(index);

@@ -4,6 +4,10 @@ import javax.swing.*;
 import java.awt.event.ActionListener;
 
 public abstract class XButton extends JButton implements ActionListener {
+
+    protected XButton() {
+    }
+
     public XButton(final Icon ico) {
         super(ico);
         this.addActionListener(this);

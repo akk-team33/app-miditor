@@ -16,7 +16,7 @@ public class SongControls {
     }
 
     public final Component getActionControl() {
-        return new ACTN_CTRL();
+        return new ActionControl(context);
     }
 
     public final Component getFileControl() {
@@ -25,15 +25,6 @@ public class SongControls {
 
     public final Component getTrackList() {
         return new TRCK_LIST();
-    }
-
-    private class ACTN_CTRL extends ActionControl {
-        private ACTN_CTRL() {
-        }
-
-        protected final Context getContext() {
-            return context;
-        }
     }
 
     private class FILE_CTRL extends FileControl {

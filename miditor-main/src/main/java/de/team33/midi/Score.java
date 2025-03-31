@@ -81,7 +81,7 @@ public class Score extends Sender<Score> {
         return setModified();
     }
 
-    public final List<Part> getTracks() {
+    public final List<Part> tracks() {
         return features.get(Key.TRACKS);
     }
 
@@ -108,10 +108,10 @@ public class Score extends Sender<Score> {
 
     @SuppressWarnings("unused")
     final void setTempo(final int tempo) {
-        if (getTracks().isEmpty()) {
+        if (tracks().isEmpty()) {
             create(EMPTY);
         }
-        final Part track = getTracks().get(0);
+        final Part track = tracks().get(0);
         track.remove(Util.stream(track)
                          .filter(SET_TEMPO::isTypeOf)
                          .filter(event -> 0L == event.getTick())

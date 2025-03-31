@@ -1,43 +1,36 @@
 package de.team33.miditor.ui.sequence;
 
 import de.team33.midi.Metronome;
-import de.team33.midi.Part;
 import de.team33.miditor.ui.Rsrc;
-import de.team33.swing.XButton;
+import de.team33.sphinx.alpha.activity.Event;
+import de.team33.sphinx.alpha.visual.JButtons;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.util.List;
+import java.util.function.Consumer;
 
-public abstract class ActionControl extends JPanel {
-    public ActionControl() {
+public final class ActionControl extends JPanel {
+
+    private final Context context;
+
+    public ActionControl(final Context context) {
         super(new GridLayout(1, 0, 1, 1));
-        add(new CNT_IN_BTTN());
-        add(new REVMESURE_BTTN());
-        add(new REVBEAT_BTTN());
-        add(new FWDBEAT_BTTN());
-        add(new FWDMESURE_BTTN());
+        this.context = context;
+
+        add(metronomeButton());
+        add(revShiftBarButton());
+        add(revShiftBeatButton());
+        add(fwdShiftBeatButton());
+        add(fwdShiftBarButton());
     }
 
-    protected abstract Context getContext();
-
-    private abstract class BUTTON extends XButton {
-        public BUTTON(final Icon ico) {
-            super(ico);
-            setMargin(new Insets(1, 1, 1, 1));
-        }
-    }
-
-    private class CNT_IN_BTTN extends BUTTON {
-        public CNT_IN_BTTN() {
-            super(Rsrc.METRONOM);
-            setToolTipText("Metronom-Spur anlegen");
-        }
-
-        public final void actionPerformed(final ActionEvent e) {
-            getContext().score().create(new Metronome(newMetronomeParameter()));
-        }
+    private JButton metronomeButton() {
+        final Metronome.Parameter parameter = newMetronomeParameter();
+        final Consumer<ActionEvent> action = any -> context.score().create(new Metronome(parameter));
+        return stdButton(action).setIcon(Rsrc.METRONOM)
+                                .setToolTipText("Create a metronome 'part'")
+                                .build();
     }
 
     private Metronome.Parameter newMetronomeParameter() {
@@ -52,7 +45,7 @@ public abstract class ActionControl extends JPanel {
             }
 
             public long getMax() {
-                return getContext().score().getTickLength();
+                return context.score().getTickLength();
             }
 
             public long getMin() {
@@ -60,75 +53,52 @@ public abstract class ActionControl extends JPanel {
             }
 
             public int getNoteNo(final long pos) {
-                return pos % (long) getContext().score().getTiming().barTicks() == 0L ? 76 : 77;
+                return pos % (long) context.score().getTiming().barTicks() == 0L ? 76 : 77;
             }
 
             public int getRes() {
-                return getContext().score().getTiming().beatTicks();
+                return context.score().getTiming().beatTicks();
             }
         };
     }
 
-    private class FWDBEAT_BTTN extends SHIFT_BTTN {
-        public FWDBEAT_BTTN() {
-            super(">");
-            setToolTipText("Events um einen Schlag nach 'rechts' verschieben");
-        }
-
-        protected final long getDelta() {
-            return getContext().score().getTiming().beatTicks();
-        }
+    private JButton fwdShiftBeatButton() {
+        final int delta = context.timing().beatTicks();
+        return shiftButton(delta).setText(">")
+                                 .setToolTipText("Move events one beat to the 'right'")
+                                 .build();
     }
 
-    private class FWDMESURE_BTTN extends SHIFT_BTTN {
-        public FWDMESURE_BTTN() {
-            super(">>");
-            setToolTipText("Events um einen Takt nach 'rechts' verschieben");
-        }
-
-        protected final long getDelta() {
-            return getContext().score().getTiming().barTicks();
-        }
+    private JButton fwdShiftBarButton() {
+        final int delta = context.timing().barTicks();
+        return shiftButton(delta).setText(">>")
+                                 .setToolTipText("Move events one bar to the 'right'")
+                                 .build();
     }
 
-    private class REVBEAT_BTTN extends SHIFT_BTTN {
-        public REVBEAT_BTTN() {
-            super("<");
-            setToolTipText("Events um einen Schlag nach 'links' verschieben");
-        }
-
-        protected final long getDelta() {
-            return -(long) getContext().score().getTiming().beatTicks();
-        }
+    private JButton revShiftBeatButton() {
+        final int delta = -context.timing().beatTicks();
+        return shiftButton(delta).setText("<")
+                                 .setToolTipText("Move events one beat to the 'left'")
+                                 .build();
     }
 
-    private class REVMESURE_BTTN extends SHIFT_BTTN {
-        public REVMESURE_BTTN() {
-            super("<<");
-            setToolTipText("Events um einen Takt nach 'links' verschieben");
-        }
-
-        protected final long getDelta() {
-            return -(long) getContext().score().getTiming().barTicks();
-        }
+    private JButton revShiftBarButton() {
+        final int delta = -context.timing().barTicks();
+        return shiftButton(delta).setText("<<")
+                                 .setToolTipText("Move events one bar to the 'left'")
+                                 .build();
     }
 
-    private abstract class SHIFT_BTTN extends XButton {
-        public SHIFT_BTTN(final String text) {
-            super(text);
-            setMargin(new Insets(1, 1, 1, 1));
-        }
+    private JButtons.Builder<?> shiftButton(final long delta) {
+        return stdButton(any -> context.score()
+                                       .tracks()
+                                       .forEach(part -> part.shift(delta)));
+    }
 
-        protected abstract long getDelta();
-
-        public final void actionPerformed(final ActionEvent e) {
-            final List<Part> var5;
-            final int var4 = (var5 = getContext().score().getTracks()).size();
-
-            for (int var3 = 0; var3 < var4; ++var3) {
-                final Part t = var5.get(var3);
-                t.shift(getDelta());
-            }
-        }
+    private static JButtons.Builder<?> stdButton(final Consumer<ActionEvent> action) {
+        return JButtons.builder()
+                       .setMargin(new Insets(1, 1, 1, 1))
+                       .on(Event.ACTION_PERFORMED, action);
     }
 }
