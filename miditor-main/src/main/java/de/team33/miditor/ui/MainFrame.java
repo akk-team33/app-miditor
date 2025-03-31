@@ -68,7 +68,7 @@ public class MainFrame extends XFrame {
         setTitle(String.format(FRAME_TITLE, path));
     }
 
-    private final class Factory extends de.team33.miditor.ui.Factory implements Context {
+    private final class Factory implements Context {
 
         private final EventEditor eventEditor;
 
