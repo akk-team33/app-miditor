@@ -17,4 +17,9 @@ public final class Basics {
                        .setIcon(icon)
                        .setMargin(INSETS_1111);
     }
+
+    public static void setFont(final JComponent component, final int style, final int size) {
+        final String name = component.getFont().getName();
+        component.setFont(new Font(name, style, size));
+    }
 }

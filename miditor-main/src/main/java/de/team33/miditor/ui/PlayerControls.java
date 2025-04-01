@@ -17,8 +17,8 @@ public abstract class PlayerControls {
         return DriveControl.by(getRootContext());
     }
 
-    public final Component getLocator() {
-        return new LOCATOR();
+    public final JPanel getLocator() {
+        return Locator.by(getRootContext());
     }
 
     public final Component getTempoControl() {
@@ -26,15 +26,6 @@ public abstract class PlayerControls {
     }
 
     protected abstract Context getRootContext();
-
-    private class LOCATOR extends Locator {
-        private LOCATOR() {
-        }
-
-        protected final Context getContext() {
-            return PlayerControls.this.getRootContext();
-        }
-    }
 
     private class TMPO_CTRL extends TempoControl {
         private TMPO_CTRL() {
