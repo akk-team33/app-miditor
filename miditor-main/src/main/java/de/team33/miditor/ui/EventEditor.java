@@ -66,7 +66,7 @@ public class EventEditor extends UIControllerImpl {
         }
 
         protected final Timing getTiming() {
-            return score.getTiming();
+            return score.timing();
         }
     }
 

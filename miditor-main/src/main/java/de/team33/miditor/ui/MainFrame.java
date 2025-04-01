@@ -4,7 +4,6 @@ import de.team33.midi.Music;
 import de.team33.midi.Part;
 import de.team33.midi.Player;
 import de.team33.midi.Score;
-import de.team33.midi.Timing;
 import de.team33.miditor.controller.UIController;
 import de.team33.miditor.model.Selection;
 import de.team33.miditor.ui.sequence.Context;
@@ -75,44 +74,27 @@ public class MainFrame extends XFrame {
         }
     }
 
-    private class CONTEXT implements Context, PlayerControls.Context {
+    private class CONTEXT implements Context {
 
-        public final Component getFrame() {
+        public final Window window() {
             return MainFrame.this;
         }
 
         @Override
-        public final Music getMusic() {
+        public final Music music() {
             return music;
         }
 
-        @Override
-        public final Timing getTiming() {
-            return music.score().getTiming();
-        }
-
-        public final Player getPlayer() {
-            return music.player();
-        }
-
-        public final Selection<Part> getSelection() {
+        public final Selection<Part> selection() {
             return selection;
         }
 
-        public final Score getSequence() {
-            return music.score();
-        }
-
-        public final UIController getTrackHandler() {
+        public final UIController trackHandler() {
             return eventEditor;
         }
 
         public final Selection<Part> getTrackSelection() {
             return selection;
-        }
-
-        public final Window getWindow() {
-            return MainFrame.this;
         }
     }
 
@@ -139,7 +121,7 @@ public class MainFrame extends XFrame {
 
     private class PLAY_CTRLS extends PlayerControls {
 
-        protected final PlayerControls.Context getRootContext() {
+        protected final Context getRootContext() {
             return context;
         }
     }

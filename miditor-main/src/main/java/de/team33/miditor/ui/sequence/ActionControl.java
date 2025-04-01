@@ -36,7 +36,7 @@ public abstract class ActionControl extends JPanel {
         }
 
         public final void actionPerformed(final ActionEvent e) {
-            getContext().getSequence().create(new Metronome(newMetronomeParameter()));
+            getContext().score().create(new Metronome(newMetronomeParameter()));
         }
     }
 
@@ -52,7 +52,7 @@ public abstract class ActionControl extends JPanel {
             }
 
             public long getMax() {
-                return getContext().getSequence().getTickLength();
+                return getContext().score().getTickLength();
             }
 
             public long getMin() {
@@ -60,11 +60,11 @@ public abstract class ActionControl extends JPanel {
             }
 
             public int getNoteNo(final long pos) {
-                return pos % (long) getContext().getSequence().getTiming().barTicks() == 0L ? 76 : 77;
+                return pos % (long) getContext().score().timing().barTicks() == 0L ? 76 : 77;
             }
 
             public int getRes() {
-                return getContext().getSequence().getTiming().beatTicks();
+                return getContext().score().timing().beatTicks();
             }
         };
     }
@@ -76,7 +76,7 @@ public abstract class ActionControl extends JPanel {
         }
 
         protected final long getDelta() {
-            return getContext().getSequence().getTiming().beatTicks();
+            return getContext().score().timing().beatTicks();
         }
     }
 
@@ -87,7 +87,7 @@ public abstract class ActionControl extends JPanel {
         }
 
         protected final long getDelta() {
-            return getContext().getSequence().getTiming().barTicks();
+            return getContext().score().timing().barTicks();
         }
     }
 
@@ -98,7 +98,7 @@ public abstract class ActionControl extends JPanel {
         }
 
         protected final long getDelta() {
-            return -(long) getContext().getSequence().getTiming().beatTicks();
+            return -(long) getContext().score().timing().beatTicks();
         }
     }
 
@@ -109,7 +109,7 @@ public abstract class ActionControl extends JPanel {
         }
 
         protected final long getDelta() {
-            return -(long) getContext().getSequence().getTiming().barTicks();
+            return -(long) getContext().score().timing().barTicks();
         }
     }
 
@@ -123,7 +123,7 @@ public abstract class ActionControl extends JPanel {
 
         public final void actionPerformed(final ActionEvent e) {
             final List<Part> var5;
-            final int var4 = (var5 = getContext().getSequence().getTracks()).size();
+            final int var4 = (var5 = getContext().score().getTracks()).size();
 
             for (int var3 = 0; var3 < var4; ++var3) {
                 final Part t = var5.get(var3);

@@ -135,7 +135,7 @@ public class Score extends Sender<Score> {
         }
     }
 
-    public final Timing getTiming() {
+    public final Timing timing() {
         return features.get(Key.TIMING);
     }
 

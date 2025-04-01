@@ -37,7 +37,7 @@ public abstract class TrackControls {
     private class CHANNEL_PANE extends JPanel {
         CHANNEL_PANE() {
             super(new BorderLayout());
-            getContext().getTrack().registry().add(Part.Channel.SetChannels, this::onSetChannels);
+            getContext().part().registry().add(Part.Channel.SetChannels, this::onSetChannels);
         }
 
         private void onSetChannels(final Part track) {
@@ -61,24 +61,24 @@ public abstract class TrackControls {
         }
 
         public final void actionPerformed(final ActionEvent e) {
-            getContext().getTrackHandler().setTrack(getContext().getTrack());
+            getContext().trackHandler().setTrack(getContext().part());
             setSelected(false);
         }
     }
 
     private class INDEX_PANE extends JCheckBox {
         public INDEX_PANE() {
-            super(getContext().getTrack().getPrefix());
-            getContext().getTrack().registry().add(Part.Channel.SetModified, this::onSetModified);
-            getContext().getSelection().registry().add(Selection.Event.UPDATE, this::onSelection);
+            super(getContext().part().getPrefix());
+            getContext().part().registry().add(Part.Channel.SetModified, this::onSetModified);
+            getContext().selection().registry().add(Selection.Event.UPDATE, this::onSelection);
             addActionListener(this::onAction);
         }
 
         private void onAction(final ActionEvent e) {
             if (isSelected()) {
-                getContext().getSelection().add(getContext().getTrack());
+                getContext().selection().add(getContext().part());
             } else {
-                getContext().getSelection().remove(getContext().getTrack());
+                getContext().selection().remove(getContext().part());
             }
         }
 
@@ -87,7 +87,7 @@ public abstract class TrackControls {
         }
 
         private void onSelection(final Set<?> selection) {
-            setSelected(selection.contains(getContext().getTrack()));
+            setSelected(selection.contains(getContext().part()));
         }
     }
 
@@ -102,21 +102,21 @@ public abstract class TrackControls {
     private class MUTE_BUTTON extends SmallButton {
         private MUTE_BUTTON() {
             super("mute");
-            getContext().getPlayer().registry()
+            getContext().player().registry()
                         .add(Player.Channel.SET_MODES, this::onSetModes);
         }
 
         public final void actionPerformed(final ActionEvent e) {
             if (isSelected()) {
-                getContext().getPlayer().setMode(getContext().getIndex(), TrackMode.MUTE);
+                getContext().player().setMode(getContext().index(), TrackMode.MUTE);
             } else {
-                getContext().getPlayer().setMode(getContext().getIndex(), TrackMode.NORMAL);
+                getContext().player().setMode(getContext().index(), TrackMode.NORMAL);
             }
 
         }
 
         private void onSetModes(final List<TrackMode> modes) {
-            final int index = getContext().getIndex();
+            final int index = getContext().index();
             if (0 <= index && index < modes.size()) {
                 final TrackMode mode = modes.get(index);
                 setSelected(TrackMode.MUTE == mode);
@@ -127,7 +127,7 @@ public abstract class TrackControls {
     private class NAME_PANE extends XTextField {
         public NAME_PANE() {
             super(12);
-            getContext().getTrack().registry().add(Part.Channel.SetName, this::onSetName);
+            getContext().part().registry().add(Part.Channel.SetName, this::onSetName);
         }
 
         private void onSetName(final Part track) {
@@ -138,21 +138,21 @@ public abstract class TrackControls {
     private class SOLO_BUTTON extends SmallButton {
         public SOLO_BUTTON() {
             super("solo");
-            getContext().getPlayer().registry()
+            getContext().player().registry()
                         .add(Player.Channel.SET_MODES, this::onSetModes);
         }
 
         public final void actionPerformed(final ActionEvent e) {
             if (isSelected()) {
-                getContext().getPlayer().setMode(getContext().getIndex(), TrackMode.SOLO);
+                getContext().player().setMode(getContext().index(), TrackMode.SOLO);
             } else {
-                getContext().getPlayer().setMode(getContext().getIndex(), TrackMode.NORMAL);
+                getContext().player().setMode(getContext().index(), TrackMode.NORMAL);
             }
 
         }
 
         private void onSetModes(final List<TrackMode> modes) {
-            final int index = getContext().getIndex();
+            final int index = getContext().index();
             if (0 <= index && index < modes.size()) {
                 final TrackMode mode = modes.get(index);
                 setSelected(TrackMode.SOLO == mode);
@@ -166,7 +166,7 @@ public abstract class TrackControls {
         }
 
         public final void actionPerformed(final ActionEvent e) {
-            getContext().getSequence().split(getContext().getTrack());
+            getContext().score().split(getContext().part());
             setSelected(false);
         }
     }

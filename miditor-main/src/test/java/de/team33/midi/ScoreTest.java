@@ -110,7 +110,7 @@ class ScoreTest extends MidiTestBase {
 
     @Test
     final void getTiming() {
-        assertEquals(new Timing(4, 4, 192, 59230), score.getTiming());
+        assertEquals(new Timing(4, 4, 192, 59230), score.timing());
     }
 
     @Test

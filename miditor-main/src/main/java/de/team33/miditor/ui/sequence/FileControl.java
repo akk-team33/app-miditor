@@ -32,16 +32,16 @@ public abstract class FileControl extends JPanel {
         public SAVE_BTTN() {
             super(Rsrc.SAVEICON);
             setToolTipText("MIDI-Sequenz speichern");
-            getContext().getSequence().registry().add(Score.Channel.SetModified, this::onSetModified);
+            getContext().score().registry().add(Score.Channel.SetModified, this::onSetModified);
         }
 
         public final void actionPerformed(final ActionEvent e) {
             try {
-                getContext().getMusic().save();
+                getContext().music().save();
             } catch (final IOException var3) {
-                JOptionPane.showMessageDialog(getContext().getFrame(),
+                JOptionPane.showMessageDialog(getContext().window(),
                                               "Die Datei\n\t" +
-                                              getContext().getMusic().path() +
+                                              getContext().music().path() +
                                               "\nkonnte nicht gespeichert werden.\n" +
                                               "\nEventuell ist die Datei schreibgeschützt" +
                                               "\noder Ihnen fehlen die notwendigen Rechte.",
@@ -68,11 +68,11 @@ public abstract class FileControl extends JPanel {
         }
 
         public final void actionPerformed(final ActionEvent e) {
-            final JFileChooser chooser = new JFileChooser(getContext().getMusic().path().getParent().toFile());
+            final JFileChooser chooser = new JFileChooser(getContext().music().path().getParent().toFile());
             final CMidiFileFilter filter = new CMidiFileFilter();
             chooser.setDialogTitle("Song speichern");
             chooser.setFileFilter(filter);
-            final int returnVal = chooser.showSaveDialog(getContext().getFrame());
+            final int returnVal = chooser.showSaveDialog(getContext().window());
             if (returnVal == 0) {
                 try {
                     File f = chooser.getSelectedFile();
@@ -80,9 +80,9 @@ public abstract class FileControl extends JPanel {
                         f = new File(f.getParentFile(), f.getName() + ".mid");
                     }
 
-                    getContext().getMusic().saveAs(f.toPath());
+                    getContext().music().saveAs(f.toPath());
                 } catch (final IOException var6) {
-                    JOptionPane.showMessageDialog(getContext().getFrame(),
+                    JOptionPane.showMessageDialog(getContext().window(),
                                                   "Die Datei\n\t" +
                                                   chooser.getSelectedFile() +
                                                   "\nkonnte nicht gespeichert werden.\n" +

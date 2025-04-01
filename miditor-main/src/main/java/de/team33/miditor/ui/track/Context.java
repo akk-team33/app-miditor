@@ -7,15 +7,26 @@ import de.team33.miditor.controller.UIController;
 import de.team33.miditor.model.Selection;
 
 public interface Context {
-    int getIndex();
 
-    Score getSequence();
+    de.team33.miditor.ui.sequence.Context backing();
 
-    Part getTrack();
+    int index();
 
-    Player getPlayer();
+    Part part();
 
-    Selection<Part> getSelection();
+    default Score score() {
+        return backing().score();
+    }
 
-    UIController getTrackHandler();
+    default Player player() {
+        return backing().player();
+    }
+
+    default Selection<Part> selection() {
+        return backing().selection();
+    }
+
+    default UIController trackHandler() {
+        return backing().trackHandler();
+    }
 }

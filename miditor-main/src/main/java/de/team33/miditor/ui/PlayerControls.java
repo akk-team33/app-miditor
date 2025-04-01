@@ -25,9 +25,6 @@ public abstract class PlayerControls {
 
     protected abstract Context getRootContext();
 
-    public interface Context extends de.team33.miditor.ui.player.Context {
-    }
-
     private class DRV_CTRL extends DriveControl {
         private DRV_CTRL() {
         }
@@ -51,7 +48,7 @@ public abstract class PlayerControls {
         }
 
         protected final Player getPlayer() {
-            return PlayerControls.this.getRootContext().getPlayer();
+            return PlayerControls.this.getRootContext().player();
         }
     }
 }

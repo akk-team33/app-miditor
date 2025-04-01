@@ -1,9 +1,7 @@
 package de.team33.miditor.ui.sequence;
 
 import de.team33.midi.Part;
-import de.team33.midi.Player;
 import de.team33.midi.Score;
-import de.team33.miditor.controller.UIController;
 import de.team33.miditor.model.Selection;
 import de.team33.miditor.ui.SmallButton;
 import de.team33.miditor.ui.TrackControls;
@@ -48,11 +46,11 @@ public abstract class TrackList extends JScrollPane {
             super(lbl);
             this.min = min;
             this.max = max;
-            getContext().getSelection().registry().add(Selection.Event.UPDATE, this::onUpdate);
+            getContext().selection().registry().add(Selection.Event.UPDATE, this::onUpdate);
         }
 
         public final void actionPerformed(final ActionEvent e) {
-            doActionWith(getContext().getSelection());
+            doActionWith(getContext().selection());
             setSelected(false);
         }
 
@@ -71,7 +69,7 @@ public abstract class TrackList extends JScrollPane {
         }
 
         protected final void doActionWith(final Collection<Part> trcks) {
-            getContext().getSequence().delete(trcks);
+            getContext().score().delete(trcks);
         }
     }
 
@@ -81,14 +79,14 @@ public abstract class TrackList extends JScrollPane {
         }
 
         protected final void doActionWith(final Collection<Part> trcks) {
-            getContext().getSequence().join(trcks);
+            getContext().score().join(trcks);
         }
     }
 
     private class SELECTOR extends JCheckBox {
         SELECTOR() {
             super("alle");
-            getContext().getSelection().registry().add(Selection.Event.UPDATE, this::onUpdate);
+            getContext().selection().registry().add(Selection.Event.UPDATE, this::onUpdate);
             addActionListener(new ACTN_CLNT());
         }
 
@@ -98,16 +96,16 @@ public abstract class TrackList extends JScrollPane {
 
             public final void actionPerformed(final ActionEvent e) {
                 if (isSelected()) {
-                    Selection.set(getContext().getSelection(), getContext().getSequence().getTracks());
+                    Selection.set(getContext().selection(), getContext().score().getTracks());
                 } else {
-                    getContext().getSelection().clear();
+                    getContext().selection().clear();
                 }
             }
         }
 
         private void onUpdate(final Set<?> selection) {
             final int sel = selection.size();
-            setSelected((getContext().getSequence().getTracks().size() - sel) < sel);
+            setSelected((getContext().score().getTracks().size() - sel) < sel);
         }
     }
 
@@ -127,11 +125,11 @@ public abstract class TrackList extends JScrollPane {
         }
 
         protected final Selection<Part> getSelection() {
-            return getContext().getSelection();
+            return getContext().selection();
         }
 
         protected final Score getSequence() {
-            return getContext().getSequence();
+            return getContext().score();
         }
     }
 
@@ -142,7 +140,7 @@ public abstract class TrackList extends JScrollPane {
 
         TABLE() {
             super(new GridBagLayout());
-            getContext().getSequence().registry().add(Score.Channel.SetTracks, this::onSetParts);
+            getContext().score().registry().add(Score.Channel.SetTracks, this::onSetParts);
         }
 
         private void onSetParts(final Score sequence) {
@@ -167,37 +165,27 @@ public abstract class TrackList extends JScrollPane {
         }
     }
 
-    private class TRCK_CONTEXT implements de.team33.miditor.ui.track.Context {
-        private final int m_Index;
-        private final Part m_Track;
+    private class PartContext implements de.team33.miditor.ui.track.Context {
 
-        TRCK_CONTEXT(final Part p, final int index) {
-            m_Index = index;
-            m_Track = p;
+        private final int index;
+        private final Part part;
+
+        PartContext(final Part part, final int index) {
+            this.index = index;
+            this.part = part;
         }
 
-        public final int getIndex() {
-            return m_Index;
+        @Override
+        public final Context backing() {
+            return getContext();
         }
 
-        public final Player getPlayer() {
-            return getContext().getPlayer();
+        public final int index() {
+            return index;
         }
 
-        public final Selection<Part> getSelection() {
-            return getContext().getSelection();
-        }
-
-        public final Score getSequence() {
-            return getContext().getSequence();
-        }
-
-        public final Part getTrack() {
-            return m_Track;
-        }
-
-        public final UIController getTrackHandler() {
-            return getContext().getTrackHandler();
+        public final Part part() {
+            return part;
         }
     }
 
@@ -205,7 +193,7 @@ public abstract class TrackList extends JScrollPane {
         private final de.team33.miditor.ui.track.Context m_Context;
 
         public TRCK_CTRL(final Part p, final int index) {
-            m_Context = TrackList.this.new TRCK_CONTEXT(p, index);
+            m_Context = TrackList.this.new PartContext(p, index);
         }
 
         protected final de.team33.miditor.ui.track.Context getContext() {
