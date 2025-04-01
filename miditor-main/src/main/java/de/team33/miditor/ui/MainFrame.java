@@ -114,7 +114,7 @@ public class MainFrame extends XFrame {
             add(songCtrls.getActionControl(), MainFrame.GBC_ACTN_CTRL);
             add(new JPanel(), MainFrame.GBC_SPACE1);
             add(playCtrls.getTempoControl(), MainFrame.GBC_TMPO_CTRL);
-            add(playCtrls.getDriveControl(), MainFrame.GBC_CTRL_PANE);
+            add(playCtrls.newDriveControl(), MainFrame.GBC_CTRL_PANE);
             add(playCtrls.getLocator(), MainFrame.GBC_LCTR_PANE);
         }
     }

@@ -1,138 +1,90 @@
 package de.team33.miditor.ui.player;
 
 import de.team33.midi.Player;
+import de.team33.miditor.ui.Basics;
 import de.team33.miditor.ui.Context;
 import de.team33.miditor.ui.Rsrc;
+import de.team33.sphinx.alpha.activity.Event;
+import de.team33.sphinx.alpha.visual.JPanels;
 
 import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 
-public abstract class DriveControl extends JPanel {
-    public DriveControl() {
-        super(new GridLayout(1, 0, 1, 1));
-        add(new REW_BUTTON());
-        add(new SBUTTON(Player.Trigger.START));
-        add(new SBUTTON(Player.Trigger.PAUSE));
-        add(new SBUTTON(Player.Trigger.STOP));
-        add(new FWD_BUTTON());
+public final class DriveControl {
+
+    private final Context context;
+
+    private DriveControl(final Context context) {
+        this.context = context;
     }
 
-    protected abstract Context getContext();
-
-    private static class ICOBUTTON extends JButton {
-        public ICOBUTTON(final Icon ico) {
-            setIcon(ico);
-            setMargin(new Insets(1, 1, 1, 1));
-        }
+    public static JPanel by(final Context context) {
+        return new DriveControl(context).build();
     }
 
-    private class FWD_BUTTON extends LOC_BUTTON {
-        public FWD_BUTTON() {
-            super(Rsrc.DC_FWDICON);
-        }
-
-        protected final void relocate() {
-            final long ticksPerMeasure = getContext().timing().barTicks();
-            long threshold = 1L;
-            threshold *= ticksPerMeasure;
-            threshold /= 4L;
-            long ticks = getContext().player().getPosition();
-            ticks += threshold;
-            ticks /= ticksPerMeasure;
-            ++ticks;
-            ticks *= ticksPerMeasure;
-            getContext().player().setPosition(ticks);
-        }
+    private static JButton locatorButton(final Icon ico, final Runnable action) {
+        return Basics.iconButton(ico)
+                     .on(Event.ACTION_PERFORMED, any -> action.run())
+                     .build();
     }
 
-    private abstract class LOC_BUTTON extends ICOBUTTON {
-        public LOC_BUTTON(final Icon ico) {
-            super(ico);
-            addActionListener(new LISTENER());
-        }
-
-        protected abstract void relocate();
-
-        private class LISTENER implements ActionListener {
-            private LISTENER() {
+    private static void onSetState(final JButton button, final Player.Trigger trigger, final Player.State state) {
+        button.setEnabled(Player.Trigger.effectiveOn(state).contains(trigger));
+        final JRootPane rp = button.getRootPane();
+        if (null != rp) {
+            if ((Player.Trigger.START == trigger) && (Player.State.RUNNING != state)) {
+                rp.setDefaultButton(button);
+                button.requestFocus();
             }
 
-            public final void actionPerformed(final ActionEvent e) {
-                relocate();
+            if ((Player.Trigger.STOP == trigger) && (Player.State.RUNNING == state)) {
+                rp.setDefaultButton(button);
+            }
+
+            if ((Player.Trigger.PAUSE == trigger) && (Player.State.RUNNING == state)) {
+                button.requestFocus();
             }
         }
     }
 
-    private class REW_BUTTON extends LOC_BUTTON {
-        public REW_BUTTON() {
-            super(Rsrc.DC_REWICON);
-        }
-
-        protected final void relocate() {
-            final long ticksPerMeasure = getContext().timing().barTicks();
-            long threshold = 1L;
-            threshold *= ticksPerMeasure;
-            threshold *= 3L;
-            threshold /= 4L;
-            long ticks = getContext().player().getPosition();
-            ticks += threshold;
-            ticks /= ticksPerMeasure;
-            --ticks;
-            ticks *= ticksPerMeasure;
-            getContext().player().setPosition(ticks);
-        }
+    private JPanel build() {
+        return JPanels.builder()
+                      .add(rewButton())
+                      .add(triggerButton(Player.Trigger.START))
+                      .add(triggerButton(Player.Trigger.PAUSE))
+                      .add(triggerButton(Player.Trigger.STOP))
+                      .add(fwdButton())
+                      .build();
     }
 
-    private class SBUTTON extends ICOBUTTON {
-        private final Player.Trigger trigger;
+    private JButton fwdButton() {
+        return locatorButton(Rsrc.DC_FWDICON, this::forwardBar);
+    }
 
-        SBUTTON(final Player.Trigger trigger) {
-            super(Rsrc.dcIcon(trigger));
-            this.trigger = trigger;
-            getContext().player().registry()
-                        .add(Player.Channel.SET_STATE, this::onSetState);
-            getContext().window()
-                        .addWindowListener(new CLIENT3());
-            addActionListener(this::onActionPerformed);
-        }
+    private JButton rewButton() {
+        return locatorButton(Rsrc.DC_REWICON, this::rewindBar);
+    }
 
-        private void _setState(final Player.State state) {
-            synchronized (this) {
-                setEnabled(Player.Trigger.effectiveOn(state).contains(trigger));
-                final JRootPane rp = getRootPane();
-                if (null != rp) {
-                    if ((Player.Trigger.START == trigger) && (Player.State.RUNNING != state)) {
-                        rp.setDefaultButton(this);
-                        requestFocus();
-                    }
+    private void forwardBar() {
+        final long barTicks = context.timing().barTicks();
+        final long oldPosition = context.player().getPosition();
+        final long newPosition = ((oldPosition / barTicks) + 1) * barTicks;
+        context.player().setPosition(newPosition);
+    }
 
-                    if ((Player.Trigger.STOP == trigger) && (Player.State.RUNNING == state)) {
-                        rp.setDefaultButton(this);
-                    }
+    private void rewindBar() {
+        final long barTicks = context.timing().barTicks();
+        final long beatTicks = context.timing().beatTicks();
+        final long oldPosition = context.player().getPosition();
+        final long newPosition = ((oldPosition - beatTicks) / barTicks) * barTicks;
+        context.player().setPosition(newPosition);
+    }
 
-                    if ((Player.Trigger.PAUSE == trigger) && (Player.State.RUNNING == state)) {
-                        requestFocus();
-                    }
-                }
-            }
-        }
-
-        private void onActionPerformed(final ActionEvent e) {
-            getContext().player().push(trigger);
-        }
-
-        private void onSetState(final Player.State state) {
-            _setState(state);
-        }
-
-        private class CLIENT3 extends WindowAdapter {
-            public final void windowOpened(final WindowEvent e) {
-                _setState(getContext().player().getState());
-            }
-        }
+    private JButton triggerButton(final Player.Trigger trigger) {
+        return Basics.iconButton(Rsrc.dcIcon(trigger))
+                     .setup(button -> context.player().registry()
+                                             .add(Player.Channel.SET_STATE,
+                                                  state -> onSetState(button, trigger, state)))
+                     .on(Event.ACTION_PERFORMED, any -> context.player().push(trigger))
+                     .build();
     }
 }

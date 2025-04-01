@@ -5,14 +5,16 @@ import de.team33.miditor.ui.player.DriveControl;
 import de.team33.miditor.ui.player.Locator;
 import de.team33.miditor.ui.player.TempoControl;
 
+import javax.swing.*;
 import java.awt.*;
 
 public abstract class PlayerControls {
+
     public PlayerControls() {
     }
 
-    public final Component getDriveControl() {
-        return new DRV_CTRL();
+    public final JPanel newDriveControl() {
+        return DriveControl.by(getRootContext());
     }
 
     public final Component getLocator() {
@@ -24,15 +26,6 @@ public abstract class PlayerControls {
     }
 
     protected abstract Context getRootContext();
-
-    private class DRV_CTRL extends DriveControl {
-        private DRV_CTRL() {
-        }
-
-        protected final Context getContext() {
-            return PlayerControls.this.getRootContext();
-        }
-    }
 
     private class LOCATOR extends Locator {
         private LOCATOR() {
