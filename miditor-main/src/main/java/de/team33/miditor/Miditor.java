@@ -36,6 +36,7 @@ public class Miditor implements Runnable {
                 try {
                     (new MainFrame(Music.loader(new SimpleAsyncExecutor()).load(f.toPath()), PREFS.node("MainFrame"))).setVisible(true);
                 } catch (final RuntimeException e) {
+                    e.printStackTrace();
                     JOptionPane.showMessageDialog(null, "Auf diesem System steht Ihnen anscheinend\nleider kein MIDI Subsystem zur Verfügung.\n\nDie Datei\n\t" + arg + "\nkonnte nicht geöffnet werden.", "MIDI-System fehlt", 0);
                 } catch (final InvalidMidiDataException e) {
                     JOptionPane.showMessageDialog(null, "Die Datei\n\t" + arg + "\nentspricht anscheinend nicht dem Standard MIDI File Format.\n\nEventuell lässt sie sich aber mit Hilfe eines anderen Tools konvertieren.", "Dateiformat unbekannt", 0);

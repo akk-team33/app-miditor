@@ -21,7 +21,7 @@ public abstract class XSpinner extends JLabel {
     private Color m_Foreground;
 
     public XSpinner() {
-        this.setCursor(new Cursor(8));
+        this.setCursor(new Cursor(Cursor.N_RESIZE_CURSOR));
         this.setFocusable(true);
         this.m_Opaque = this.isOpaque();
         this.m_Background = this.getBackground();
